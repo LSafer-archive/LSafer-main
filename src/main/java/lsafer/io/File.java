@@ -37,7 +37,6 @@ public class File extends java.io.File {
      * needs to replace the hole object
      * to effect results
      * such as renaming or moving the file.
-     * xxxx
      */
     public File self = this;
 
