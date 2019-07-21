@@ -38,7 +38,7 @@ public class File extends java.io.File {
      * to effect results
      * such as renaming or moving the file.
      *
-     * hello
+     * hello2
      */
     public File self = this;
 
