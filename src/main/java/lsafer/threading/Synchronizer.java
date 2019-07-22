@@ -2,7 +2,7 @@ package lsafer.threading;
 
 import java.util.ArrayList;
 
-import lsafer.lang.Structure;
+import lsafer.util.Structure;
 
 /**
  * used to be the communication method between 2 threads one of them contains long loop

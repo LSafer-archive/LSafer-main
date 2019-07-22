@@ -2,23 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="52d30c4e-4a8e-43d2-b88d-47498bb960b5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gradle/4.4/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/4.4/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/4.4/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/4.4/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/executionHistory/executionHistory.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/executionHistory/executionHistory.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/io/FolderStructure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/io/FolderStructure.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/io/IOStructure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/io/IOStructure.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/structure/Structurable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/lang/Structurable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/structure/Structure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/lang/Structure.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/structure/package-info.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/lang/Structure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/util/Structure.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.gradle/" />
@@ -59,86 +45,27 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/Structurable.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="79" column="17" selection-start-line="79" selection-start-column="17" selection-end-line="79" selection-end-column="17" />
-              <folding>
-                <element signature="docComment;class#Structurable#0" expanded="true" />
-                <element signature="e#5646#5682#1" />
-                <element signature="e#5781#5826#1" />
-                <element signature="e#5913#6005#1" />
-                <element signature="e#6194#6400#1" />
-                <element signature="e#6575#6643#1" />
-                <element signature="e#6869#7285#1" />
-                <element signature="e#7080#7232#1" />
-                <element signature="e#7497#7835#1" />
-                <element signature="e#7726#7791#1" />
-                <element signature="e#8088#8495#1" />
-                <element signature="e#8106#8225#0" />
-                <element signature="e#8258#8310#0" />
-                <element signature="e#8344#8396#0" />
-                <element signature="e#8433#8485#0" />
-                <element signature="e#8675#8748#1" />
-                <element signature="e#8928#9059#1" />
-                <element signature="e#10314#10442#0" />
-                <element signature="e#11476#11572#0" />
-                <element signature="e#11606#11658#0" />
-                <element signature="e#12130#12236#0" />
-                <element signature="e#12270#12330#0" />
-                <element signature="e#13277#13373#0" />
-                <element signature="e#13407#13459#0" />
-                <element signature="e#13585#13637#0" />
-                <element signature="e#13979#14061#0" />
-                <element signature="e#14095#14155#0" />
-                <element signature="e#14185#14245#0" />
-                <element signature="e#14884#15343#0" />
-                <element signature="e#15061#15328#1" />
-                <element signature="e#15187#15310#1" />
-                <element signature="e#16437#16524#0" />
-                <marker date="1563759086247" expanded="false" signature="3864:4032" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="340">
-              <caret line="82" column="7" selection-start-line="82" selection-start-column="7" selection-end-line="82" selection-end-column="7" />
-              <folding>
-                <element signature="e#1480#1613#0" />
-                <element signature="e#1634#1671#0" />
-                <element signature="e#1939#2026#0" />
-                <element signature="e#2047#2084#0" />
-                <element signature="e#2362#2542#0" />
-                <element signature="e#2563#2600#0" />
-                <element signature="e#2866#2997#0" />
-                <element signature="e#3018#3055#0" />
-                <element signature="e#7457#7458#0" expanded="true" />
-                <element signature="e#7505#7506#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build.bat">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="1" column="12" selection-start-line="1" selection-start-column="12" selection-end-line="1" selection-end-column="12" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="10" column="6" selection-start-line="10" selection-start-column="6" selection-end-line="10" selection-end-column="6" />
+            <state relative-caret-position="493">
+              <caret line="49" column="1" lean-forward="true" selection-start-line="49" selection-start-column="1" selection-end-line="49" selection-end-column="1" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="docComment;class#JSONFileStructure#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="17">
+              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
+              <folding>
+                <element signature="method#addListener#0;class#Synchronizer#0" expanded="true" />
+                <element signature="method#bind#0;class#Synchronizer#0" expanded="true" />
+                <element signature="method#startLoop#0;class#Synchronizer#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -158,23 +85,31 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="34">
+              <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/FolderStructure.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="68">
               <caret line="4" selection-start-line="4" selection-end-line="4" />
               <folding>
-                <element signature="docComment;class#FolderStructure#0" expanded="true" />
                 <element signature="e#1368#1513#1" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/Structure.java">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/util/Structure.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="510">
-              <caret line="72" column="5" lean-forward="true" selection-start-line="72" selection-start-column="5" selection-end-line="72" selection-end-column="5" />
+            <state relative-caret-position="663">
+              <caret line="94" column="5" lean-forward="true" selection-start-line="94" selection-start-column="5" selection-end-line="94" selection-end-column="5" />
               <folding>
                 <element signature="e#1379#1447#0" />
                 <element signature="e#1477#1529#0" />
@@ -184,22 +119,15 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/local.properties">
+        <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+            <state relative-caret-position="170">
+              <caret line="10" column="3" lean-forward="true" selection-start-line="10" selection-start-column="3" selection-end-line="10" selection-end-column="3" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/settings.gradle">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build.gradle">
-          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
     </leaf>
@@ -246,7 +174,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/lsafer/structure/DataTreeStructure.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/io/FileDataTreeStructure.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileDataStructure.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/io/SerializableFileDataStructure.java" />
@@ -287,7 +214,6 @@
         <option value="$PROJECT_DIR$/src/main/java/lsafer/structure/Structurable.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/structure/Structure.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/threading/Loop.java" />
-        <option value="$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/util/Strings.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/util/Arrays.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java" />
@@ -297,6 +223,8 @@
         <option value="$PROJECT_DIR$/src/main/java/lsafer/io/File.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java" />
         <option value="$PROJECT_DIR$/src/main/java/lsafer/lang/Structure.java" />
+        <option value="$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/lsafer/util/Structure.java" />
       </list>
     </option>
   </component>
@@ -558,6 +486,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Captures" order="0" weight="0.25" />
       <window_info active="true" content_ui="combo" id="Project" order="1" visible="true" weight="0.21268657" />
@@ -589,18 +518,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="end test" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/FileTreeStructure.java" />
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/structure/TreeStructure.java" />
-    <entry file="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/rt.jar!/java/lang/Override.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="14" column="28" lean-forward="true" selection-start-line="14" selection-start-column="28" selection-end-line="14" selection-end-column="28" />
-          <folding>
-            <element signature="e#288#317#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/util/function/Caster.java" />
     <entry file="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/rt.jar!/java/util/function/BiFunction.class">
       <provider selected="true" editor-type-id="text-editor">
@@ -759,19 +676,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="54" column="5" selection-start-line="54" selection-start-column="5" selection-end-line="54" selection-end-column="5" />
-          <folding>
-            <element signature="method#addListener#0;class#Synchronizer#0" expanded="true" />
-            <element signature="method#bind#0;class#Synchronizer#0" expanded="true" />
-            <element signature="method#bind#1;class#Synchronizer#0" expanded="true" />
-            <element signature="method#startLoop#0;class#Synchronizer#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/util/Maps.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -874,16 +778,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="326">
-          <caret line="303" column="5" selection-start-line="303" selection-start-column="5" selection-end-line="303" selection-end-column="5" />
-          <folding>
-            <element signature="method#parse_array#0;class#JSON#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/INIFileStructure.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -923,61 +817,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="82" column="7" selection-start-line="82" selection-start-column="7" selection-end-line="82" selection-end-column="7" />
-          <folding>
-            <element signature="e#1480#1613#0" />
-            <element signature="e#1634#1671#0" />
-            <element signature="e#1939#2026#0" />
-            <element signature="e#2047#2084#0" />
-            <element signature="e#2362#2542#0" />
-            <element signature="e#2563#2600#0" />
-            <element signature="e#2866#2997#0" />
-            <element signature="e#3018#3055#0" />
-            <element signature="e#7457#7458#0" expanded="true" />
-            <element signature="e#7505#7506#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/build.bat">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
           <caret line="1" column="12" selection-start-line="1" selection-start-column="12" selection-end-line="1" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="10" column="6" selection-start-line="10" selection-start-column="6" selection-end-line="10" selection-end-column="6" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/IOStructure.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="docComment;class#IOStructure#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/FolderStructure.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" selection-start-line="4" selection-end-line="4" />
-          <folding>
-            <element signature="docComment;class#FolderStructure#0" expanded="true" />
-            <element signature="e#1368#1513#1" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1023,17 +866,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/Structure.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="72" column="5" lean-forward="true" selection-start-line="72" selection-start-column="5" selection-end-line="72" selection-end-column="5" />
-          <folding>
-            <element signature="e#1379#1447#0" />
-            <element signature="e#1477#1529#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/build.gradle">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -1046,6 +878,99 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/settings.gradle">
       <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/JSON.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="3" lean-forward="true" selection-start-line="10" selection-start-column="3" selection-end-line="10" selection-end-column="3" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/lang/INI.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/FolderStructure.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" selection-start-line="4" selection-end-line="4" />
+          <folding>
+            <element signature="e#1368#1513#1" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/IOStructure.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="docComment;class#IOStructure#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/io/JSONFileStructure.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="49" column="1" lean-forward="true" selection-start-line="49" selection-start-column="1" selection-end-line="49" selection-end-column="1" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="docComment;class#JSONFileStructure#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/threading/Synchronizer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
+          <folding>
+            <element signature="method#addListener#0;class#Synchronizer#0" expanded="true" />
+            <element signature="method#bind#0;class#Synchronizer#0" expanded="true" />
+            <element signature="method#startLoop#0;class#Synchronizer#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/rt.jar!/java/util/Map.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1003">
+          <caret line="227" lean-forward="true" selection-start-line="227" selection-end-line="227" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/rt.jar!/java/util/AbstractMap.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="12" column="35" lean-forward="true" selection-start-line="12" selection-start-column="35" selection-end-line="12" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/rt.jar!/java/util/HashMap.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="20" column="42" lean-forward="true" selection-start-line="20" selection-start-column="42" selection-end-line="20" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/lsafer/util/Structure.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="663">
+          <caret line="94" column="5" lean-forward="true" selection-start-line="94" selection-start-column="5" selection-end-line="94" selection-end-column="5" />
+          <folding>
+            <element signature="e#1379#1447#0" />
+            <element signature="e#1477#1529#0" />
+          </folding>
+        </state>
+      </provider>
     </entry>
   </component>
   <component name="masterDetails">

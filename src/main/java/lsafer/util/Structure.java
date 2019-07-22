@@ -1,7 +1,9 @@
-package lsafer.lang;
+package lsafer.util;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import lsafer.lang.Structurable;
 
 /**
  * structurable with a {@link Map} as a secondary container.
