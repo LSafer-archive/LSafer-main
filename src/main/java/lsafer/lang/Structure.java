@@ -1,4 +1,4 @@
-package lsafer.structure;
+package lsafer.lang;
 
 import java.util.HashMap;
 import java.util.Map;

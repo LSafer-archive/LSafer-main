@@ -1,4 +1,4 @@
-package lsafer.structure;
+package lsafer.lang;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lsafer.lang.Reflect;
 import lsafer.util.Arrays;
 import lsafer.util.Lists;
 import lsafer.util.Strings;

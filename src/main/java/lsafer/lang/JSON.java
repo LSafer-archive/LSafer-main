@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lsafer.structure.Structurable;
 import lsafer.util.Arrays;
 import lsafer.util.Strings;
 

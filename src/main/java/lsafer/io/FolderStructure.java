@@ -1,6 +1,6 @@
 package lsafer.io;
 
-import lsafer.structure.Structurable;
+import lsafer.lang.Structurable;
 
 /**
  * structure linked with {@link java.util.Map} as a secondary container

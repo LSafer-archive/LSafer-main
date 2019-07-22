@@ -7,7 +7,7 @@ import lsafer.lang.JSON;
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File JSON file} as a third IO container.
- * depends on {@link File#readJSON(Object)} (Object)} and {@link File#writeJSON(Object)} (Serializable)}
+ * depends on {@link File#readJSON(Object)} (Object)} and {@link File#writeJSON(Object)}
  * <p>
  * make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules
  *
