@@ -24,20 +24,20 @@ import lsafer.lang.Reflect;
  * <li>protected fields sometimes well not be a node (but sometimes well be by mistake , so please add '$' char in their name to make sure it's excluded)</li>
  * <li>fields that contains any of {@link #$DESTRUCT_SYMBOLS destruct symbols} in their names well not be a node</li>
  * <li>java non-object fields (like int, float, etc...) may cause casting problems</li>
- * <li>declaring fields in the constructor is an unprotectable way</li>
+ * <li>declaring fields in the constructor is an unprotect way</li>
  * <li>you can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type, see {@link #castValue(Class, Object)} for more info</li>
  * <li>the only way to declare a default value is to declare it directly to the field (or on it's constructor) , other ways may not work , so be careful while using nested structures</li>
  * </ul>
  *
  * <p>
- * to use any of these methods with your structurable :
+ * to use any of these methods with your structure :
  * <ul>
  * <li>{@link #castValue(Class, Object) castValue(YourClass, Object)}</li>
  * <li>{@link #newInstance(Class, Object...) newInstance(YourClass, Object)}</li>
  * <li>{@link #clone(Class) clone(YourClass)}</li>
  * <li>{@link #reset() YourClass.reset()}</li>
  * </ul>
- * your structurable should match this rules :
+ * your structure should match this rules :
  * <ul>
  * <li>your Structure must be public static.</li>
  * <li>
@@ -51,7 +51,7 @@ import lsafer.lang.Reflect;
  * <p>
  * tips :
  * <ul>
- * <li>add a secondary container like a {@link Map} to your structurable so you can store keys even if the class don't have a {@link Field field} matches it.</li>
+ * <li>add a secondary container like a {@link Map} to your structure so you can store keys even if the class don't have a {@link Field field} matches it.</li>
  * </ul>
  *
  * <p>
@@ -243,7 +243,7 @@ public interface Structure {
     }
 
     /**
-     * copy this structurable as other structurable class.
+     * copy this structure as other structure class.
      *
      * @param klass   to copy to
      * @param <CLONE> type of the class

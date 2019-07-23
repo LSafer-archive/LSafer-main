@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * structurable with a {@link Map} as a secondary container.
+ * structure with a {@link Map} as a secondary container.
  * <p>
  * make sure your {@link MapStructure structure} matches all {@link Structure structurables} rules
  *
