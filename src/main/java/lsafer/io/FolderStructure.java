@@ -1,7 +1,5 @@
 package lsafer.io;
 
-import lsafer.lang.Structurable;
-
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File Folder} as a third IO container
@@ -38,19 +36,14 @@ public class FolderStructure extends FileStructure {
     @Override
     public void load() {
         this.reset();
-        for (File file : this.$remote.children())
-            if (!this.containsKey(file.getName()))
-                if (file.isDirectory())
-                    this.put(file.getName(), Structurable.newInstance(this.folder_structure()));
-                else
-                    this.put(file.getName(), Structurable.newInstance(this.file_structure()));
+        for (File file : this.$remote.children()) {
+            Class type = this.typeOf(file.getName());
 
-        this.map().forEach((key, value) -> {
-            if (key instanceof String && value instanceof FileStructure) {
-                ((FileStructure) value).remote(this.$remote.child((String) key));
-                ((FileStructure) value).load();
-            }
-        });
+            if (type == null) //that means there isn't ANY value (or field) mapped to the key
+                this.put(file.getName(), IOStructure.load(file.isDirectory() ? this.folder_structure() : this.file_structure(), file));
+            else if (FileStructure.class.isAssignableFrom(type))
+                this.get(FileStructure.class, file.getName(), null).load();
+        }
     }
 
     @Override
@@ -94,11 +87,21 @@ public class FolderStructure extends FileStructure {
 
     @Override
     public void remote(File file) {
-        super.remote(file);
+        if (file != null) super.remote(file);
         this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
                 ((FileStructure) value).remote(this.$remote.child((String) key));
         });
+    }
+
+    @Override
+    public <VALUE> VALUE get(Object key) {
+        VALUE value = super.get(key);
+
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+            ((FileStructure) value).remote(this.$remote.child((String) key));
+
+        return value;
     }
 
     @Override
@@ -107,9 +110,12 @@ public class FolderStructure extends FileStructure {
         //and get the value case one of the
         //parents have changed it to match its
         //conditions
+        //
+        //don't un-override this, it'll cause NullPointerException on $remote
+        //when trying to invoke save() after invoking reset()
         value = super.put(key, value);
 
-        if (key instanceof String && value instanceof FileStructure)
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
             ((FileStructure) value).remote(this.$remote.child((String) key));
 
         return value;
@@ -118,7 +124,7 @@ public class FolderStructure extends FileStructure {
     @Override
     public void reset() {
         super.reset();
-        this.remote(this.$remote);
+        this.remote(null);
     }
 
     /**

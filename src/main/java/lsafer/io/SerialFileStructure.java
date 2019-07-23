@@ -6,7 +6,7 @@ import java.util.HashMap;
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File Serilizable file} as a third IO container.
- * depends on {@link File#readSerial(Serializable)} and {@link File#writeSerial(Serializable)}
+ * depends on {@link File#readSerial(Class, Serializable)} and {@link File#writeSerial(Serializable)}
  * <p>
  * make sure your {@link SerialFileStructure serial-file-structure} matches all {@link FileStructure file-structures} rules
  *
@@ -30,8 +30,8 @@ public class SerialFileStructure extends FileStructure {
     public void load() {
         this.reset();
         try {
-            this.putAll(this.$remote.readSerial(new HashMap<>()));
-        }catch (Exception e){
+            this.putAll(this.$remote.readSerial(HashMap.class, new HashMap<>()));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -39,8 +39,8 @@ public class SerialFileStructure extends FileStructure {
     @Override
     public boolean save() {
         try {
-            return this.$remote.mk() && this.$remote.writeSerial((HashMap) this.map());
-        }catch (Exception e){
+            return this.$remote.writeSerial((HashMap) this.map());
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }

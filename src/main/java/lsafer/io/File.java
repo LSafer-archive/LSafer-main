@@ -14,9 +14,10 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import lsafer.lang.INI;
-import lsafer.lang.JSON;
+import lsafer.json.JSON;
+import lsafer.microsoft.INI;
 import lsafer.threading.Loop;
 import lsafer.util.Arrays;
 import lsafer.util.Strings;
@@ -540,13 +541,11 @@ public class File extends java.io.File {
      * @return success of making
      */
     public boolean mk() {
-        if (this.exists())
-            return true;
-
         if (!this.isDirectory() && this.getParentFile().mkdirs())
-            try {
-                FileWriter writer = new FileWriter(this);
-                writer.write("");
+            if (this.exists())
+                return true;
+            else try (FileWriter fr = new FileWriter(this)) {
+                fr.write("");
 
                 return true;
             } catch (IOException e) {
@@ -628,15 +627,12 @@ public class File extends java.io.File {
      * and transform it to the targeted class.
      *
      * @param defaultValue returned value case error reading file
-     * @param <TYPE>       type of target object
+     * @param <VALUE>      the type of values written in INI inside this file
      * @return transformed INI object write in this file
      */
-    public <TYPE> TYPE readINI(TYPE defaultValue) {
-        try {
-            return (TYPE) INI.parse(this.read(""));
-        } catch (Exception e) {
-            return defaultValue;
-        }
+    public <VALUE> Map<String, VALUE> readINI(Map<String, VALUE> defaultValue) {
+        String string = this.read("");
+        return string.equals("") ? defaultValue : (Map<String, VALUE>) INI.parse(string);
     }
 
     /**
@@ -644,33 +640,32 @@ public class File extends java.io.File {
      * and transform it to the targeted class.
      *
      * @param defaultValue returned value case error reading file
-     * @param <TYPE>       type of target object
+     * @param <KEY>        type of the keys inside the map presented in this file as a json
+     * @param <VALUE>      type of the values inside the map presented in this file as a json
      * @return transformed JSON object write in this file
      */
-    public <TYPE> TYPE readJSON(TYPE defaultValue) {
-        try {
-            return (TYPE) JSON.parse(this.read(""));
-        } catch (Exception e) {
-            return defaultValue;
-        }
+    public <KEY, VALUE> Map<KEY, VALUE> readJSON(Map<KEY, VALUE> defaultValue) {
+        Object object = JSON.parse(this.read(""));
+        return object instanceof Map ? (Map<KEY, VALUE>) object : defaultValue;
     }
 
     /**
      * read this file's java serial text
      * and transform it to the targeted class.
      *
+     * @param klass        klass of needed object (just to make sure the object we read is instance of the targeted class)
      * @param defaultValue returned value case errors
-     * @param <TYPE>       content type
+     * @param <VALUE>      content type
      * @return transformed Java Serial write in this file
      */
-    public <TYPE extends Serializable> TYPE readSerial(TYPE defaultValue) {
+    public <VALUE extends Serializable> VALUE readSerial(Class<VALUE> klass, VALUE defaultValue) {
         try (FileInputStream fis = new FileInputStream(this);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
-            TYPE value = (TYPE) ois.readObject();//reading //wrong cast well cached
+            VALUE value = (VALUE) ois.readObject();//reading //wrong cast well cached
 
             //result
-            return value != null ? value : defaultValue;
+            return klass.isInstance(value) ? value : defaultValue;
         } catch (Exception e) {
             //case no mFile or wrong cast
             return defaultValue;
@@ -716,7 +711,7 @@ public class File extends java.io.File {
      * @return the type of the object written on this
      */
     public Class<? extends Serializable> serialType() {
-        Object object = this.readSerial(null);
+        Serializable object = this.readSerial(Serializable.class, null);
         return object == null ? Serializable.class : (Class<? extends Serializable>) object.getClass();
     }
 
@@ -814,13 +809,16 @@ public class File extends java.io.File {
      * @return success of writing
      */
     public boolean write(String value) {
-        try (FileWriter fw = new FileWriter(this)) {
-            fw.write(value);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        if (!this.isDirectory() && this.getParentFile().mkdir())
+            try (FileWriter fw = new FileWriter(this)) {
+                fw.write(value);
+
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        return false;
     }
 
     /**
@@ -830,8 +828,17 @@ public class File extends java.io.File {
      * @param value to write
      * @return success of writing
      */
-    public boolean writeINI(Object value) {
-        return this.write(INI.stringify(value));
+    public boolean writeINI(Map value) {
+        if (!this.isDirectory() && this.getParentFile().mkdir())
+            try (FileWriter fw = new FileWriter(this)) {
+                fw.write(INI.stringify(value));
+
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        return false;
     }
 
     /**
@@ -841,8 +848,17 @@ public class File extends java.io.File {
      * @param value to write
      * @return success of writing
      */
-    public boolean writeJSON(Object value) {
-        return this.write(JSON.stringify(value));
+    public boolean writeJSON(Map value) {
+        if (!this.isDirectory() && this.getParentFile().mkdir())
+            try (FileWriter fw = new FileWriter(this)) {
+                fw.write(JSON.stringify(value));
+
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        return false;
     }
 
     /**
@@ -853,14 +869,16 @@ public class File extends java.io.File {
      * @return success of writing
      */
     public boolean writeSerial(Serializable value) {
-        try (FileOutputStream fos = new FileOutputStream(this);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(value);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        if (!this.isDirectory() && this.getParentFile().mkdir())
+            try (FileOutputStream fos = new FileOutputStream(this);
+                 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+                oos.writeObject(value);
+
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        return false;
     }
 
     /**

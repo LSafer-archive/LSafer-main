@@ -2,12 +2,12 @@ package lsafer.io;
 
 import java.util.HashMap;
 
-import lsafer.lang.JSON;
+import lsafer.json.JSON;
 
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File JSON file} as a third IO container.
- * depends on {@link File#readJSON(Object)} (Object)} and {@link File#writeJSON(Object)}
+ * depends on {@link File#readJSON(java.util.Map)} (Object)} and {@link File#writeJSON(java.util.Map)}
  * <p>
  * make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules
  *
@@ -32,7 +32,7 @@ public class JSONFileStructure extends FileStructure {
         this.reset();
         try {
             this.putAll(this.$remote.readJSON(new HashMap<>()));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -40,8 +40,8 @@ public class JSONFileStructure extends FileStructure {
     @Override
     public boolean save() {
         try {
-            return this.$remote.mk() && this.$remote.writeJSON(this.map());
-        }catch (Exception e){
+            return this.$remote.writeJSON(this.map());
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }

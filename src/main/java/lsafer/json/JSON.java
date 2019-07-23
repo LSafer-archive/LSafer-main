@@ -1,4 +1,4 @@
-package lsafer.lang;
+package lsafer.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 
 import lsafer.util.Arrays;
 import lsafer.util.Strings;
+import lsafer.util.Structure;
 
 /**
  * useful utils for using JSON.
@@ -151,7 +152,7 @@ final public class JSON {
      * @return an object that matches the given JSON text
      */
     public static Object parse(String string) {
-        if (string.equals("null"))
+        if (string.equals("null") || string.equals(""))
             return null;
         if (is_string(string))
             return parse_string(string);
@@ -210,7 +211,7 @@ final public class JSON {
         if (!value.toString().equals(""))
             List.add(parse(value.toString())); //leftovers
 
-        return Arrays.valueOf(List);
+        return Arrays.asArray(List);
     }
 
     /**
@@ -363,14 +364,14 @@ final public class JSON {
     }
 
     /**
-     * transform the given {@link Structurable structurable} to a JSON text.
+     * transform the given {@link Structure structure} to a JSON text.
      *
-     * @param structurable to transform
-     * @param spacing      base
-     * @return a JSON text from the given structurable
+     * @param structure to transform
+     * @param spacing   base
+     * @return a JSON text from the given structure
      */
-    public static String stringify(Structurable structurable, String spacing) {
-        return stringify(structurable.map(), spacing);
+    public static String stringify(Structure structure, String spacing) {
+        return stringify(structure.map(), spacing);
     }
 
     /**
@@ -391,8 +392,8 @@ final public class JSON {
             return stringify((String) object, spacing);
         if (object instanceof Float)
             return stringify((Float) object, spacing);
-        if (object instanceof Structurable)
-            return stringify((Structurable) object, spacing);
+        if (object instanceof Structure)
+            return stringify((Structure) object, spacing);
         if (object instanceof Character)
             return stringify((Character) object, spacing);
 

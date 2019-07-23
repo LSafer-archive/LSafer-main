@@ -2,7 +2,7 @@ package lsafer.threading;
 
 import java.util.ArrayList;
 
-import lsafer.util.Structure;
+import lsafer.util.MapStructure;
 
 /**
  * used to be the communication method between 2 threads one of them contains long loop
@@ -17,7 +17,7 @@ import lsafer.util.Structure;
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
-public class Synchronizer extends Structure {
+public class Synchronizer extends MapStructure {
 
     /**
      * the operations to do after a value run passed.

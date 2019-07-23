@@ -1,6 +1,7 @@
 package lsafer.util;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -56,6 +57,45 @@ final public class Arrays {
     }
 
     /**
+     * transform the given array list into
+     * a java simple array.
+     *
+     * @param list      to transform
+     * @param type      of array's components
+     * @param <ELEMENT> type of elements
+     * @return java simple array from given array list
+     */
+    public static <ELEMENT> ELEMENT[] asArray(List<ELEMENT> list, Class<ELEMENT> type) {
+        return (ELEMENT[]) list.toArray((ELEMENT[]) Array.newInstance(type, list.size()));
+    }
+
+    /**
+     * transform the given array list into
+     * a java simple array.
+     *
+     * @param list      to transform
+     * @param <ELEMENT> type of elements
+     * @return java simple array from given array list
+     * @see #asArray(List, Class)  more lighter wieght :)
+     */
+    public static <ELEMENT> ELEMENT[] asArray(List<ELEMENT> list) {
+        return generify(list.toArray());
+    }
+
+    /**
+     * transform the given array into
+     * an {@link ArrayList}.
+     *
+     * @param array     to transform
+     * @param <ELEMENT> type of the array
+     * @return new array list including the given array
+     */
+    public static <ELEMENT> List<ELEMENT> asList(ELEMENT[] array) {
+        return new ArrayList<>(java.util.Arrays.asList(array));
+
+    }
+
+    /**
      * remove the last and the first elements
      * of the given array depending on the
      * given values.
@@ -103,7 +143,17 @@ final public class Arrays {
      */
     public static <ELEMENT> Class<? extends ELEMENT> getComponentType(ELEMENT[] array) {
         return Reflect.getSuperOf(array);
+    }
 
+    /**
+     * run the type of the given list.
+     *
+     * @param list      to run type of
+     * @param <ELEMENT> type of elements
+     * @return the type of the given list
+     */
+    public static <ELEMENT> Class<? extends ELEMENT> getComponentType(List<ELEMENT> list) {
+        return (Class<? extends ELEMENT>) Reflect.getSuperOf(list.toArray());
     }
 
     /**
@@ -137,7 +187,38 @@ final public class Arrays {
      */
     @SafeVarargs
     public static <ELEMENT> boolean matches(ELEMENT[] array, ELEMENT object, boolean any, BiFunction<ELEMENT, ELEMENT, Boolean>... filters) {
-        return Lists.matches(Lists.valueOf(array), object, any, filters);
+        return matches(asList(array), object, any, filters);
+    }
+
+    /**
+     * check if any/all of the given list's elements
+     * matches specific conditions with the given object.
+     *
+     * @param list      to check
+     * @param object    to apply conditions with
+     * @param any       condition
+     * @param filters   (or conditions) to apply
+     * @param <ELEMENT> type of elements
+     * @return if the given list matches the conditions with the given object
+     */
+    @SafeVarargs
+    public static <ELEMENT> boolean matches(List<ELEMENT> list, ELEMENT object, boolean any, BiFunction<ELEMENT, ELEMENT, Boolean>... filters) {
+        boolean w = true;
+
+        for (ELEMENT element : list)
+            for (BiFunction<ELEMENT, ELEMENT, Boolean> filter : filters)
+                try {
+                    if (filter.apply(element, object)) {
+                        if (any)
+                            return true;
+                    } else if (!any) {
+                        return false;
+                    }
+                } catch (Exception e) {
+                    //
+                }
+
+        return !any;
     }
 
     /**
@@ -161,32 +242,6 @@ final public class Arrays {
             }
 
         return res;
-    }
-
-    /**
-     * transform the given array list into
-     * a java simple array.
-     *
-     * @param list      to transform
-     * @param type      of array's components
-     * @param <ELEMENT> type of elements
-     * @return java simple array from given array list
-     */
-    public static <ELEMENT> ELEMENT[] valueOf(List<ELEMENT> list, Class<ELEMENT> type) {
-        return (ELEMENT[]) list.toArray((ELEMENT[]) Array.newInstance(type, list.size()));
-    }
-
-    /**
-     * transform the given array list into
-     * a java simple array.
-     *
-     * @param list      to transform
-     * @param <ELEMENT> type of elements
-     * @return java simple array from given array list
-     * @see #valueOf(List, Class)  more lighter wieght :)
-     */
-    public static <ELEMENT> ELEMENT[] valueOf(List<ELEMENT> list) {
-        return generify(list.toArray());
     }
 
 }

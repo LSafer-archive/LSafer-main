@@ -207,7 +207,7 @@ final public class Reflect {
      */
     public static <CASTED> CASTED tryCast(Class<CASTED> klass, Object object) {
         try {
-            return (CASTED) object;
+            return klass.cast(object);
         } catch (ClassCastException e) {
             return null;
         }

@@ -1,4 +1,4 @@
-package lsafer.lang;
+package lsafer.microsoft;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 
 import lsafer.util.Arrays;
 import lsafer.util.Strings;
+import lsafer.util.Structure;
 
 /**
  * useful utils for using windows INI files.
@@ -117,7 +118,7 @@ final public class INI {
      * @return a java map from the given string
      */
     public static Map<String, Object> parse(String string) {
-        string = Strings.replace(string, "", "\r", "\t", "\u0000",String.valueOf((char) 65533));
+        string = Strings.replace(string, "", "\r", "\t", "\u0000", String.valueOf((char) 65533));
         Map<String, Object> main = new HashMap<>();
         Map<String, Object> section = null;
 
@@ -147,7 +148,7 @@ final public class INI {
         for (String element : string.split(","))
             list.add(parse_object(element));
 
-        return Arrays.valueOf(list);
+        return Arrays.asArray(list);
     }
 
     /**
@@ -187,7 +188,7 @@ final public class INI {
 
         int[] index = {0};
         map.forEach((key, value) -> {
-            if (value instanceof Map || value instanceof Structurable) {
+            if (value instanceof Map || value instanceof Structure) {
                 last.append(index[0] == 0 ? "" : "\n\n").append("[").append(key).append("]").append("\n").append(stringify(value));
 
             } else {
@@ -214,8 +215,8 @@ final public class INI {
             return stringify((Map) object);
         if (object instanceof Float)
             return stringify((Float) object);
-        if (object instanceof Structurable)
-            return stringify((Structurable) object);
+        if (object instanceof Structure)
+            return stringify((Structure) object);
 
         return String.valueOf(object);
     }
@@ -256,13 +257,13 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Structurable structurable} to an INI text.
+     * transform the given {@link Structure structure} to an INI text.
      *
-     * @param structurable to transform
+     * @param structure to transform
      * @return a INI text from the given map
      */
-    public static String stringify(Structurable structurable) {
-        return stringify(structurable.map());
+    public static String stringify(Structure structure) {
+        return stringify(structure.map());
     }
 
 }
