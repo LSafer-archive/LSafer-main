@@ -76,6 +76,10 @@ public class Structure implements Structurable {
 
     @Override
     public Object put(Object key, Object value) {
+        //pass up to parent's containers
+        //and get the value case one of the
+        //parents have changed it to match its
+        //conditions
         value = Structurable.super.put(key, value);
 
         this.$value.put(key, value);
