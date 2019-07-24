@@ -26,6 +26,14 @@ import lsafer.util.Structure;
 final public class INI {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private INI(){
+
+    }
+
+    /**
      * check if the given INI text is an {@link Object[] object array} or not.
      *
      * @param string INI text to be checked

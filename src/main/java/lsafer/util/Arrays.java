@@ -18,6 +18,14 @@ import lsafer.lang.Reflect;
 final public class Arrays {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private Arrays(){
+
+    }
+
+    /**
      * check if the give array contains all
      * of the given elements.
      *

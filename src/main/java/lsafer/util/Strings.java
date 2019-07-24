@@ -11,6 +11,14 @@ package lsafer.util;
 final public class Strings {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private Strings(){
+
+    }
+
+    /**
      * the prefixes used with si units.
      * <p>
      * i removed "c", "d", "da", "h"

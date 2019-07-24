@@ -370,8 +370,8 @@ public interface Structure {
      */
     /*final*/
     default <VALUE> VALUE get(Class<VALUE> klass, Object key, VALUE defaultValue) {
-        VALUE value = this.get(key);
-        return klass.isInstance(value) ? value : defaultValue;
+        VALUE value = castValue(klass, this.get(key));
+        return value == null ? defaultValue : value;
     }
 
     /**

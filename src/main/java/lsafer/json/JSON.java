@@ -28,6 +28,14 @@ import lsafer.util.Structure;
 final public class JSON {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private JSON(){
+
+    }
+
+    /**
      * check if the given JSON text is an {@link Object[] object array} or not.
      *
      * @param string JSON text to be checked

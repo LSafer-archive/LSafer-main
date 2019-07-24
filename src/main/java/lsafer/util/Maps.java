@@ -15,6 +15,14 @@ import java.util.function.BiFunction;
 final public class Maps {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private Maps(){
+
+    }
+
+    /**
      * run an array from given hash map's keys.
      *
      * @param map   to run keys list from

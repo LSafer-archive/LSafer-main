@@ -78,8 +78,8 @@ public abstract class Loop<ITEMS> {
             case resume:
                 return true;
             case pause:
-                //noinspection ALL
-                for (; !this.check; ) ; //Block nothing until next command
+                //noinspection ALL do nothing until next command
+                while (!this.check);
                 return this.check();  //to read the next command
             case stop:
                 return false; //break

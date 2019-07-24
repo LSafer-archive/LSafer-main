@@ -16,6 +16,14 @@ import java.util.function.Function;
 final public class Reflect {
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private Reflect(){
+
+    }
+
+    /**
      * run types automatically from the given arguments.
      *
      * @see #getInstanceOf(Class, Class[], Object...)
