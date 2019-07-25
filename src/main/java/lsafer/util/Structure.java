@@ -19,7 +19,7 @@ import lsafer.lang.Reflect;
  * <p>
  * field rules:
  * <ul>
- * <li>all public fields well be a node (even final and static fields)[all but fields excluded in this list]</li>
+ * <li>all public fields will be a node (even final and static fields)[all but fields excluded in this list]</li>
  * <li>private field well not be a node</li>
  * <li>protected fields sometimes well not be a node (but sometimes well be by mistake , so please add '$' char in their name to make sure it's excluded)</li>
  * <li>fields that contains any of {@link #$DESTRUCT_SYMBOLS destruct symbols} in their names well not be a node</li>
@@ -97,14 +97,15 @@ public interface Structure {
      * supported casts (else well return null):
      * <ul>
      * <li>(value equals null)</li>
-     * <li>(value getInstanceOf klass)</li>
-     * <li>(klass subClassOf {@link Structure}) and (value getInstanceOf {@link Map})</li>
-     * <li>(klass equals {@link Map}) and (value getInstanceOf {@link Structure})</li>
-     * <li>(klass.component subClassOf {@link Structure}) and (value getInstanceOf {@link Map[]})</li>
-     * <li>(klass.component equals {@link Map}) and (value getInstanceOf {@link Structure[]})</li>
-     * <li>(klass subClassOf {@link Number}) and (value getInstanceOf {@link Number} or {@link String})</li>
-     * <li>(klass subClassOf {@link List}) and (value getInstanceOf {@link Object[]})</li>
-     * <li>(klass subClassOf {@link Object[]}) and (value getInstanceOf {@link List})</li>
+     * <li>(value instanceOf klass)</li>
+     * <li>(klass subClassOf {@link Structure}) and (value instanceOf {@link Structure})</li>
+     * <li>(klass subClassOf {@link Structure}) and (value instanceOf {@link Map})</li>
+     * <li>(klass equals {@link Map}) and (value instanceOf {@link Structure})</li>
+     * <li>(klass.component subClassOf {@link Structure}) and (value instanceOf {@link Map[]})</li>
+     * <li>(klass.component equals {@link Map}) and (value instanceOf {@link Structure[]})</li>
+     * <li>(klass subClassOf {@link Number}) and (value instanceOf {@link Number} or {@link String})</li>
+     * <li>(klass subClassOf {@link List}) and (value instanceOf {@link Object[]})</li>
+     * <li>(klass subClassOf {@link Object[]}) and (value instanceOf {@link List})</li>
      * </ul>
      *
      * @param klass   to cast to
@@ -122,15 +123,19 @@ public interface Structure {
         }
 
         //? <- ?
-        //(value getInstanceOf klass)
+        //(value instanceOf klass)
         else if (klass.isInstance(value)) {
             return (VALUE) value;
-        } else if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
+        }
+
+        //Structure <- Structure
+        //(klass subClassOf Structure) and (value instanceOf Structure)
+        else if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
             ((Structure) value).clone((Class<? extends Structure>) klass);
         }
 
         //Structure <- Map
-        //(klass subClassOf Structure) and (value getInstanceOf Map)
+        //(klass subClassOf Structure) and (value instanceOf Map)
         else if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
             Structure structure = newInstance((Class<? extends Structure>) klass);
             structure.putAll((Map<String, Object>) value);
@@ -138,13 +143,13 @@ public interface Structure {
         }
 
         //Map <- Structure
-        //(klass equals Map) and (value getInstanceOf Structure)
+        //(klass equals Map) and (value instanceOf Structure)
         else if (klass.equals(Map.class) && value instanceof Structure) {
             return (VALUE) ((Structure) value).map();
         }
 
         //Structure[] <- Map[]
-        //(klass.component subClassOf Structure) and (value getInstanceOf Map[])
+        //(klass.component subClassOf Structure) and (value instanceOf Map[])
         else if (Structure.class.isAssignableFrom(klass.getComponentType()) && value instanceof Map[]) {
             Map[] maps = (Map[]) value;
             Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
@@ -158,7 +163,7 @@ public interface Structure {
         }
 
         //Map[] <- Structure[]
-        //(klass.component equals Map) and (value getInstanceOf Structure[])
+        //(klass.component equals Map) and (value instanceOf Structure[])
         else if (klass.getComponentType().equals(Map.class) && value instanceof Structure[]) {
             Structure[] structures = (Structure[]) value;
             Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
@@ -171,7 +176,7 @@ public interface Structure {
         }
 
         //Number <- Float | Double | Integer | Long | String
-        //(klass subClassOf Number) and (value getInstanceOf Number or String)
+        //(klass subClassOf Number) and (value instanceOf Number or String)
         else if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
             try {
                 return (VALUE) klass.getMethod("valueOf", String.class).invoke(null, value.toString());
@@ -185,13 +190,13 @@ public interface Structure {
         }
 
         //List <- Object[]
-        //(klass subClassOf List) and (value getInstanceOf Object[])
+        //(klass subClassOf List) and (value instanceOf Object[])
         else if (List.class.isAssignableFrom(klass) && value instanceof Object[]) {
             return (VALUE) Arrays.asList(((Object[]) value));
         }
 
         //Object[] <- List
-        //(klass subClassOf Object[]) and (value getInstanceOf List)
+        //(klass subClassOf Object[]) and (value instanceOf List)
         else if (Object[].class.isAssignableFrom(klass) && value instanceof List) {
             //noinspection unchecked
             return (VALUE) Arrays.asArray((List) value, klass.getComponentType());
@@ -510,9 +515,13 @@ public interface Structure {
     default Class typeOf(Object key) {
         if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
             try {
-                return this.getClass().getField((String) key).getType();
+                Field field = this.getClass().getField((String) key);
+                Object object = field.get(this);
+                return object == null ? field.getType() : object.getClass();
             } catch (NoSuchFieldException e) {
                 //no field
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
             }
 
         return null;
