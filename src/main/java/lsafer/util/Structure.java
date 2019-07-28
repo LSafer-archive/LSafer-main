@@ -109,88 +109,89 @@ public interface Structure {
         if (value == null) {
             return null;
         }
-
         //? <- ?
         //(value instanceOf klass)
-        else if (klass.isInstance(value)) {
+        if (klass.isInstance(value)) {
             return (T) value;
         }
-
-        //Structure <- Structure
-        //(klass subClassOf Structure) and (value instanceOf Structure)
-        else if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
-            ((Structure) value).clone((Class<? extends Structure>) klass);
+        //String <- ?
+        //(klass instanceOf String) and (value instanceOf Object)
+        if (klass == String.class) {
+            return (T) String.valueOf(value);
         }
-
+        //Number <- Float | Double | Integer | Long | String
+        //(klass subClassOf Number) and (value instanceOf Number or String)
+        if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
+            try {
+                return (T) klass.getMethod("valueOf", String.class)
+                        .invoke(null, klass == Integer.class || klass == Long.class ?
+                                String.valueOf(value).split("[.]")[0] : String.valueOf(value));
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+        //List <- Object[]
+        //(klass subClassOf List) and (value instanceOf Object[])
+        if (List.class.isAssignableFrom(klass) && value instanceof Object[]) {
+            return (T) Arrays.asList(((Object[]) value));
+        }
+        //Map <- Structure
+        //(klass equals Map) and (value instanceOf Structure)
+        if (klass == Map.class && value instanceof Structure) {
+            return (T) ((Structure) value).map();
+        }
         //Structure <- Map
         //(klass subClassOf Structure) and (value instanceOf Map)
-        else if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
+        if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
             Structure structure = Structure.newInstance((Class<? extends Structure>) klass);
             structure.putAll((Map<String, Object>) value);
             return (T) structure;
         }
-
-        //Map <- Structure
-        //(klass equals Map) and (value instanceOf Structure)
-        else if (klass.equals(Map.class) && value instanceof Structure) {
-            return (T) ((Structure) value).map();
+        //Structure <- Structure
+        //(klass subClassOf Structure) and (value instanceOf Structure)
+        if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
+            return (T) ((Structure) value).clone((Class<? extends Structure>) klass);
         }
-
-        //Structure[] <- Map[]
-        //(klass.component subClassOf Structure) and (value instanceOf Map[])
-        else if (Structure.class.isAssignableFrom(klass.getComponentType()) && value instanceof Map[]) {
-            Map[] maps = (Map[]) value;
-            Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
-
-            for (int i = 0; i < maps.length; i++) {
-                structures[i] = Structure.newInstance((Class<? extends Structure>) klass);
-                structures[i].putAll(maps[i]);
+        //to avoid null pointer exception
+        if (klass.getComponentType() != null)
+            //Object[] <- List
+            //(klass subClassOf Object[]) and (value instanceOf List)
+            if (Object[].class.isAssignableFrom(klass) && value instanceof List) {
+                //noinspection unchecked
+                return (T) Arrays.asArray((List) value, klass.getComponentType());
             }
+            //Map[] <- Structure[]
+            //(klass.component equals Map) and (value instanceOf Structure[])
+            else if (klass.getComponentType() == Map.class && value instanceof Structure[]) {
+                Structure[] structures = (Structure[]) value;
+                Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
 
-            return (T) structures;
-        }
+                for (int i = 0; i < structures.length; i++) {
+                    maps[i] = structures[i].map();
+                }
 
-        //Map[] <- Structure[]
-        //(klass.component equals Map) and (value instanceOf Structure[])
-        else if (klass.getComponentType().equals(Map.class) && value instanceof Structure[]) {
-            Structure[] structures = (Structure[]) value;
-            Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
-
-            for (int i = 0; i < structures.length; i++) {
-                maps[i] = structures[i].map();
+                return (T) maps;
             }
+            //Structure[] <- Map[]
+            //(klass.component subClassOf Structure) and (value instanceOf Map[])
+            else if (Structure.class.isAssignableFrom(klass.getComponentType()) && value instanceof Map[]) {
+                Map[] maps = (Map[]) value;
+                Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
 
-            return (T) maps;
-        }
+                for (int i = 0; i < maps.length; i++) {
+                    structures[i] = Structure.newInstance((Class<? extends Structure>) klass);
+                    structures[i].putAll(maps[i]);
+                }
 
-        //Number <- Float | Double | Integer | Long | String
-        //(klass subClassOf Number) and (value instanceOf Number or String)
-        else if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
-            try {
-                return (T) klass.getMethod("valueOf", String.class).invoke(null, value.toString());
-            } catch (Exception ignored) {
+                return (T) structures;
             }
-        }
-
-        //List <- Object[]
-        //(klass subClassOf List) and (value instanceOf Object[])
-        else if (List.class.isAssignableFrom(klass) && value instanceof Object[]) {
-            return (T) Arrays.asList(((Object[]) value));
-        }
-
-        //Object[] <- List
-        //(klass subClassOf Object[]) and (value instanceOf List)
-        else if (Object[].class.isAssignableFrom(klass) && value instanceof List) {
-            //noinspection unchecked
-            return (T) Arrays.asArray((List) value, klass.getComponentType());
-        }
 
         //failed to cast
         return null;
     }
 
     /**
-     * run new Instance of the given class.
+     * get new instance of the given class.
      * there is no problem init with the constructor directly :)
      *
      * @param klass     to run new instance of
@@ -204,7 +205,7 @@ public interface Structure {
         else if (Reflect.containsConstructor(klass, Reflect.CONSTRUCTOR_DEFAULT))
             return Reflect.getInstanceOf(klass, Reflect.CONSTRUCTOR_DEFAULT);
         else
-            throw new IllegalStateException("can't create new Instance of ( " + klass + " )");
+            throw new IllegalStateException("can't create new instance of " + klass);
     }
 
     /**
