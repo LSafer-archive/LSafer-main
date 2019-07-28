@@ -30,21 +30,12 @@ public class JSONFileStructure extends FileStructure {
     @Override
     public void load() {
         this.reset();
-        try {
-            this.putAll(this.$remote.readJSON(new HashMap<>()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.putAll(this.$remote.readJSON(new HashMap<>()));
     }
 
     @Override
     public boolean save() {
-        try {
-            return this.$remote.writeJSON(this.map());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return this.$remote.writeJSON(this.map());
     }
 
 }

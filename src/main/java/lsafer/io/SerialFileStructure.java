@@ -29,21 +29,12 @@ public class SerialFileStructure extends FileStructure {
     @Override
     public void load() {
         this.reset();
-        try {
-            this.putAll(this.$remote.readSerial(HashMap.class, new HashMap<>()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.putAll(this.$remote.readSerial(HashMap.class, new HashMap<>()));
     }
 
     @Override
     public boolean save() {
-        try {
-            return this.$remote.writeSerial((HashMap) this.map());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return this.$remote.writeSerial((HashMap) this.map());
     }
 
 }

@@ -1,8 +1,9 @@
 package lsafer.threading;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import lsafer.util.MapStructure;
+import lsafer.util.AbstractStructure;
 
 /**
  * used to be the communication method between 2 threads one of them contains long loop
@@ -17,32 +18,22 @@ import lsafer.util.MapStructure;
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
-public class Synchronizer extends MapStructure {
+public class Synchronizer extends AbstractStructure {
 
     /**
      * the operations to do after a value run passed.
      */
-    final public ArrayList<Synchronizer.OnBindListener> $listeners = new ArrayList<>();
+    final public List<OnBindListener> $listeners = new ArrayList<>();
 
     /**
      * loops that linked to this.
      */
-    final public ArrayList<Loop> $loops = new ArrayList<>();
+    final public List<Loop> $loops = new ArrayList<>();
 
     /**
      * new synchronizer.
      */
     public Synchronizer() {
-    }
-
-    /**
-     * link an on bind listener to this.
-     *
-     * @param listener       to add
-     * @param <SYNCHRONIZER> this
-     */
-    public <SYNCHRONIZER extends Synchronizer> void addListener(OnBindListener<SYNCHRONIZER> listener) {
-        this.$listeners.add(listener);
     }
 
     /**
@@ -59,7 +50,7 @@ public class Synchronizer extends MapStructure {
      *
      * @param command : next position for linked loops
      */
-    public void command(Loop.Command command) {
+    public void command(Loop.Status command) {
         for (Loop loop : this.$loops)
             loop.command(command);
         this.bind();
@@ -78,14 +69,14 @@ public class Synchronizer extends MapStructure {
     /**
      * Block of code run called every time a new value run passed.
      */
-    public interface OnBindListener<SYNCHRONIZER extends Synchronizer> {
+    public interface OnBindListener<S extends Synchronizer> {
 
         /**
          * run called each time a value run passed.
          *
          * @param synchronizer : the synchronizer who called this listener
          */
-        void OnBind(SYNCHRONIZER synchronizer);
+        void OnBind(S synchronizer);
     }
 
 }

@@ -31,7 +31,7 @@ final public class JSON {
      * this is a util class and shall
      * not be instanced as an object.
      */
-    private JSON(){
+    private JSON() {
 
     }
 
@@ -77,7 +77,7 @@ final public class JSON {
             Double.valueOf(string);
             return !string.endsWith("f") &&
                     string.contains(".");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -92,7 +92,7 @@ final public class JSON {
         try {
             Float.valueOf(string);
             return string.endsWith("f");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -109,7 +109,7 @@ final public class JSON {
             return !string.endsWith("L") &&
                     !string.endsWith("f") &&
                     !string.contains(".");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -125,7 +125,7 @@ final public class JSON {
             Long.valueOf(string);
             return string.endsWith("L") &&
                     !string.contains(".");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -162,24 +162,24 @@ final public class JSON {
     public static Object parse(String string) {
         if (string.equals("null") || string.equals(""))
             return null;
-        if (is_string(string))
-            return parse_string(string);
-        if (is_char(string))
-            return parse_char(string);
-        if (is_boolean(string))
+        if (JSON.is_string(string))
+            return JSON.parse_string(string);
+        if (JSON.is_char(string))
+            return JSON.parse_char(string);
+        if (JSON.is_boolean(string))
             return Boolean.valueOf(string);
-        if (is_float(string))
+        if (JSON.is_float(string))
             return Float.valueOf(string);
-        if (is_double(string))
+        if (JSON.is_double(string))
             return Double.valueOf(string);
-        if (is_long(string))
+        if (JSON.is_long(string))
             return Long.valueOf(string);
-        if (is_integer(string))
+        if (JSON.is_integer(string))
             return Integer.valueOf(string);
-        if (is_array(string))
-            return parse_array(string);
-        if (is_map(string))
-            return parse_map(string);
+        if (JSON.is_array(string))
+            return JSON.parse_array(string);
+        if (JSON.is_map(string))
+            return JSON.parse_map(string);
 
         return string;
     }
@@ -191,35 +191,109 @@ final public class JSON {
      * @return an object array from the given JSON text
      */
     public static Object[] parse_array(String string) {
-        string = Strings.replace(string, "", "\r", "\t", "\n", String.valueOf((char) 65533));//remove
         string = Strings.crop(string, 1, 1);
 
-        ArrayList<Object> List = new ArrayList<>(); //result
+        List<Object> list = new ArrayList<>();
+        StringBuilder pointer = new StringBuilder();
 
-        int dismiss = 0; //dismiss tracker
-//        boolean stringing = false;
-//        boolean skip = false;
-        StringBuilder value = new StringBuilder(); //values temporary container
+        boolean[] skip0 = {false, false};
+        int[] skip1 = {0, 0};
 
-        for (String point : string.split("")) {
-            if (point.equals(",") && dismiss == 0) {
-                List.add(parse(value.toString()));
-                value = new StringBuilder();
-
+        for (char point : string.toCharArray()) {
+            if (skip0[1]) {
+                //case reading between quotation marks and the previous char is '\'
+                skip0[1] = false;
+                switch (point) {
+                    case 't':
+                        pointer.append('\t');
+                        break;
+                    case 'n':
+                        pointer.append('\n');
+                        break;
+                    case 'r':
+                        pointer.append('\r');
+                        break;
+                    default:
+                        pointer.append(point);
+                }
+            } else if (skip0[0]) {
+                //case reading between quotation marks
+                switch (point) {
+                    case '\\':
+                        skip0[1] = true;
+                        break;
+                    case '"':
+                        pointer.append(point);
+                        skip0[0] = false;
+                        break;
+                    default:
+                        pointer.append(point);
+                        break;
+                }
+            } else if (skip1[0] > 0) {
+                //case reading inside a brackets
+                pointer.append(point);
+                switch (point) {
+                    case '[':
+                        skip1[0]++;
+                        break;
+                    case ']':
+                        skip1[0]--;
+                        break;
+                    case '"':
+                        skip0[0] = true;
+                        break;
+                }
+            } else if (skip1[1] > 0) {
+                //case reading inside a karly brackets
+                pointer.append(point);
+                switch (point) {
+                    case '{':
+                        skip1[1]++;
+                        break;
+                    case '}':
+                        skip1[1]--;
+                        break;
+                    case '"':
+                        skip0[0] = true;
+                        break;
+                }
             } else {
-                if (Strings.any(point, "{", "["))
-                    dismiss++;
-                else if (Strings.any(point, "}", "]"))
-                    dismiss--;
-
-                value.append(point); //writing value
+                //case reading in the main section
+                switch (point) {
+                    case '\n':
+                    case '\t':
+                    case '\r':
+                    case ' ':
+                    case 65533:
+                        break;
+                    case '[':
+                        pointer.append(point);
+                        skip1[0]++;
+                        break;
+                    case '{':
+                        pointer.append(point);
+                        skip1[1]++;
+                        break;
+                    case '"':
+                        pointer.append(point);
+                        skip0[0] = true;
+                        break;
+                    case ',':
+                        list.add(JSON.parse(pointer.toString()));
+                        pointer = new StringBuilder();
+                        break;
+                    default:
+                        pointer.append(point);
+                        break;
+                }
             }
         }
 
-        if (!value.toString().equals(""))
-            List.add(parse(value.toString())); //leftovers
+        if (pointer.length() != 0)
+            list.add(JSON.parse(pointer.toString())); //leftovers
 
-        return Arrays.asArray(List);
+        return Arrays.asArray(list);
     }
 
     /**
@@ -239,40 +313,115 @@ final public class JSON {
      * @return a map object from the given JSON text
      */
     public static Map<Object, Object> parse_map(String string) {
-        HashMap<Object, Object> map = new HashMap<>(); //result
-
-        string = Strings.replace(string, "", "\r", "\t", "\n", String.valueOf((char) 65533));//remove
         string = Strings.crop(string, 1, 1);
 
-        int dismiss = 0; //dismiss tracker
-        boolean equating = false; //equating tracker
-//        boolean skip = false;
-//        boolean stringing = false;
+        HashMap<Object, Object> map = new HashMap<>(); //result
         StringBuilder value = new StringBuilder(); //temporary val holder
         StringBuilder key = new StringBuilder(); //temporary key holder
 
+        boolean[] skip0 = {false, false}; //string, slash
+        int[] skip1 = {0, 0}; //bracket, karly bracket
+        StringBuilder pointer = key;
+
         for (char point : string.toCharArray()) {
-            if (point == ',' && dismiss == 0) {
-                map.put(parse(key.toString()), parse(value.toString()));
-                key = new StringBuilder();
-                value = new StringBuilder();
-                equating = false;
-
-            } else if (point == ':' && !equating) {
-                equating = true;
-
+            if (skip0[1]) {
+                //case reading between quotation marks and the previous char is '\'
+                skip0[1] = false;
+                switch (point) {
+                    case 't':
+                        pointer.append('\t');
+                        break;
+                    case 'n':
+                        pointer.append('\n');
+                        break;
+                    case 'r':
+                        pointer.append('\r');
+                        break;
+                    default:
+                        pointer.append(point);
+                }
+            } else if (skip0[0]) {
+                //case reading between quotation marks
+                switch (point) {
+                    case '\\':
+                        skip0[1] = true;
+                        break;
+                    case '"':
+                        pointer.append(point);
+                        skip0[0] = false;
+                        break;
+                    default:
+                        pointer.append(point);
+                        break;
+                }
+            } else if (skip1[0] > 0) {
+                //case reading inside a brackets
+                pointer.append(point);
+                switch (point) {
+                    case '[':
+                        skip1[0]++;
+                        break;
+                    case ']':
+                        skip1[0]--;
+                        break;
+                    case '"':
+                        skip0[0] = true;
+                        break;
+                }
+            } else if (skip1[1] > 0) {
+                //case reading inside a karly brackets
+                pointer.append(point);
+                switch (point) {
+                    case '{':
+                        skip1[1]++;
+                        break;
+                    case '}':
+                        skip1[1]--;
+                        break;
+                    case '"':
+                        skip0[0] = true;
+                        break;
+                }
             } else {
-                if (point == '{' || point == '[')
-                    dismiss++;
-                else if (point == '}' || point == ']')
-                    dismiss--;
-
-                (equating ? value : key).append(point);
+                //case reading in the main section
+                switch (point) {
+                    case '\n':
+                    case '\t':
+                    case '\r':
+                    case ' ':
+                    case 65533:
+                        break;
+                    case '[':
+                        pointer.append(point);
+                        skip1[0]++;
+                        break;
+                    case '{':
+                        pointer.append(point);
+                        skip1[1]++;
+                        break;
+                    case '"':
+                        pointer.append(point);
+                        skip0[0] = true;
+                        break;
+                    case ':':
+                    case '=':
+                        pointer = value;
+                        break;
+                    case ',':
+                        map.put(JSON.parse(key.toString()), JSON.parse(value.toString()));
+                        key = new StringBuilder();
+                        value = new StringBuilder();
+                        pointer = key;
+                        break;
+                    default:
+                        pointer.append(point);
+                        break;
+                }
             }
         }
 
-        if (!key.toString().equals(""))
-            map.put(parse(key.toString()), parse(value.toString())); //leftovers
+        if (key.length() != 0 && value.length() != 0)
+            map.put(JSON.parse(key.toString()), JSON.parse(value.toString())); //leftovers
 
         return map;
     }
@@ -300,9 +449,9 @@ final public class JSON {
 
         for (Object object : array)
             text.append(text.length() == 1 ? "" : ",")
-                    .append("\n")
+                    .append("\n\t")
                     .append(spacing)
-                    .append(stringify(object, spacing + "\t"));
+                    .append(JSON.stringify(object, spacing + "\t"));
 
         text.append("\n")
                 .append(spacing)
@@ -319,7 +468,7 @@ final public class JSON {
      * @return a JSON text from the given list
      */
     public static String stringify(List list, String spacing) {
-        return stringify(list.toArray(), spacing);
+        return JSON.stringify(list.toArray(), spacing);
     }
 
     /**
@@ -338,9 +487,9 @@ final public class JSON {
                         .append("\n")
                         .append(spacing)
                         .append("\t")
-                        .append(stringify(key, spacing + "\t"))
+                        .append(JSON.stringify(key, spacing + "\t"))
                         .append(":\t")
-                        .append(stringify(value, spacing + "\t")));
+                        .append(JSON.stringify(value, spacing + "\t")));
 
         text.append("\n")
                 .append(spacing)
@@ -357,7 +506,9 @@ final public class JSON {
      * @return a JSON text from the given string
      */
     public static String stringify(String string, String spacing) {
-        return "\"" + string + "\"";
+        return '"' + string.replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t") + '"';
     }
 
     /**
@@ -379,7 +530,7 @@ final public class JSON {
      * @return a JSON text from the given structure
      */
     public static String stringify(Structure structure, String spacing) {
-        return stringify(structure.map(), spacing);
+        return JSON.stringify(structure.map(), spacing);
     }
 
     /**
@@ -391,19 +542,19 @@ final public class JSON {
      */
     public static String stringify(Object object, String spacing) {
         if (object instanceof Object[])
-            return stringify((Object[]) object, spacing);
+            return JSON.stringify((Object[]) object, spacing);
         if (object instanceof List)
-            return stringify((List) object, spacing);
+            return JSON.stringify((List) object, spacing);
         if (object instanceof Map)
-            return stringify((Map) object, spacing);
+            return JSON.stringify((Map) object, spacing);
         if (object instanceof String)
-            return stringify((String) object, spacing);
+            return JSON.stringify((String) object, spacing);
         if (object instanceof Float)
-            return stringify((Float) object, spacing);
+            return JSON.stringify((Float) object, spacing);
         if (object instanceof Structure)
-            return stringify((Structure) object, spacing);
+            return JSON.stringify((Structure) object, spacing);
         if (object instanceof Character)
-            return stringify((Character) object, spacing);
+            return JSON.stringify((Character) object, spacing);
 
         return String.valueOf(object);
     }
@@ -426,7 +577,7 @@ final public class JSON {
      * @return a JSON text from the given object
      */
     public static String stringify(Object object) {
-        return stringify(object, "");
+        return JSON.stringify(object, "");
     }
 
 }

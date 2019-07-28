@@ -29,7 +29,7 @@ final public class INI {
      * this is a util class and shall
      * not be instanced as an object.
      */
-    private INI(){
+    private INI() {
 
     }
 
@@ -64,7 +64,7 @@ final public class INI {
             Double.valueOf(string);
             return !string.endsWith("f") &&
                     string.contains(".");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -79,7 +79,7 @@ final public class INI {
         try {
             Float.valueOf(string);
             return string.endsWith("f");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -112,7 +112,7 @@ final public class INI {
             Long.valueOf(string);
             return string.endsWith("L") &&
                     !string.contains(".");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -138,7 +138,7 @@ final public class INI {
                 } else if (line.charAt(0) != ';') {
                     String[] node = line.split("=");
                     if (node.length == 2)
-                        (section == null ? main : section).put(node[0], parse_object(node[1]));
+                        (section == null ? main : section).put(node[0], INI.parse_object(node[1]));
                 }
 
         return main;
@@ -154,7 +154,7 @@ final public class INI {
         List<Object> list = new ArrayList<>();
 
         for (String element : string.split(","))
-            list.add(parse_object(element));
+            list.add(INI.parse_object(element));
 
         return Arrays.asArray(list);
     }
@@ -168,18 +168,18 @@ final public class INI {
     public static Object parse_object(String string) {
         if (string.equals("null"))
             return null;
-        if (is_boolean(string))
+        if (INI.is_boolean(string))
             return Boolean.valueOf(string);
-        if (is_float(string))
+        if (INI.is_float(string))
             return Float.valueOf(string);
-        if (is_double(string))
+        if (INI.is_double(string))
             return Double.valueOf(string);
-        if (is_long(string))
+        if (INI.is_long(string))
             return Long.valueOf(string);
-        if (is_integer(string))
+        if (INI.is_integer(string))
             return Integer.valueOf(string);
-        if (is_array(string))
-            return parse_array(string);
+        if (INI.is_array(string))
+            return INI.parse_array(string);
 
         return string;
     }
@@ -197,10 +197,10 @@ final public class INI {
         int[] index = {0};
         map.forEach((key, value) -> {
             if (value instanceof Map || value instanceof Structure) {
-                last.append(index[0] == 0 ? "" : "\n\n").append("[").append(key).append("]").append("\n").append(stringify(value));
+                last.append(index[0] == 0 ? "" : "\n\n").append("[").append(key).append("]").append("\n").append(INI.stringify(value));
 
             } else {
-                string.append(index[0] == 0 ? "" : "\n").append(key).append("=").append(stringify(value));
+                string.append(index[0] == 0 ? "" : "\n").append(key).append("=").append(INI.stringify(value));
             }
             index[0]++;
         });
@@ -216,15 +216,15 @@ final public class INI {
      */
     public static String stringify(Object object) {
         if (object instanceof Object[])
-            return stringify((Object[]) object);
+            return INI.stringify((Object[]) object);
         if (object instanceof List)
-            return stringify((List) object);
+            return INI.stringify((List) object);
         if (object instanceof Map)
-            return stringify((Map) object);
+            return INI.stringify((Map) object);
         if (object instanceof Float)
-            return stringify((Float) object);
+            return INI.stringify((Float) object);
         if (object instanceof Structure)
-            return stringify((Structure) object);
+            return INI.stringify((Structure) object);
 
         return String.valueOf(object);
     }
@@ -239,7 +239,7 @@ final public class INI {
         StringBuilder string = new StringBuilder();
 
         for (Object object : array)
-            string.append(string.length() == 0 ? "" : ",").append(stringify(object));
+            string.append(string.length() == 0 ? "" : ",").append(INI.stringify(object));
 
         return string.toString();
     }
@@ -251,7 +251,7 @@ final public class INI {
      * @return a INI text from the given map
      */
     public static String stringify(List list) {
-        return stringify(list.toArray());
+        return INI.stringify(list.toArray());
     }
 
     /**
@@ -271,7 +271,7 @@ final public class INI {
      * @return a INI text from the given map
      */
     public static String stringify(Structure structure) {
-        return stringify(structure.map());
+        return INI.stringify(structure.map());
     }
 
 }

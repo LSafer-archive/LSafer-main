@@ -11,14 +11,6 @@ package lsafer.util;
 final public class Strings {
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
-     */
-    private Strings(){
-
-    }
-
-    /**
      * the prefixes used with si units.
      * <p>
      * i removed "c", "d", "da", "h"
@@ -46,6 +38,14 @@ final public class Strings {
     };
 
     /**
+     * this is a util class and shall
+     * not be instanced as an object.
+     */
+    private Strings() {
+
+    }
+
+    /**
      * check if the given string contains
      * all of the given queries.
      *
@@ -53,8 +53,8 @@ final public class Strings {
      * @param queries to check with
      * @return if given string contains all of the given query
      */
-    public static boolean all(String string, String... queries) {
-        for (String q : queries)
+    public static boolean all(String string, CharSequence... queries) {
+        for (CharSequence q : queries)
             if (!string.contains(q))
                 return false;
 
@@ -69,8 +69,8 @@ final public class Strings {
      * @param queries to check with
      * @return if given string contains any of the given query
      */
-    public static boolean any(String string, String... queries) {
-        for (String q : queries)
+    public static boolean any(String string, CharSequence... queries) {
+        for (CharSequence q : queries)
             if (string.contains(q))
                 return true;
 

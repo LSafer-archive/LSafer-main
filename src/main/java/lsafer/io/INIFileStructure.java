@@ -30,21 +30,12 @@ public class INIFileStructure extends FileStructure {
     @Override
     public void load() {
         this.reset();
-        try {
-            this.putAll(this.$remote.readINI(new HashMap<>()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.putAll(this.$remote.readINI(new HashMap<>()));
     }
 
     @Override
     public boolean save() {
-        try {
-            return this.$remote.writeINI(this.map());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return this.$remote.writeINI(this.map());
     }
 
 }

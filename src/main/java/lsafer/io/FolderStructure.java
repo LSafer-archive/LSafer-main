@@ -50,11 +50,10 @@ public class FolderStructure extends FileStructure {
     public boolean save() {
         boolean[] w = {this.$remote.mkdirs()};
 
-        if (w[0])
-            this.map().forEach((key, value) -> {
-                if (key instanceof String && value instanceof FileStructure)
-                    w[0] &= ((FileStructure) value).save();
-            });
+        if (w[0]) this.map().forEach((key, value) -> {
+            if (key instanceof String && value instanceof FileStructure)
+                w[0] &= ((FileStructure) value).save();
+        });
 
         return w[0];
     }
@@ -63,11 +62,10 @@ public class FolderStructure extends FileStructure {
     public boolean move(File parent) {
         boolean[] w = {super.move(parent)};
 
-        if (w[0])
-            this.map().forEach((key, value) -> {
-                if (key instanceof String && value instanceof FileStructure)
-                    w[0] &= ((FileStructure) value).move(this.$remote);
-            });
+        if (w[0]) this.map().forEach((key, value) -> {
+            if (key instanceof String && value instanceof FileStructure)
+                w[0] &= ((FileStructure) value).move(this.$remote);
+        });
 
         return w[0];
     }
@@ -76,18 +74,18 @@ public class FolderStructure extends FileStructure {
     public boolean rename(String name) {
         boolean[] w = {super.rename(name)};
 
-        if (w[0])
-            this.map().forEach((key, value) -> {
-                if (key instanceof String && value instanceof FileStructure)
-                    w[0] &= ((FileStructure) value).move(this.$remote);
-            });
+        if (w[0]) this.map().forEach((key, value) -> {
+            if (key instanceof String && value instanceof FileStructure)
+                w[0] &= ((FileStructure) value).move(this.$remote);
+        });
 
         return w[0];
     }
 
     @Override
     public void remote(File file) {
-        if (file != null) super.remote(file);
+        if (file != null)
+            super.remote(file);
         this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
                 ((FileStructure) value).remote(this.$remote.child((String) key));
@@ -95,28 +93,25 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public <VALUE> VALUE get(Object key) {
-        VALUE value = super.get(key);
+    public <T> T get(Object key) {
+        if (!this.isIgnored(key)) {
+            T value = super.get(key);
 
-        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-            ((FileStructure) value).remote(this.$remote.child((String) key));
+            if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+                ((FileStructure) value).remote(this.$remote.child((String) key));
+        }
 
-        return value;
+        return null;
     }
 
     @Override
     public Object put(Object key, Object value) {
-        //pass up to parent's containers
-        //and get the value case one of the
-        //parents have changed it to match its
-        //conditions
-        //
-        //don't un-override this, it'll cause NullPointerException on $remote
-        //when trying to invoke save() after invoking reset()
-        value = super.put(key, value);
+        if (!this.isIgnored(key)) {
+            value = super.put(key, value);
 
-        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-            ((FileStructure) value).remote(this.$remote.child((String) key));
+            if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+                ((FileStructure) value).remote(this.$remote.child((String) key));
+        }
 
         return value;
     }

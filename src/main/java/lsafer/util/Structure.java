@@ -2,8 +2,7 @@ package lsafer.util;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +21,17 @@ import lsafer.lang.Reflect;
  * <li>all public fields will be a node (even final and static fields)[all but fields excluded in this list]</li>
  * <li>private field well not be a node</li>
  * <li>protected fields sometimes well not be a node (but sometimes well be by mistake , so please add '$' char in their name to make sure it's excluded)</li>
- * <li>fields that contains any of {@link #$DESTRUCT_SYMBOLS destruct symbols} in their names well not be a node</li>
+ * <li>fields that contains any of {@link #isIgnored(Object)} destruct symbols} in their names well not be a node</li>
  * <li>java non-object fields (like int, float, etc...) may cause casting problems</li>
  * <li>declaring fields in the constructor is an unprotect way</li>
- * <li>you can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type, see {@link #castValue(Class, Object)} for more info</li>
+ * <li>you can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type, see {@link #castObject(Class, Object)} for more info</li>
  * <li>the only way to declare a default value is to declare it directly to the field (or on it's constructor) , other ways may not work , so be careful while using nested structures</li>
  * </ul>
  *
  * <p>
  * to use any of these methods with your structure :
  * <ul>
- * <li>{@link #castValue(Class, Object) castValue(YourClass, Object)}</li>
+ * <li>{@link #castObject(Class, Object) castObject(YourClass, Object)}</li>
  * <li>{@link #newInstance(Class, Object...) newInstance(YourClass, Object)}</li>
  * <li>{@link #clone(Class) clone(YourClass)}</li>
  * <li>{@link #reset() YourClass.reset()}</li>
@@ -68,9 +67,7 @@ import lsafer.lang.Reflect;
  * <li>{@link #remove(Object)} to remove the value from the secondary container (do super first)</li>
  * <li>{@link #reset()} to reset the secondary container too (do super last)</li>
  * <li>{@link #typeOf(Object)} to check the secondary container too (do super first)</li>
- * <li>{@link #shiftin()} fill the fields from the secondary containers, use {@link #put(Object, Object) Structure.super.put(Object, Object)}</li>
- * <li>{@link #shiftout()} fill the secondary containers from the fields, use {@link #map() Structure.super.map()}</li>
- * <li></li>
+ * <li>{@link #isIgnored(Object)} to declare what keys to ignore</li>
  * </ul>
  *
  * @author LSaferSE
@@ -78,15 +75,6 @@ import lsafer.lang.Reflect;
  * @since 06-Jul-19
  */
 public interface Structure {
-
-    /**
-     * Strings that if it run found in the field's name then the field well NOT be struct.
-     */
-    String[] $DESTRUCT_SYMBOLS = {
-            "$", //a destruct key
-            "IncrementalChange", //android specific system field
-            "serialVersionUID", //android specific system field
-    };
 
     /**
      * cast the given object to the given klass
@@ -108,14 +96,14 @@ public interface Structure {
      * <li>(klass subClassOf {@link Object[]}) and (value instanceOf {@link List})</li>
      * </ul>
      *
-     * @param klass   to cast to
-     * @param value   to cast
-     * @param <VALUE> type of the class to cast to
+     * @param klass to cast to
+     * @param value to cast
+     * @param <T>   type of the class to cast to
      * @return value casted to the given class
      * @see #newInstance(Class, Object...) used to run a new instance of the klass (case the structuable is assignable from it)
      * @see #putAll(Map) used to fill the structable (case the structuable is assignable from the klass and the value is a map)
      */
-    static <VALUE> VALUE castValue(Class<VALUE> klass, Object value) {
+    static <T> T castObject(Class<T> klass, Object value) {
         //? <- null
         //(value equals null)
         if (value == null) {
@@ -125,7 +113,7 @@ public interface Structure {
         //? <- ?
         //(value instanceOf klass)
         else if (klass.isInstance(value)) {
-            return (VALUE) value;
+            return (T) value;
         }
 
         //Structure <- Structure
@@ -137,15 +125,15 @@ public interface Structure {
         //Structure <- Map
         //(klass subClassOf Structure) and (value instanceOf Map)
         else if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
-            Structure structure = newInstance((Class<? extends Structure>) klass);
+            Structure structure = Structure.newInstance((Class<? extends Structure>) klass);
             structure.putAll((Map<String, Object>) value);
-            return (VALUE) structure;
+            return (T) structure;
         }
 
         //Map <- Structure
         //(klass equals Map) and (value instanceOf Structure)
         else if (klass.equals(Map.class) && value instanceof Structure) {
-            return (VALUE) ((Structure) value).map();
+            return (T) ((Structure) value).map();
         }
 
         //Structure[] <- Map[]
@@ -155,11 +143,11 @@ public interface Structure {
             Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
 
             for (int i = 0; i < maps.length; i++) {
-                structures[i] = newInstance((Class<? extends Structure>) klass);
+                structures[i] = Structure.newInstance((Class<? extends Structure>) klass);
                 structures[i].putAll(maps[i]);
             }
 
-            return (VALUE) structures;
+            return (T) structures;
         }
 
         //Map[] <- Structure[]
@@ -172,34 +160,29 @@ public interface Structure {
                 maps[i] = structures[i].map();
             }
 
-            return (VALUE) maps;
+            return (T) maps;
         }
 
         //Number <- Float | Double | Integer | Long | String
         //(klass subClassOf Number) and (value instanceOf Number or String)
         else if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
             try {
-                return (VALUE) klass.getMethod("valueOf", String.class).invoke(null, value.toString());
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
+                return (T) klass.getMethod("valueOf", String.class).invoke(null, value.toString());
+            } catch (Exception ignored) {
             }
         }
 
         //List <- Object[]
         //(klass subClassOf List) and (value instanceOf Object[])
         else if (List.class.isAssignableFrom(klass) && value instanceof Object[]) {
-            return (VALUE) Arrays.asList(((Object[]) value));
+            return (T) Arrays.asList(((Object[]) value));
         }
 
         //Object[] <- List
         //(klass subClassOf Object[]) and (value instanceOf List)
         else if (Object[].class.isAssignableFrom(klass) && value instanceof List) {
             //noinspection unchecked
-            return (VALUE) Arrays.asArray((List) value, klass.getComponentType());
+            return (T) Arrays.asArray((List) value, klass.getComponentType());
         }
 
         //failed to cast
@@ -210,12 +193,12 @@ public interface Structure {
      * run new Instance of the given class.
      * there is no problem init with the constructor directly :)
      *
-     * @param klass      to run new instance of
-     * @param arguments  to pass to the constructor
-     * @param <INSTANCE> type of the object
+     * @param klass     to run new instance of
+     * @param arguments to pass to the constructor
+     * @param <S>       type of the object
      * @return new Instance of the given class
      */
-    static <INSTANCE extends Structure> INSTANCE newInstance(Class<? extends INSTANCE> klass, Object... arguments) {
+    static <S extends Structure> S newInstance(Class<? extends S> klass, Object... arguments) {
         if (Reflect.containsConstructor(klass, Reflect.CONSTRUCTOR_VARARG))
             return Reflect.getInstanceOf(klass, Reflect.CONSTRUCTOR_VARARG, arguments);
         else if (Reflect.containsConstructor(klass, Reflect.CONSTRUCTOR_DEFAULT))
@@ -239,25 +222,25 @@ public interface Structure {
      */
     default void clear() {
         for (Field field : this.getClass().getFields())
-            try {
-                if (!Strings.any(field.getName(), $DESTRUCT_SYMBOLS))
+            if (!this.isIgnored(field.getName()))
+                try {
                     field.set(this, null);
-            } catch (IllegalAccessException e) {
-                //field is final or private
-            }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
     }
 
     /**
      * copy this structure as other structure class.
      *
-     * @param klass   to copy to
-     * @param <CLONE> type of the class
+     * @param klass to copy to
+     * @param <S>   type of the class
      * @return new instance with same values of this but different class
      * @see #newInstance(Class, Object...) used to run a new instance of the given class
      * @see #putAll(Structure) used to put all of this into the new instance
      */
-    default <CLONE extends Structure> CLONE clone(Class<CLONE> klass) {
-        CLONE structure = newInstance(klass);
+    default <S extends Structure> S clone(Class<S> klass) {
+        S structure = Structure.newInstance(klass);
         structure.putAll(this);
         return structure;
     }
@@ -273,11 +256,10 @@ public interface Structure {
      */
     /*final*/
     default boolean containsField(String name, Class<? /*super FIELD_TYPE*/> type) {
-        if (!Strings.any(name, $DESTRUCT_SYMBOLS))
+        if (!this.isIgnored(name))
             try {
                 return type.isAssignableFrom(this.getClass().getField(name).getType());
-            } catch (NoSuchFieldException e) {
-                //
+            } catch (NoSuchFieldException ignored) {
             }
 
         return false;
@@ -291,13 +273,12 @@ public interface Structure {
      * @return whether this contains the given key and not mapped to null
      */
     default boolean containsKey(Object key) {
-        if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
+        if (key instanceof String && !this.isIgnored(key))
             try {
                 return this.getClass().getField((String) key).get(this) != null;
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                //
+            } catch (NoSuchFieldException ignored) {
             }
 
         return false;
@@ -311,9 +292,9 @@ public interface Structure {
      */
     default boolean containsValue(Object value) {
         for (Field field : this.getClass().getFields())
-            if (!Strings.any(field.getName(), $DESTRUCT_SYMBOLS))
+            if (!this.isIgnored(field.getName()))
                 try {
-                    if (field.get(this) == value)
+                    if (field.get(this).equals(value))
                         return true;
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
@@ -325,18 +306,17 @@ public interface Structure {
     /**
      * run a value mapped to the given key.
      *
-     * @param key     to run it's mapped value
-     * @param <VALUE> type of value
+     * @param key to run it's mapped value
+     * @param <T> type of value
      * @return the mapped value to the given key
      */
-    default <VALUE> VALUE get(Object key) {
-        if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
+    default <T> T get(Object key) {
+        if (key instanceof String && !this.isIgnored(key))
             try {
-                return (VALUE) this.getClass().getField((String) key).get(this);
+                return (T) this.getClass().getField((String) key).get(this);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                //no field matches the given key
+            } catch (NoSuchFieldException ignored) {
             }
 
         return null;
@@ -348,35 +328,27 @@ public interface Structure {
      * case the key didn't exist or mapped
      * to null.
      *
+     * @param klass        to make sure the mapped value is instance of the needed class
      * @param key          to run it's mapped value
      * @param defaultValue case key not found
-     * @param <VALUE>      type of value
+     * @param <T>          type of value
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <VALUE> VALUE get(Object key, VALUE defaultValue) {
-        VALUE value = this.get(key);
+    default <T> T get(Class<T> klass, Object key, T defaultValue) {
+        T value = Structure.castObject(klass, this.get(key));
         return value == null ? defaultValue : value;
     }
 
     /**
-     * run a value mapped to the given key
-     * and returns the given default value
-     * case the key didn't exist or mapped
-     * to null.
+     * check whether the given key should be ignored or not.
      *
-     * @param klass        to make sure the mapped value is instance of the needed class
-     * @param key          to run it's mapped value
-     * @param defaultValue case key not found
-     * @param <VALUE>      type of value
-     * @return the mapped value to the given key
-     * @see #get(Object) to run the value
+     * @param key to check
+     * @return whether the given key should be ignored or not
      */
-    /*final*/
-    default <VALUE> VALUE get(Class<VALUE> klass, Object key, VALUE defaultValue) {
-        VALUE value = castValue(klass, this.get(key));
-        return value == null ? defaultValue : value;
+    default boolean isIgnored(Object key) {
+        return !(key instanceof String) || Strings.any((String) key, "$", "IncrementalChange", "serialVersionUID");
     }
 
     /**
@@ -388,16 +360,63 @@ public interface Structure {
         Map<Object, Object> map = new HashMap<>();
 
         for (Field field : this.getClass().getFields())
-            if (!Strings.any(field.getName(), $DESTRUCT_SYMBOLS))
+            if (!map.containsKey(field.getName()) && !this.isIgnored(field.getName()))
                 try {
                     map.put(field.getName(), field.get(this));
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
-                } catch (ClassCastException e) {
-                    e.printStackTrace();
                 }
 
         return map;
+    }
+
+    /**
+     * override the fields inside this from fields inside a super class of this.
+     *
+     * @param klass to get fields from
+     * @param <S>   this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S overrideFromSuper(Class klass) {
+        List<String> overridden = new ArrayList<>();
+
+        if (klass.isInstance(this))
+            for (Field field : klass.getFields())
+                if (!overridden.contains(field.getName()) && !this.isIgnored(field.getName()))
+                    try {
+                        this.put(field.getName(), field.get(this));
+                        overridden.add(field.getName());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                else
+                    throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
+
+        return (S) this;
+    }
+
+    /**
+     * override fields in a super class of this from the fields inside this.
+     *
+     * @param klass to override fields inside
+     * @param <S>   this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S overrideSuper(Class klass) {
+        if (klass.isInstance(this))
+            this.map().forEach((key, value) -> {
+                if (key instanceof String)
+                    try {
+                        klass.getField((String) key).set(this, value);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchFieldException ignored) {
+                    }
+            });
+        else throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
+        return (S) this;
     }
 
     /**
@@ -412,26 +431,21 @@ public interface Structure {
      * @param value to map
      * @return the value that have been added to the field
      * and null if the passed value is null
-     * @see #castValue(Class, Object) used to cast values to field's type
+     * @see #castObject(Class, Object) used to cast values to field's type
      */
     default Object put(Object key, Object value) {
-        if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
+        if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
+                Object value1 = Structure.castObject(field.getType(), value);
 
-                if (!Modifier.isFinal(field.getModifiers()) && Modifier.isPublic(field.getModifiers())) {
-                    Object casted_value = castValue(field.getType(), value);
-
-                    if (casted_value != null) {
-                        field.set(this, casted_value);
-                        return casted_value;
-                    }
+                if (value1 != null) {
+                    field.set(this, value1);
+                    return value1;
                 }
-
             } catch (IllegalAccessException e) {
-                //field is final or private
-            } catch (NoSuchFieldException e) {
-                //no field matches the given key
+                e.printStackTrace();
+            } catch (NoSuchFieldException ignored) {
             }
 
         return value;
@@ -468,13 +482,12 @@ public interface Structure {
      * @param key to unmap
      */
     default void remove(Object key) {
-        if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
+        if (key instanceof String && !this.isIgnored(key))
             try {
                 this.getClass().getField((String) key).set(this, null);
             } catch (IllegalAccessException e) {
-                //field is private
-            } catch (NoSuchFieldException e) {
-                //no field matches the targeted key
+                e.printStackTrace();
+            } catch (NoSuchFieldException ignored) {
             }
     }
 
@@ -485,24 +498,7 @@ public interface Structure {
      * @see #putAll(Structure) used to put defaults
      */
     default void reset() {
-        this.putAll(newInstance(this.getClass()));
-    }
-
-    /**
-     * update fields from the secondary container.
-     */
-    default void shiftin() {
-
-    }
-
-    /**
-     * update the secondary container from fields.
-     * <p>
-     * use {@link #map() Structure.super.map()} to run a
-     * map of this object's fields
-     */
-    default void shiftout() {
-
+        this.putAll(Structure.newInstance(this.getClass()));
     }
 
     /**
@@ -513,15 +509,14 @@ public interface Structure {
      * @return the type of the value mapped in the given key
      */
     default Class typeOf(Object key) {
-        if (key instanceof String && !Strings.any((String) key, $DESTRUCT_SYMBOLS))
+        if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
                 Object object = field.get(this);
                 return object == null ? field.getType() : object.getClass();
-            } catch (NoSuchFieldException e) {
-                //no field
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
+            } catch (NoSuchFieldException ignored) {
             }
 
         return null;

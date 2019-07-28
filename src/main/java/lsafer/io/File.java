@@ -627,12 +627,12 @@ public class File extends java.io.File {
      * and transform it to the targeted class.
      *
      * @param defaultValue returned value case error reading file
-     * @param <VALUE>      the type of values written in INI inside this file
+     * @param <V>          the type of values written in INI inside this file
      * @return transformed INI object write in this file
      */
-    public <VALUE> Map<String, VALUE> readINI(Map<String, VALUE> defaultValue) {
+    public <V> Map<String, V> readINI(Map<String, V> defaultValue) {
         String string = this.read("");
-        return string.equals("") ? defaultValue : (Map<String, VALUE>) INI.parse(string);
+        return string.equals("") ? defaultValue : (Map<String, V>) INI.parse(string);
     }
 
     /**
@@ -640,13 +640,13 @@ public class File extends java.io.File {
      * and transform it to the targeted class.
      *
      * @param defaultValue returned value case error reading file
-     * @param <KEY>        type of the keys inside the map presented in this file as a json
-     * @param <VALUE>      type of the values inside the map presented in this file as a json
+     * @param <K>          type of the keys inside the map presented in this file as a json
+     * @param <V>          type of the values inside the map presented in this file as a json
      * @return transformed JSON object write in this file
      */
-    public <KEY, VALUE> Map<KEY, VALUE> readJSON(Map<KEY, VALUE> defaultValue) {
+    public <K, V> Map<K, V> readJSON(Map<K, V> defaultValue) {
         Object object = JSON.parse(this.read(""));
-        return object instanceof Map ? (Map<KEY, VALUE>) object : defaultValue;
+        return object instanceof Map ? (Map<K, V>) object : defaultValue;
     }
 
     /**
@@ -655,18 +655,18 @@ public class File extends java.io.File {
      *
      * @param klass        klass of needed object (just to make sure the object we read is instance of the targeted class)
      * @param defaultValue returned value case errors
-     * @param <VALUE>      content type
+     * @param <S>          content type
      * @return transformed Java Serial write in this file
      */
-    public <VALUE extends Serializable> VALUE readSerial(Class<VALUE> klass, VALUE defaultValue) {
+    public <S extends Serializable> S readSerial(Class<S> klass, S defaultValue) {
         try (FileInputStream fis = new FileInputStream(this);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
-            VALUE value = (VALUE) ois.readObject();//reading //wrong cast well cached
+            S value = (S) ois.readObject();//reading //wrong cast well cached
 
             //result
             return klass.isInstance(value) ? value : defaultValue;
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             //case no mFile or wrong cast
             return defaultValue;
         }
@@ -737,15 +737,9 @@ public class File extends java.io.File {
             for (File child : this.children())
                 size += child.size();
             return size;
-        } else if (this.exists()) {
-            try {
-                return this.length();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
-        return 0;
+        return this.exists() ? this.length() : 0L;
     }
 
     /**
@@ -764,21 +758,21 @@ public class File extends java.io.File {
         //is directory ?
         try {
             r.append(this.canExecute() ? "d" : "-");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             r.append("?");
         }
 
         //can read ?
         try {
             r.append(this.canRead() ? "r" : "-");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             r.append("?");
         }
 
         //can write ?
         try {
             r.append(this.canWrite() ? "w" : "-");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             r.append("?");
         }
 

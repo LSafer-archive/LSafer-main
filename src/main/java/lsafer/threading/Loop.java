@@ -9,18 +9,18 @@ import java.util.List;
  * check shall continue or not,
  * then do the next block and so on.
  *
- * @param <ITEMS> the type of the items'll be passed while looping
+ * @param <I> the type of the items'll be passed while looping
  * @author LSaferSE
  * @version 3
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
-public abstract class Loop<ITEMS> {
+public abstract class Loop<I> {
 
     /**
      * The code to loop.
      */
-    private Block<ITEMS> block;
+    private Block<I> block;
 
     /**
      * linking var.
@@ -30,14 +30,14 @@ public abstract class Loop<ITEMS> {
     /**
      * the position of this loop.
      */
-    private Command position = Command.resume;
+    private Status position = Status.resume;
 
     /**
      * init this.
      *
      * @param block : the code to loop
      */
-    public Loop(Block<ITEMS> block) {
+    public Loop(Block<I> block) {
         this.block = block;
     }
 
@@ -47,7 +47,7 @@ public abstract class Loop<ITEMS> {
      * @param item : the item to pass it to the next step
      * @return : if continue the loop or not
      */
-    final protected boolean next(ITEMS item) {
+    final protected boolean next(I item) {
         return this.check() && this.block.next(item);
     }
 
@@ -56,7 +56,7 @@ public abstract class Loop<ITEMS> {
      *
      * @param command new status
      */
-    public void command(Command command) {
+    public void command(Status command) {
         this.check = true;
         this.position = command;
     }
@@ -79,12 +79,12 @@ public abstract class Loop<ITEMS> {
                 return true;
             case pause:
                 //noinspection ALL do nothing until next command
-                while (!this.check);
+                while (!this.check) ;
                 return this.check();  //to read the next command
             case stop:
                 return false; //break
             default:
-                return true;
+                return false;
         }
     }
 
@@ -102,7 +102,7 @@ public abstract class Loop<ITEMS> {
     /**
      * the positions of the loops that have been linked to a synchronizer.
      */
-    public enum Command {
+    public enum Status {
         /**
          * loops shall continue looping.
          */
@@ -122,9 +122,9 @@ public abstract class Loop<ITEMS> {
     /**
      * Block of the code to loop.
      *
-     * @param <ITEMS> type of the item to handle while looping
+     * @param <I> type of the item to handle while looping
      */
-    public interface Block<ITEMS> {
+    public interface Block<I> {
 
         /**
          * do next step of the loop.
@@ -132,21 +132,20 @@ public abstract class Loop<ITEMS> {
          * @param item : the item of loop position
          * @return : if the loop shall continue or not
          */
-        boolean next(ITEMS item);
-
+        boolean next(I item);
     }
 
     /**
      * loop for each item of a list.
      *
-     * @param <ITEMS> : Items Type
+     * @param <I> : Items Type
      */
-    public static class Foreach<ITEMS> extends Loop<ITEMS> {
+    public static class Foreach<I> extends Loop<I> {
 
         /**
          * list of items to loop.
          */
-        private List<ITEMS> list;
+        private List<I> list;
 
         /**
          * init this.
@@ -154,7 +153,7 @@ public abstract class Loop<ITEMS> {
          * @param list  : the items to loop
          * @param block : code to loop
          */
-        public Foreach(List<ITEMS> list, Block<ITEMS> block) {
+        public Foreach(List<I> list, Block<I> block) {
             super(block);
             this.list = list;
         }
@@ -164,7 +163,7 @@ public abstract class Loop<ITEMS> {
          */
         @Override
         protected void start() {
-            for (ITEMS t : this.list)
+            for (I t : this.list)
                 if (!this.next(t))
                     break;
         }

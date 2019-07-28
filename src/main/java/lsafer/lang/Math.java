@@ -13,7 +13,7 @@ final public class Math {
      * this is a util class and shall
      * not be instanced as an object.
      */
-    private Math(){
+    private Math() {
 
     }
 
