@@ -88,11 +88,11 @@ public class File extends java.io.File {
     /**
      * init this with absolute path.
      *
-     * @param pathname absolute path
+     * @param absolute absolute path
      * @see java.io.File#File(String) original method
      */
-    public File(String pathname) {
-        super(pathname);
+    public File(String absolute) {
+        super(absolute);
     }
 
     /**
@@ -118,12 +118,12 @@ public class File extends java.io.File {
     /**
      * init this using parent's path.
      *
-     * @param path of targeted file's parent
+     * @param absolute of targeted file's parent
      * @param name of targeted file
      * @see java.io.File#File(String, String) the original method
      */
-    public File(String path, String name) {
-        super(path, name);
+    public File(String absolute, String name) {
+        super(absolute, name);
     }
 
     /**
