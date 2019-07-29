@@ -26,7 +26,7 @@ import lsafer.util.Strings;
  * a {@link java.io.File file object} with useful tools.
  *
  * @author LSaferSE
- * @version 6
+ * @version 7
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})

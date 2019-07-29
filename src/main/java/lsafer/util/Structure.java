@@ -71,7 +71,7 @@ import lsafer.lang.Reflect;
  * </ul>
  *
  * @author LSaferSE
- * @version 5 release (19-Jul-2019)
+ * @version 6 release (28-Jul-2019)
  * @since 06-Jul-19
  */
 public interface Structure {

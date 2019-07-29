@@ -9,7 +9,7 @@ import java.util.function.Function;
  * useful utils for classes.
  *
  * @author LSafer
- * @version 4
+ * @version 5
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"WeakerAccess"})

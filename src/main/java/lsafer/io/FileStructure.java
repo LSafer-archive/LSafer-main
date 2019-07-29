@@ -7,7 +7,7 @@ package lsafer.io;
  * make sure your {@link FileStructure file-structure} matches all {@link IOStructure io-structures} rules
  *
  * @author LSaferSE
- * @version 6 release (19-Jul-2019)
+ * @version 7 release (19-Jul-2019)
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"WeakerAccess"})

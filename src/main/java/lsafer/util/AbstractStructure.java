@@ -9,7 +9,7 @@ import java.util.Map;
  * make sure your {@link AbstractStructure structure} matches all {@link Structure structurables} rules
  *
  * @author LSafer
- * @version 8 release (19-Jul-2019)
+ * @version 9 release (19-Jul-2019)
  * @since 11 Jun 2019
  **/
 @SuppressWarnings({"WeakerAccess"})

@@ -13,7 +13,7 @@ package lsafer.io;
  * </ul>
  *
  * @author LSaferSE
- * @version 1 release (19-Jul-19)
+ * @version 2 release (19-Jul-19)
  * @since 19-Jul-19
  */
 @SuppressWarnings("WeakerAccess")

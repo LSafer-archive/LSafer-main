@@ -11,7 +11,7 @@ import lsafer.util.Structure;
  *
  * @param <R> type of the targeted data solid container.
  * @author LSaferSE
- * @version 3 release (19-Jul-2019)
+ * @version 4 release (19-Jul-2019)
  * @since 06-Jul-19
  */
 @SuppressWarnings("WeakerAccess")

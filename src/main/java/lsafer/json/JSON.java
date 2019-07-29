@@ -21,7 +21,7 @@ import lsafer.util.Structure;
  * TODO Support inString symbols ignoring
  *
  * @author LSaferSE
- * @version 2
+ * @version 3
  * @since 09-Jul-19
  */
 @SuppressWarnings({"WeakerAccess"})
