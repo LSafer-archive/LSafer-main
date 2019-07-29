@@ -1,6 +1,5 @@
 package lsafer.io;
 
-import lsafer.json.JSON;
 import lsafer.util.Structure;
 
 /**

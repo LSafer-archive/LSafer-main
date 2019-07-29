@@ -84,8 +84,7 @@ public class FolderStructure extends FileStructure {
 
     @Override
     public void remote(File file) {
-        if (file != null)
-            super.remote(file);
+        super.remote(file);
         this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
                 ((FileStructure) value).remote(this.$remote.child((String) key));
@@ -119,7 +118,7 @@ public class FolderStructure extends FileStructure {
     @Override
     public void reset() {
         super.reset();
-        this.remote(null);
+        this.remote(this.remote());
     }
 
     /**
