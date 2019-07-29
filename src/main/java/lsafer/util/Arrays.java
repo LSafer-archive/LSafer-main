@@ -65,6 +65,21 @@ final public class Arrays {
     }
 
     /**
+     * append the given elements to the given array.
+     *
+     * @param array    to be appended
+     * @param elements to append
+     * @param <T>      type of elements
+     * @return a brand-new array with the given elements appended
+     */
+    @SafeVarargs
+    public static <T> T[] append(T[] array, T... elements) {
+        T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length + elements.length);
+        System.arraycopy(array, array.length + 1, elements, 0, array.length + elements.length);
+        return res;
+    }
+
+    /**
      * transform the given array list into
      * a java simple array.
      *
