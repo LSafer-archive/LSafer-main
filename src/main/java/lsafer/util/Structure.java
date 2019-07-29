@@ -3,6 +3,7 @@ package lsafer.util;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,10 @@ import lsafer.lang.Reflect;
  * tips :
  * <ul>
  * <li>add a secondary container like a {@link Map} to your structure so you can store keys even if the class don't have a {@link Field field} matches it.</li>
+ * <li>
+ *     if you want an {@link ArrayList array list} and you want it's elements to be casted to a specific class,
+ *     please use {@link CastList cast list} and don't make it null, also
+ * </li>
  * </ul>
  *
  * <p>
@@ -75,6 +80,7 @@ import lsafer.lang.Reflect;
  * @version 6 release (28-Jul-2019)
  * @since 06-Jul-19
  */
+@SuppressWarnings("WeakerAccess")
 public interface Structure {
 
     /**
@@ -133,8 +139,8 @@ public interface Structure {
         }
         //List <- Object[]
         //(klass subClassOf List) and (value instanceOf Object[])
-        if (List.class.isAssignableFrom(klass) && value instanceof Object[]) {
-            return (T) Arrays.asList(((Object[]) value));
+        if (klass == List.class && value instanceof Object[]) {
+            return (T) Arrays.asList((Object[]) value);
         }
         //Map <- Structure
         //(klass equals Map) and (value instanceOf Structure)
@@ -154,10 +160,10 @@ public interface Structure {
             return (T) ((Structure) value).clone((Class<? extends Structure>) klass);
         }
         //to avoid null pointer exception
-        if (klass.getComponentType() != null)
+        if (Object[].class.isAssignableFrom(klass))
             //Object[] <- List
             //(klass subClassOf Object[]) and (value instanceOf List)
-            if (Object[].class.isAssignableFrom(klass) && value instanceof List) {
+            if (value instanceof List) {
                 //noinspection unchecked
                 return (T) Arrays.asArray((List) value, klass.getComponentType());
             }
@@ -232,7 +238,11 @@ public interface Structure {
         for (Field field : this.getClass().getFields())
             if (!this.isIgnored(field.getName()))
                 try {
-                    field.set(this, null);
+                    if (field.getType() == CastList.class){
+                        ((CastList) field.get(this)).clear();
+                    }else {
+                        field.set(this, null);
+                    }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -447,11 +457,25 @@ public interface Structure {
         if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
-                Object value1 = Structure.castObject(field.getType(), value);
+                if (field.getType() == CastList.class) {
+                    List<Object> list = (List<Object>) Structure.castObject(List.class, value);
 
-                if (value1 != null) {
-                    field.set(this, value1);
-                    return (V) value1;
+                    if (list != null) {
+                        CastList<Object> value1 = (CastList<Object>) field.get(this);
+                        if (value1 == null) value1 = new CastList<>(Object.class);
+
+                        value1.addAll(list);
+                        value1.castElements();
+                        field.set(this, value1);
+                        return (V) value1;
+                    }
+                } else {
+                    Object value1 = Structure.castObject(field.getType(), value);
+
+                    if (value1 != null) {
+                        field.set(this, value1);
+                        return (V) value1;
+                    }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -608,4 +632,58 @@ public interface Structure {
         return null;
     }
 
+    /**
+     * just an {@link ArrayList array list}
+     * but it can store it's class.
+     */
+    class CastList<E> extends ArrayList<E> {
+        /**
+         * elements class.
+         */
+        private Class<E> klass;
+
+        /**
+         * init this.
+         *
+         * @param klass elements class
+         */
+        public CastList(Class<E> klass){
+            super();
+            this.klass = klass;
+        }
+
+        /**
+         * init this.
+         *
+         * @param initialCapacity capacity to began with
+         * @param klass elements class
+         * @see java.util.ArrayList#ArrayList(int) original method
+         */
+        public CastList(Class<E> klass, int initialCapacity){
+            super(initialCapacity);
+            this.klass = klass;
+        }
+
+        /**
+         * init this.
+         *
+         * @param klass elements class
+         * @param collection collection to copy from
+         * @see java.util.ArrayList#ArrayList(Collection) original method
+         */
+        public CastList(Class<E> klass, Collection<E> collection){
+            super(collection);
+            this.klass = klass;
+        }
+
+        /**
+         * cast elements in this to {@link #klass targeted class}.
+         */
+        public void castElements(){
+            List<E> list = new ArrayList<>();
+            this.forEach((e)-> list.add(Structure.castObject(this.klass, e)));
+            this.clear();
+            this.addAll(list);
+        }
+    }
 }
