@@ -119,7 +119,7 @@ public class File extends java.io.File {
      * init this using parent's path.
      *
      * @param absolute of targeted file's parent
-     * @param name of targeted file
+     * @param name     of targeted file
      * @see java.io.File#File(String, String) the original method
      */
     public File(String absolute, String name) {
@@ -248,11 +248,11 @@ public class File extends java.io.File {
      * @param parent folder to copy in
      * @return success of operation
      */
-    public boolean copy(File parent) {
+    public boolean copy(java.io.File parent) {
         if (!parent.mkdirs())
             return false;
 
-        File output = parent.child(this.getName());
+        File output = new File(parent, this.getName());
 
         if (this.isDirectory()) {
             if (!output.mkdir()) //making the output folder
@@ -289,7 +289,7 @@ public class File extends java.io.File {
      * @param parent       folder to copy in
      * @param synchronizer to control the operation and get results fro
      */
-    public void copy(File parent, lsafer.threading.Synchronizer synchronizer) {
+    public void copy(java.io.File parent, lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("input_folder", this.getParentFile());
         synchronizer.put("output_folder", parent);
         if (synchronizer.get("max_progress") == null)
@@ -303,7 +303,7 @@ public class File extends java.io.File {
             return; //can't copy because no path
         }
 
-        File output = parent.child(this.getName());
+        File output = new File(parent, this.getName());
 
         if (this.isDirectory()) {
             if (!output.mkdir()) { //making the output folder
@@ -593,9 +593,10 @@ public class File extends java.io.File {
      * @param parent new parent
      * @return result of moving
      */
-    public boolean move(File parent) {
-        File file = parent.child(this.getName());
-        boolean w = parent.mkdirsf() && this.renameTo(file);
+    public boolean move(java.io.File parent) {
+        File parent_file = parent instanceof File ? (File) parent : new File(parent);
+        File file = parent_file.child(this.getName());
+        boolean w = parent_file.mkdirs() && this.renameTo(file);
         if (w) this.self = file;
         return w;
     }

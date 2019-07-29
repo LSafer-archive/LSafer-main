@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import lsafer.lang.Reflect;
 
@@ -212,16 +213,22 @@ public interface Structure {
      * remove any key that this dose not
      * have a field with the same name
      * of it.
+     *
+     * @param <S> type of this
+     * @return this
      */
-    default void clean() {
-
+    default <S extends Structure> S clean() {
+        return (S) this;
     }
 
     /**
      * remove all nodes from this
      * and set all fields to null.
+     *
+     * @param <S> type of this
+     * @return this
      */
-    default void clear() {
+    default <S extends Structure> S clear() {
         for (Field field : this.getClass().getFields())
             if (!this.isIgnored(field.getName()))
                 try {
@@ -229,6 +236,7 @@ public interface Structure {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
+        return (S) this;
     }
 
     /**
@@ -430,11 +438,12 @@ public interface Structure {
      *
      * @param key   to map to
      * @param value to map
-     * @return the value that have been added to the field
+     * @param <V>   type of the value
+     * @return the actual value that have been added
      * and null if the passed value is null
      * @see #castObject(Class, Object) used to cast values to field's type
      */
-    default Object put(Object key, Object value) {
+    default <V> V put(Object key, V value) {
         if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
@@ -442,7 +451,7 @@ public interface Structure {
 
                 if (value1 != null) {
                     field.set(this, value1);
-                    return value1;
+                    return (V) value1;
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -457,12 +466,15 @@ public interface Structure {
      * structure to this.
      *
      * @param structure to copy from
+     * @param <S>       type of this
+     * @return this
      * @see #map() used to run structure's map
      * @see #putAll(Map) used to putAll the structure's map
      */
     /*final*/
-    default void putAll(Structure structure) {
+    default <S extends Structure> S putAll(Structure structure) {
         this.putAll(structure.map());
+        return (S) this;
     }
 
     /**
@@ -470,11 +482,43 @@ public interface Structure {
      * map to this.
      *
      * @param map to copy from
+     * @param <S> type of this
+     * @return this
      * @see #put(Object, Object) used to put foreach value
      */
     /*final*/
-    default void putAll(Map<?, ?> map) {
+    default <S extends Structure> S putAll(Map<?, ?> map) {
         map.forEach(this::put);
+        return (S) this;
+    }
+
+    /**
+     * map the given key to the given value only if
+     * the given key isn't mapped or mapped to null.
+     *
+     * @param key   to map
+     * @param value to map the given key to
+     * @param <V>   type of the value
+     * @return the actual value that have been added or the mapped value if the key have already mapped
+     */
+    default <V> V putIfAbsent(Object key, V value) {
+        V mapped = (V) this.get((Class<V>) value.getClass(), key, null);
+        return mapped == null ? this.put(key, value) : mapped;
+    }
+
+    /**
+     * map the given key to the given value only if
+     * the given key isn't mapped or mapped to null.
+     *
+     * @param klass the class of the value
+     * @param key   to map
+     * @param value to generate value if the given key is already have been mapped
+     * @param <V>   type of the value
+     * @return the actual value that have been added or the mapped value if the key have already mapped
+     */
+    default <V> V putIfAbsent(Class<V> klass, Object key, Function<Class<V>, V> value) {
+        V mapped = (V) this.get(klass, key, null);
+        return mapped == null ? this.put(key, value.apply(klass)) : mapped;
     }
 
     /**
@@ -493,13 +537,54 @@ public interface Structure {
     }
 
     /**
+     * unmap the given key from it's value only if it's
+     * value {@link Object#equals(Object) equals} the given key.
+     *
+     * @param key   to unmap
+     * @param value to remove if it's equals the value mapped to the given key
+     */
+    /*final*/
+    default void remove(Object key, Object value) {
+        if (this.get(key).equals(value))
+            this.remove(value);
+    }
+
+    /**
+     * remove all nodes found in the given map from this.
+     *
+     * @param map to remove
+     * @param <S> type of this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S removeAll(Map<?, ?> map) {
+        map.forEach(this::remove);
+        return (S) this;
+    }
+
+    /**
+     * remove all nodes found in the given structure from this.
+     *
+     * @param structure to remove
+     * @param <S>       type of this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S removeAll(Structure structure) {
+        return this.removeAll(structure.map());
+    }
+
+    /**
      * reset all values to default.
      *
+     * @param <S> type of this
+     * @return this
      * @see #newInstance(Class, Object...) used to run defaults from the new Instance
      * @see #putAll(Structure) used to put defaults
      */
-    default void reset() {
+    default <S extends Structure> S reset() {
         this.putAll(Structure.newInstance(this.getClass()));
+        return (S) this;
     }
 
     /**

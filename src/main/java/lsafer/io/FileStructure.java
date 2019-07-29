@@ -1,7 +1,5 @@
 package lsafer.io;
 
-import lsafer.util.Structure;
-
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File} as a third IO container
@@ -12,7 +10,7 @@ import lsafer.util.Structure;
  * @version 7 release (19-Jul-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class FileStructure extends IOStructure<File> {
 
     /**
@@ -22,38 +20,6 @@ public abstract class FileStructure extends IOStructure<File> {
      */
     public FileStructure(Object... arguments) {
         super(arguments);
-    }
-
-    /**
-     * get new instance with specific remote and load it.
-     *
-     * @param klass     of structure to run instance of
-     * @param remote    IO container remote
-     * @param arguments to pass to the constructor
-     * @param <F>       type of the structure
-     * @return new instance with pre-set remote
-     */
-    public static <F extends FileStructure> F load(Class<? extends F> klass, java.io.File remote, Object... arguments) {
-        F structure = Structure.newInstance(klass, arguments);
-        structure.$remote = remote == null ? structure.$remote : new File(remote);
-        structure.load();
-        return structure;
-    }
-
-    /**
-     * get new instance with specific remote and load it.
-     *
-     * @param klass     of structure to run instance of
-     * @param remote    IO container remote
-     * @param arguments to pass to the constructor
-     * @param <F>       type of the structure
-     * @return new instance with pre-set remote
-     */
-    public static <F extends FileStructure> F load(Class<? extends F> klass, String remote, Object... arguments) {
-        F structure = Structure.newInstance(klass, arguments);
-        structure.$remote = remote == null ? structure.$remote : new File(remote);
-        structure.load();
-        return structure;
     }
 
     @Override
@@ -67,38 +33,12 @@ public abstract class FileStructure extends IOStructure<File> {
     }
 
     /**
-     * set the targeted File.
-     *
-     * @param remote targeted file
-     */
-    /*final*/
-    public void remote(java.io.File remote) {
-        super.remote(new File(remote));
-    }
-
-    /**
-     * set the targeted File.
-     *
-     * @param remote targeted file
-     */
-    /*final*/
-    public void remote(String remote) {
-        super.remote(new File(remote));
-    }
-
-    @Override
-    public abstract void load();
-
-    @Override
-    public abstract boolean save();
-
-    /**
      * move {@link #$remote targeted file} to the given file.
      *
      * @param parent to move to
      * @return success of moving
      */
-    public boolean move(File parent) {
+    public boolean move(java.io.File parent) {
         boolean w = this.$remote.move(parent);
         this.$remote = this.$remote.self;
         return w;
@@ -111,19 +51,32 @@ public abstract class FileStructure extends IOStructure<File> {
      * @return success of moving
      */
     /*final*/
-    final public boolean move(java.io.File parent){
+    public boolean move(String parent) {
         return this.move(new File(parent));
     }
 
     /**
-     * move {@link #$remote targeted file} to the given file.
+     * set the targeted File.
      *
-     * @param parent to move to
-     * @return success of moving
+     * @param remote targeted file
+     * @param <FS>   type of this
+     * @return this
+     */
+    public <FS extends FileStructure> FS remote(java.io.File remote) {
+        super.remote(new File(remote));
+        return (FS) this;
+    }
+
+    /**
+     * set the targeted File.
+     *
+     * @param remote targeted file
+     * @param <FS>   type of this
+     * @return this
      */
     /*final*/
-    public boolean move(String parent){
-        return this.move(new File(parent));
+    public <FS extends FileStructure> FS remote(String remote) {
+        return (FS) this.remote(new File(remote));
     }
 
     /**

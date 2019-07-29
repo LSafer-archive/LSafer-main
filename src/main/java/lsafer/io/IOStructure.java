@@ -14,7 +14,7 @@ import lsafer.util.Structure;
  * @version 4 release (19-Jul-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class IOStructure<R> extends AbstractStructure {
 
     /**
@@ -29,23 +29,6 @@ public abstract class IOStructure<R> extends AbstractStructure {
      */
     public IOStructure(Object... arguments) {
         super(arguments);
-    }
-
-    /**
-     * get new instance with specific remote and load it.
-     *
-     * @param klass     of structure to run instance of
-     * @param remote    IO container remote
-     * @param arguments to pass to the constructor
-     * @param <I>       type of the structure
-     * @param <R>       type of the remote
-     * @return new instance with pre-set remote
-     */
-    public static <R, I extends IOStructure<R>> I load(Class<? extends I> klass, R remote, Object... arguments) {
-        I structure = Structure.newInstance(klass, arguments);
-        structure.$remote = remote == null ? structure.$remote : remote;
-        structure.load();
-        return structure;
     }
 
     /**
@@ -74,9 +57,12 @@ public abstract class IOStructure<R> extends AbstractStructure {
      * set the IO container's remote.
      *
      * @param remote IO container remote
+     * @param <I>    type of this
+     * @return this
      */
-    public void remote(R remote) {
+    public <I extends IOStructure> I remote(R remote) {
         this.$remote = remote;
+        return (I) this;
     }
 
     /**
@@ -104,8 +90,11 @@ public abstract class IOStructure<R> extends AbstractStructure {
 
     /**
      * load this from the IO container.
+     *
+     * @param <I> type of this
+     * @return this
      */
-    abstract public void load();
+    abstract public <I extends IOStructure> I load();
 
     /**
      * save this to the IO container.

@@ -29,21 +29,23 @@ public abstract class AbstractStructure implements Structure {
     }
 
     @Override
-    public void clean() {
+    public <S extends Structure> S clean() {
         Structure.super.clean();
         this.$value.forEach((key, value) -> {
             if (!this.isIgnored(key))
                 this.$value.remove(key);
         });
+        return (S) this;
     }
 
     @Override
-    public void clear() {
+    public <S extends Structure> S clear() {
         Structure.super.clear();
         this.$value.forEach((key, value) -> {
             if (!this.isIgnored(key))
                 this.$value.remove(key);
         });
+        return (S) this;
     }
 
     @Override
@@ -84,13 +86,13 @@ public abstract class AbstractStructure implements Structure {
     }
 
     @Override
-    public Object put(Object key, Object value) {
+    public <V> V put(Object key, V value) {
         if (!this.isIgnored(key)) {
             value = Structure.super.put(key, value);
             this.$value.put(key, value);
         }
 
-        return value;
+        return (V) value;
     }
 
     @Override
@@ -102,12 +104,13 @@ public abstract class AbstractStructure implements Structure {
     }
 
     @Override
-    public void reset() {
+    public <S extends Structure> S reset() {
         this.$value.forEach((key, value) -> {
             if (!this.isIgnored(key))
                 this.$value.remove(key);
         });
         Structure.super.reset();
+        return (S) this;
     }
 
     @Override

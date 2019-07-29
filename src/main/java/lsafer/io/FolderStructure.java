@@ -1,5 +1,7 @@
 package lsafer.io;
 
+import lsafer.util.Structure;
+
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File Folder} as a third IO container
@@ -34,32 +36,7 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public void load() {
-        this.reset();
-        for (File file : this.$remote.children()) {
-            Class type = this.typeOf(file.getName());
-
-            if (type == null) //that means there isn't ANY value (or field) mapped to the key
-                this.put(file.getName(), IOStructure.load(file.isDirectory() ? this.folder_structure() : this.file_structure(), file));
-            else if (FileStructure.class.isAssignableFrom(type))
-                this.get(FileStructure.class, file.getName(), null).load();
-        }
-    }
-
-    @Override
-    public boolean save() {
-        boolean[] w = {this.$remote.mkdirs()};
-
-        if (w[0]) this.map().forEach((key, value) -> {
-            if (key instanceof String && value instanceof FileStructure)
-                w[0] &= ((FileStructure) value).save();
-        });
-
-        return w[0];
-    }
-
-    @Override
-    public boolean move(File parent) {
+    public boolean move(java.io.File parent) {
         boolean[] w = {super.move(parent)};
 
         if (w[0]) this.map().forEach((key, value) -> {
@@ -68,6 +45,16 @@ public class FolderStructure extends FileStructure {
         });
 
         return w[0];
+    }
+
+    @Override
+    public <I extends FileStructure> I remote(java.io.File file) {
+        super.remote(file);
+        this.map().forEach((key, value) -> {
+            if (key instanceof String && value instanceof FileStructure)
+                ((FileStructure) value).remote(this.$remote.child((String) key));
+        });
+        return (I) this;
     }
 
     @Override
@@ -83,12 +70,29 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public void remote(File file) {
-        super.remote(file);
-        this.map().forEach((key, value) -> {
+    public <I extends IOStructure> I load() {
+        for (File file : this.$remote.children()) {
+            Class type = this.typeOf(file.getName());
+
+            if (type == null) //that means there isn't ANY value (or field) mapped to the key
+                this.put(file.getName(), Structure.newInstance(file.isDirectory() ? this.folder_structure() : this.file_structure()).remote(file).load());
+            else if (FileStructure.class.isAssignableFrom(type))
+                this.get(FileStructure.class, file.getName(), null).load();
+        }
+
+        return (I) this;
+    }
+
+    @Override
+    public boolean save() {
+        boolean[] w = {this.$remote.mkdirs()};
+
+        if (w[0]) this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
-                ((FileStructure) value).remote(this.$remote.child((String) key));
+                w[0] &= ((FileStructure) value).save();
         });
+
+        return w[0];
     }
 
     @Override
@@ -104,7 +108,7 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public Object put(Object key, Object value) {
+    public <V> V put(Object key, V value) {
         if (!this.isIgnored(key)) {
             value = super.put(key, value);
 
@@ -116,9 +120,10 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public void reset() {
+    public <S extends Structure> S reset() {
         super.reset();
         this.remote(this.remote());
+        return (S) this;
     }
 
     /**

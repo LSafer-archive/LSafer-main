@@ -27,9 +27,9 @@ public class SerialFileStructure extends FileStructure {
     }
 
     @Override
-    public void load() {
-        this.reset();
+    public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readSerial(HashMap.class, new HashMap<>()));
+        return (I) this;
     }
 
     @Override

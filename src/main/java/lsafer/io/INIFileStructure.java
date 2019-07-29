@@ -28,9 +28,9 @@ public class INIFileStructure extends FileStructure {
     }
 
     @Override
-    public void load() {
-        this.reset();
+    public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readINI(new HashMap<>()));
+        return (I) this;
     }
 
     @Override

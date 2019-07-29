@@ -28,9 +28,9 @@ public class JSONFileStructure extends FileStructure {
     }
 
     @Override
-    public void load() {
-        this.reset();
+    public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readJSON(new HashMap<>()));
+        return (I) this;
     }
 
     @Override
