@@ -462,8 +462,7 @@ public interface Structure {
 
                     if (list != null) {
                         CastList<Object> value1 = (CastList<Object>) field.get(this);
-                        if (value1 == null) value1 = new CastList<>(Object.class);
-
+                        value1 = new CastList<>(value1 == null ? Object.class : value1.getComponentType());
                         value1.addAll(list);
                         value1.castElements();
                         field.set(this, value1);
@@ -684,6 +683,15 @@ public interface Structure {
             this.forEach((e)-> list.add(Structure.castObject(this.klass, e)));
             this.clear();
             this.addAll(list);
+        }
+
+        /**
+         * get the type of elements of this.
+         *
+         * @return the type of the elements of this
+         */
+        public Class<E> getComponentType(){
+            return this.klass;
         }
     }
 }
