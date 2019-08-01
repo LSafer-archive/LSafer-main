@@ -54,8 +54,8 @@ import lsafer.lang.Reflect;
  * <ul>
  * <li>add a secondary container like a {@link Map} to your structure so you can store keys even if the class don't have a {@link Field field} matches it.</li>
  * <li>
- *     if you want an {@link ArrayList array list} and you want it's elements to be casted to a specific class,
- *     please use {@link CastList cast list} and don't make it null, also
+ * if you want an {@link ArrayList array list} and you want it's elements to be casted to a specific class,
+ * please use {@link CastList cast list} and don't make it null, also
  * </li>
  * </ul>
  *
@@ -80,7 +80,7 @@ import lsafer.lang.Reflect;
  * @version 6 release (28-Jul-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public interface Structure {
 
     /**
@@ -110,7 +110,7 @@ public interface Structure {
      * @see #newInstance(Class, Object...) used to run a new instance of the klass (case the structuable is assignable from it)
      * @see #putAll(Map) used to fill the structable (case the structuable is assignable from the klass and the value is a map)
      */
-    static <T> T castObject(Class<T> klass, Object value) {
+    static <T> T CastObject(Class<T> klass, Object value) {
         //? <- null
         //(value equals null)
         if (value == null) {
@@ -216,6 +216,19 @@ public interface Structure {
     }
 
     /**
+     * default method to cast objects.
+     *
+     * @param klass to cast object to
+     * @param value to be cast
+     * @param <T>   type of the cast value
+     * @return a value casted to the given class
+     * @see #CastObject(Class, Object)
+     */
+    default <T> T castObject(Class<T> klass, Object value) {
+        return Structure.CastObject(klass, value);
+    }
+
+    /**
      * remove any key that this dose not
      * have a field with the same name
      * of it.
@@ -238,9 +251,10 @@ public interface Structure {
         for (Field field : this.getClass().getFields())
             if (!this.isIgnored(field.getName()))
                 try {
-                    if (field.getType() == CastList.class){
+                    field.setAccessible(true);
+                    if (field.getType() == CastList.class) {
                         ((CastList) field.get(this)).clear();
-                    }else {
+                    } else {
                         field.set(this, null);
                     }
                 } catch (IllegalAccessException e) {
@@ -294,7 +308,9 @@ public interface Structure {
     default boolean containsKey(Object key) {
         if (key instanceof String && !this.isIgnored(key))
             try {
-                return this.getClass().getField((String) key).get(this) != null;
+                Field field = this.getClass().getField((String) key);
+                field.setAccessible(true);
+                return field.get(this) != null;
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchFieldException ignored) {
@@ -313,6 +329,7 @@ public interface Structure {
         for (Field field : this.getClass().getFields())
             if (!this.isIgnored(field.getName()))
                 try {
+                    field.setAccessible(true);
                     if (field.get(this).equals(value))
                         return true;
                 } catch (IllegalAccessException e) {
@@ -332,6 +349,8 @@ public interface Structure {
     default <T> T get(Object key) {
         if (key instanceof String && !this.isIgnored(key))
             try {
+                Field field = this.getClass().getField((String) key);
+                field.setAccessible(true);
                 return (T) this.getClass().getField((String) key).get(this);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -349,15 +368,50 @@ public interface Structure {
      *
      * @param klass        to make sure the mapped value is instance of the needed class
      * @param key          to run it's mapped value
+     * @param <T>          type of value
+     * @return the mapped value to the given key
+     * @see #get(Object) to run the value
+     */
+    /*final*/
+    default <T> T get(Class<T> klass, Object key){
+        return this.castObject(klass, this.get(key));
+    }
+
+    /**
+     * run a value mapped to the given key
+     * and returns the given default value
+     * case the key didn't exist or mapped
+     * to null.
+     *
+     * @param key          to run it's mapped value
      * @param defaultValue case key not found
      * @param <T>          type of value
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Class<T> klass, Object key, T defaultValue) {
-        T value = Structure.castObject(klass, this.get(key));
-        return value == null ? defaultValue : value;
+    default <T> T get(Object key, Function<Class<T>, T> defaultValue){
+        T value = this.get(key);
+        return value == null ? defaultValue.apply(null) : value;
+    }
+
+    /**
+     * run a value mapped to the given key
+     * and returns the given default value
+     * case the key didn't exist or mapped
+     * to null.
+     *
+     * @param klass        to make sure the mapped value is instance of the needed class
+     * @param key          to run it's mapped value
+     * @param defaultValue case key not found
+     * @param <T>          type of value
+     * @return the mapped value to the given key
+     * @see #get(Object) to run the value
+     */
+    /*final*/
+    default <T> T get(Class<T> klass, Object key, Function<Class<T>, T> defaultValue) {
+        T value = this.castObject(klass, this.get(key));
+        return value == null ? defaultValue.apply(klass) : value;
     }
 
     /**
@@ -381,6 +435,7 @@ public interface Structure {
         for (Field field : this.getClass().getFields())
             if (!map.containsKey(field.getName()) && !this.isIgnored(field.getName()))
                 try {
+                    field.setAccessible(true);
                     map.put(field.getName(), field.get(this));
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
@@ -400,19 +455,32 @@ public interface Structure {
     default <S extends Structure> S overrideFromSuper(Class klass) {
         List<String> overridden = new ArrayList<>();
 
-        if (klass.isInstance(this))
+        if (klass.isInstance(this)) {
             for (Field field : klass.getFields())
-                if (!overridden.contains(field.getName()) && !this.isIgnored(field.getName()))
+                if (!overridden.contains(field.getName()))
                     try {
+                        field.setAccessible(true);
                         this.put(field.getName(), field.get(this));
                         overridden.add(field.getName());
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
-                else
-                    throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
+        } else {
+            throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
+        }
 
         return (S) this;
+    }
+
+    /**
+     * override the fields inside this from fields inside the parent class of this.
+     *
+     * @param <S> this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S overrideFromSuper() {
+        return this.overrideFromSuper(this.getClass().getSuperclass());
     }
 
     /**
@@ -428,7 +496,9 @@ public interface Structure {
             this.map().forEach((key, value) -> {
                 if (key instanceof String)
                     try {
-                        klass.getField((String) key).set(this, value);
+                        Field field = klass.getField((String) key);
+                        field.setAccessible(true);
+                        field.set(this, this.castObject(field.getType(), value));
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     } catch (NoSuchFieldException ignored) {
@@ -436,6 +506,17 @@ public interface Structure {
             });
         else throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
         return (S) this;
+    }
+
+    /**
+     * override fields in the parent super class of this from the fields inside this.
+     *
+     * @param <S> this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S overrideSuper() {
+        return this.overrideSuper(this.getClass().getSuperclass());
     }
 
     /**
@@ -457,19 +538,21 @@ public interface Structure {
         if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
-                if (field.getType() == CastList.class) {
-                    List<Object> list = (List<Object>) Structure.castObject(List.class, value);
+                field.setAccessible(true);
 
-                    if (list != null) {
-                        CastList<Object> value1 = (CastList<Object>) field.get(this);
-                        value1 = new CastList<>(value1 == null ? Object.class : value1.getComponentType());
-                        value1.addAll(list);
-                        value1.castElements();
-                        field.set(this, value1);
-                        return (V) value1;
+                if (field.getType() == CastList.class) {
+                    List<Object> value1 = (List<Object>) this.castObject(List.class, value);
+
+                    if (value1 != null) {
+                        CastList<Object> value2 = (CastList<Object>) field.get(this);
+                        value2 = new CastList<>(value2 == null ? Object.class : value2.getComponentType());
+                        value2.addAll(value1);
+                        value2.castElements();
+                        field.set(this, value2);
+                        return (V) value2;
                     }
                 } else {
-                    Object value1 = Structure.castObject(field.getType(), value);
+                    Object value1 = this.castObject(field.getType(), value);
 
                     if (value1 != null) {
                         field.set(this, value1);
@@ -520,13 +603,14 @@ public interface Structure {
      * the given key isn't mapped or mapped to null.
      *
      * @param key   to map
-     * @param value to map the given key to
+     * @param value to generate value if the given key is already have been mapped
      * @param <V>   type of the value
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
-    default <V> V putIfAbsent(Object key, V value) {
-        V mapped = (V) this.get((Class<V>) value.getClass(), key, null);
-        return mapped == null ? this.put(key, value) : mapped;
+    /*final*/
+    default <V> V putIfAbsent(Object key, Function<Class<V>, V> value) {
+        V mapped = this.get(key);
+        return mapped == null ? this.put(key, value.apply(null)) : mapped;
     }
 
     /**
@@ -539,8 +623,9 @@ public interface Structure {
      * @param <V>   type of the value
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
+    /*final*/
     default <V> V putIfAbsent(Class<V> klass, Object key, Function<Class<V>, V> value) {
-        V mapped = (V) this.get(klass, key, null);
+        V mapped = this.get(klass, key);
         return mapped == null ? this.put(key, value.apply(klass)) : mapped;
     }
 
@@ -552,7 +637,9 @@ public interface Structure {
     default void remove(Object key) {
         if (key instanceof String && !this.isIgnored(key))
             try {
-                this.getClass().getField((String) key).set(this, null);
+                Field field = this.getClass().getField((String) key);
+                field.setAccessible(true);
+                field.set(this, null);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchFieldException ignored) {
@@ -621,6 +708,7 @@ public interface Structure {
         if (key instanceof String && !this.isIgnored(key))
             try {
                 Field field = this.getClass().getField((String) key);
+                field.setAccessible(true);
                 Object object = field.get(this);
                 return object == null ? field.getType() : object.getClass();
             } catch (IllegalAccessException e) {
@@ -646,7 +734,7 @@ public interface Structure {
          *
          * @param klass elements class
          */
-        public CastList(Class<E> klass){
+        public CastList(Class<E> klass) {
             super();
             this.klass = klass;
         }
@@ -655,10 +743,10 @@ public interface Structure {
          * init this.
          *
          * @param initialCapacity capacity to began with
-         * @param klass elements class
+         * @param klass           elements class
          * @see java.util.ArrayList#ArrayList(int) original method
          */
-        public CastList(Class<E> klass, int initialCapacity){
+        public CastList(Class<E> klass, int initialCapacity) {
             super(initialCapacity);
             this.klass = klass;
         }
@@ -666,11 +754,11 @@ public interface Structure {
         /**
          * init this.
          *
-         * @param klass elements class
+         * @param klass      elements class
          * @param collection collection to copy from
          * @see java.util.ArrayList#ArrayList(Collection) original method
          */
-        public CastList(Class<E> klass, Collection<E> collection){
+        public CastList(Class<E> klass, Collection<E> collection) {
             super(collection);
             this.klass = klass;
         }
@@ -678,9 +766,9 @@ public interface Structure {
         /**
          * cast elements in this to {@link #klass targeted class}.
          */
-        public void castElements(){
+        public void castElements() {
             List<E> list = new ArrayList<>();
-            this.forEach((e)-> list.add(Structure.castObject(this.klass, e)));
+            this.forEach((e) -> list.add(Structure.CastObject(this.klass, e)));
             this.clear();
             this.addAll(list);
         }
@@ -690,7 +778,7 @@ public interface Structure {
          *
          * @return the type of the elements of this
          */
-        public Class<E> getComponentType(){
+        public Class<E> getComponentType() {
             return this.klass;
         }
     }

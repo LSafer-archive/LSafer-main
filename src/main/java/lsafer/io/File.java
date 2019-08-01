@@ -292,8 +292,7 @@ public class File extends java.io.File {
     public void copy(java.io.File parent, lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("input_folder", this.getParentFile());
         synchronizer.put("output_folder", parent);
-        if (synchronizer.get("max_progress") == null)
-            synchronizer.put("max_progress", this.filesCount());
+        synchronizer.putIfAbsent("max_progress", (k) -> this.filesCount());
         synchronizer.bind();
 
         if (!parent.mkdirs()) {
@@ -364,8 +363,7 @@ public class File extends java.io.File {
      */
     public void delete(lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("output_folder", this.getParentFile());
-        if (synchronizer.get("max_progress") == null)
-            synchronizer.put("max_progress", this.filesCount());
+        synchronizer.putIfAbsent("max_progress", (k) -> this.filesCount());
         synchronizer.bind();
 
         if (this.isDirectory()) {
