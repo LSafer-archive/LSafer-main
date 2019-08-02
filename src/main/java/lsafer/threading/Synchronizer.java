@@ -31,12 +31,6 @@ public class Synchronizer extends AbstractStructure {
     final public List<Loop> $loops = new ArrayList<>();
 
     /**
-     * new synchronizer.
-     */
-    public Synchronizer() {
-    }
-
-    /**
      * call all on bind listeners.
      */
     public void bind() {

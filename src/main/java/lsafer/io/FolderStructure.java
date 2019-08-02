@@ -21,15 +21,6 @@ import lsafer.util.Structure;
 @SuppressWarnings("WeakerAccess")
 public class FolderStructure extends FileStructure {
 
-    /**
-     * init this.
-     *
-     * @param arguments to init with
-     */
-    public FolderStructure(Object... arguments) {
-        super(arguments);
-    }
-
     @Override
     public boolean check() {
         return this.$remote.exists() && this.$remote.isDirectory();

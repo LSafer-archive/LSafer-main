@@ -18,15 +18,6 @@ import lsafer.json.JSON;
  */
 public class JSONFileStructure extends FileStructure {
 
-    /**
-     * to init this.
-     *
-     * @param arguments to init with
-     */
-    public JSONFileStructure(Object... arguments) {
-        super(arguments);
-    }
-
     @Override
     public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readJSON(new HashMap<>()));

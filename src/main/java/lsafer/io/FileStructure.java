@@ -10,17 +10,8 @@ package lsafer.io;
  * @version 7 release (19-Jul-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"UnusedReturnValue"})
 public abstract class FileStructure extends IOStructure<File> {
-
-    /**
-     * init this.
-     *
-     * @param arguments to init this
-     */
-    public FileStructure(Object... arguments) {
-        super(arguments);
-    }
 
     @Override
     public boolean check() {

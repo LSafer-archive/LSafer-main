@@ -23,15 +23,6 @@ public abstract class IOStructure<R> extends AbstractStructure {
     protected R $remote;
 
     /**
-     * init this.
-     *
-     * @param arguments to init with
-     */
-    public IOStructure(Object... arguments) {
-        super(arguments);
-    }
-
-    /**
      * copy this structure as other class
      * and copy the IO container remote if possible.
      *

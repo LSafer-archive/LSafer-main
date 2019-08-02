@@ -20,14 +20,6 @@ public abstract class AbstractStructure implements Structure {
      */
     final protected Map<Object, Object> $value = new HashMap<>();
 
-    /**
-     * to unify all Structures constructors.
-     *
-     * @param arguments if subclasses needs
-     */
-    public AbstractStructure(Object... arguments) {
-    }
-
     @Override
     public <S extends Structure> S clean() {
         Structure.super.clean();

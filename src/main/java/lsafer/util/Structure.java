@@ -366,14 +366,14 @@ public interface Structure {
      * case the key didn't exist or mapped
      * to null.
      *
-     * @param klass        to make sure the mapped value is instance of the needed class
-     * @param key          to run it's mapped value
-     * @param <T>          type of value
+     * @param klass to make sure the mapped value is instance of the needed class
+     * @param key   to run it's mapped value
+     * @param <T>   type of value
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Class<T> klass, Object key){
+    default <T> T get(Class<T> klass, Object key) {
         return this.castObject(klass, this.get(key));
     }
 
@@ -390,7 +390,7 @@ public interface Structure {
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Object key, Function<Class<T>, T> defaultValue){
+    default <T> T get(Object key, Function<Class<T>, T> defaultValue) {
         T value = this.get(key);
         return value == null ? defaultValue.apply(null) : value;
     }

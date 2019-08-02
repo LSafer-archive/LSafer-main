@@ -17,15 +17,6 @@ import java.util.HashMap;
  */
 public class SerialFileStructure extends FileStructure {
 
-    /**
-     * init this.
-     *
-     * @param arguments to init with
-     */
-    public SerialFileStructure(Object... arguments) {
-        super(arguments);
-    }
-
     @Override
     public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readSerial(HashMap.class, new HashMap<>()));

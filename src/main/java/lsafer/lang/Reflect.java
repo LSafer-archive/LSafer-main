@@ -28,7 +28,7 @@ final public class Reflect {
      * @see #getInstanceOf(Class, Class[], Object...)
      * @see #containsConstructor(Class, Class[])
      */
-    final public static Class[] CONSTRUCTOR_DEFAULT = new Class[]{};
+    final public static Class[] CONSTRUCTOR_DEFAULT = new Class[0];
 
     /**
      * the constructor have a single argument with multiple-arguments argument type.

@@ -18,15 +18,6 @@ import lsafer.microsoft.INI;
  */
 public class INIFileStructure extends FileStructure {
 
-    /**
-     * to init this.
-     *
-     * @param arguments to init with
-     */
-    public INIFileStructure(Object... arguments) {
-        super(arguments);
-    }
-
     @Override
     public <I extends IOStructure> I load() {
         this.putAll(this.$remote.readINI(new HashMap<>()));
