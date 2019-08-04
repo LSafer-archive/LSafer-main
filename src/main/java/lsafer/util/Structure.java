@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import lsafer.lang.Reflect;
@@ -81,6 +83,9 @@ import lsafer.lang.Reflect;
  * @since 06-Jul-19
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+//TODO
+//  -methods weight improvements
+//  -structure 2 map duel synchronization
 public interface Structure {
 
     /**
@@ -337,6 +342,20 @@ public interface Structure {
                 }
 
         return false;
+    }
+
+    /**
+     * do a function foreach element in this.
+     *
+     * @param consumer function to apply
+     * @param <S>      this
+     * @return this
+     * @see Map#forEach(BiConsumer)
+     */
+    /*final*/
+    default <S extends Structure> S foreach(BiConsumer<Object, Object> consumer) {
+        this.map().forEach(consumer);
+        return (S) this;
     }
 
     /**
@@ -696,11 +715,15 @@ public interface Structure {
      */
     /*final*/
     default <V> V replace(Class<V> klass, Object key, Function<Class<? super V>, V> defaultValue, Function<V, V> replacement) {
-        V o = this.get(klass, key);
-        if (o == null) o = defaultValue.apply(klass);
-        V n = replacement.apply(o);
-        this.put(key, n);
-        return o;
+        if (!this.isIgnored(key)) {
+            V o = this.get(klass, key);
+            if (o == null) o = defaultValue.apply(klass);
+            V n = replacement.apply(o);
+            this.put(key, n);
+            return o;
+        }
+
+        return null;
     }
 
     /**
@@ -714,11 +737,28 @@ public interface Structure {
      */
     /*final*/
     default <V> V replace(Object key, Function<?, V> defaultValue, Function<V, V> replacement) {
-        V o = this.get(key);
-        if (o == null) o = defaultValue.apply(null);
-        V n = replacement.apply(o);
-        this.put(key, n);
-        return o;
+        if (!this.isIgnored(key)) {
+            V o = this.get(key);
+            if (o == null) o = defaultValue.apply(null);
+            V n = replacement.apply(o);
+            this.put(key, n);
+            return o;
+        }
+
+        return null;
+    }
+
+    /**
+     * replace foreach element in this.
+     *
+     * @param function to apply (replace) foreach node in this &lt;Key, Value, Return&gt;
+     * @param <S>      this
+     * @return this
+     */
+    /*final*/
+    default <S extends Structure> S replaceAll(BiFunction<Object, Object, Object> function) {
+        this.map().forEach((key, value) -> this.put(key, function.apply(key, value)));
+        return (S) this;
     }
 
     /**
@@ -732,6 +772,16 @@ public interface Structure {
     default <S extends Structure> S reset() {
         this.putAll(Structure.newInstance(this.getClass()));
         return (S) this;
+    }
+
+    /**
+     * get the size of this.
+     *
+     * @return the count of elements inside this
+     */
+    /*final*/
+    default int size() {
+        return this.map().size();
     }
 
     /**
@@ -754,6 +804,17 @@ public interface Structure {
             }
 
         return null;
+    }
+
+    /**
+     * get a list of the values contained in this.
+     *
+     * @return a list of the values contained in this
+     * @see Map#values()
+     */
+    /*final*/
+    default Collection<Object> values() {
+        return this.map().values();
     }
 
     /**
