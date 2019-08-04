@@ -373,8 +373,8 @@ public interface Structure {
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Class<T> klass, Object key) {
-        return this.castObject(klass, this.get(key));
+    default <T> T get(Class<? super T> klass, Object key) {
+        return (T) this.castObject(klass, this.get(key));
     }
 
     /**
@@ -390,7 +390,7 @@ public interface Structure {
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Object key, Function<Class<T>, T> defaultValue) {
+    default <T> T get(Object key, Function<?, T> defaultValue) {
         T value = this.get(key);
         return value == null ? defaultValue.apply(null) : value;
     }
@@ -409,8 +409,8 @@ public interface Structure {
      * @see #get(Object) to run the value
      */
     /*final*/
-    default <T> T get(Class<T> klass, Object key, Function<Class<T>, T> defaultValue) {
-        T value = this.castObject(klass, this.get(key));
+    default <T> T get(Class<? super T> klass, Object key, Function<Class<? super T>, T> defaultValue) {
+        T value = (T) this.castObject(klass, this.get(key));
         return value == null ? defaultValue.apply(klass) : value;
     }
 
@@ -608,7 +608,7 @@ public interface Structure {
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
     /*final*/
-    default <V> V putIfAbsent(Object key, Function<Class<V>, V> value) {
+    default <V> V putIfAbsent(Object key, Function<?, V> value) {
         V mapped = this.get(key);
         return mapped == null ? this.put(key, value.apply(null)) : mapped;
     }
@@ -624,7 +624,7 @@ public interface Structure {
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
     /*final*/
-    default <V> V putIfAbsent(Class<V> klass, Object key, Function<Class<V>, V> value) {
+    default <V> V putIfAbsent(Class<? super V> klass, Object key, Function<Class<? super V>, V> value) {
         V mapped = this.get(klass, key);
         return mapped == null ? this.put(key, value.apply(klass)) : mapped;
     }
@@ -682,6 +682,43 @@ public interface Structure {
     /*final*/
     default <S extends Structure> S removeAll(Structure structure) {
         return this.removeAll(structure.map());
+    }
+
+    /**
+     * replace a value in this.
+     *
+     * @param klass        of the value
+     * @param key          were the value have been mapped at
+     * @param defaultValue in case the mapped value is null
+     * @param replacement  function to get the replacement from
+     * @param <V>          value type
+     * @return old value
+     */
+    /*final*/
+    default <V> V replace(Class<V> klass, Object key, Function<Class<? super V>, V> defaultValue, Function<V, V> replacement) {
+        V o = this.get(klass, key);
+        if (o == null) o = defaultValue.apply(klass);
+        V n = replacement.apply(o);
+        this.put(key, n);
+        return o;
+    }
+
+    /**
+     * replace a value in this.
+     *
+     * @param key          were the value have been mapped at
+     * @param defaultValue in case the mapped value is null
+     * @param replacement  function to get the replacement from
+     * @param <V>          value type
+     * @return old value
+     */
+    /*final*/
+    default <V> V replace(Object key, Function<?, V> defaultValue, Function<V, V> replacement) {
+        V o = this.get(key);
+        if (o == null) o = defaultValue.apply(null);
+        V n = replacement.apply(o);
+        this.put(key, n);
+        return o;
     }
 
     /**

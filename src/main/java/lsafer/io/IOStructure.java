@@ -1,5 +1,7 @@
 package lsafer.io;
 
+import java.util.function.Function;
+
 import lsafer.util.AbstractStructure;
 import lsafer.util.Structure;
 
@@ -63,6 +65,18 @@ public abstract class IOStructure<R> extends AbstractStructure {
      */
     public R remote() {
         return this.$remote;
+    }
+
+    /**
+     * replace this remote with a new remote.
+     *
+     * @param remote new remote
+     * @return old remote
+     */
+    public R remote(Function<R, R> remote) {
+        R old = this.$remote;
+        this.$remote = remote.apply(old);
+        return old;
     }
 
     /**
