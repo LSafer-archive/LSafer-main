@@ -523,6 +523,17 @@ final public class JSON {
     }
 
     /**
+     * transform the given {@link Long long} to a JSON text.
+     *
+     * @param l       long to transform
+     * @param spacing base
+     * @return a JSON text from the given float
+     */
+    public static String stringify(Long l, String spacing) {
+        return l + "L";
+    }
+
+    /**
      * transform the given {@link Structure structure} to a JSON text.
      *
      * @param structure to transform
@@ -551,6 +562,8 @@ final public class JSON {
             return JSON.stringify((String) object, spacing);
         if (object instanceof Float)
             return JSON.stringify((Float) object, spacing);
+        if (object instanceof Long)
+            return JSON.stringify((Long) object, spacing);
         if (object instanceof Structure)
             return JSON.stringify((Structure) object, spacing);
         if (object instanceof Character)

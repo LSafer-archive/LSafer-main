@@ -353,8 +353,8 @@ public interface Structure {
      * @see Map#forEach(BiConsumer)
      */
     /*final*/
-    default <S extends Structure> S foreach(BiConsumer<Object, Object> consumer) {
-        this.map().forEach(consumer);
+    default <S extends Structure> S forEach(BiConsumer<?, ?> consumer) {
+        this.map().forEach((BiConsumer<? super Object, ? super Object>) consumer);
         return (S) this;
     }
 
@@ -756,8 +756,8 @@ public interface Structure {
      * @return this
      */
     /*final*/
-    default <S extends Structure> S replaceAll(BiFunction<Object, Object, Object> function) {
-        this.map().forEach((key, value) -> this.put(key, function.apply(key, value)));
+    default <S extends Structure> S replaceAll(BiFunction<?, ?, ?> function) {
+        this.map().forEach((key, value) -> this.put(key, ((BiFunction<Object, Object, Object>) function).apply(key, value)));
         return (S) this;
     }
 
