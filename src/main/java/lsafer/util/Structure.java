@@ -1,17 +1,25 @@
 package lsafer.util;
 
+import java.io.File;
+import java.io.Serializable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import lsafer.lang.Reflect;
+import java.util.function.Supplier;
 
 /**
  * defines that the targeted class can be used as a structure,
@@ -25,18 +33,17 @@ import lsafer.lang.Reflect;
  * <li>all public fields will be a node (even final and static fields)[all but fields excluded in this list]</li>
  * <li>private field well not be a node</li>
  * <li>protected fields sometimes well not be a node (but sometimes well be by mistake , so please add '$' char in their name to make sure it's excluded)</li>
- * <li>fields that contains any of {@link #isIgnored(Object)} destruct symbols} in their names well not be a node</li>
  * <li>java non-object fields (like int, float, etc...) may cause casting problems</li>
  * <li>declaring fields in the constructor is an unprotect way</li>
- * <li>you can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type, see {@link #castObject(Class, Object)} for more info</li>
+ * <li>if the field is transient then it'll be ignored by the structure</li>
+ * <li>you can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type, see {@link #cast(Class, Object)} for more info</li>
  * <li>the only way to declare a default value is to declare it directly to the field (or on it's constructor) , other ways may not work , so be careful while using nested structures</li>
  * </ul>
  *
  * <p>
  * to use any of these methods with your structure :
  * <ul>
- * <li>{@link #castObject(Class, Object) castObject(YourClass, Object)}</li>
- * <li>{@link #newInstance(Class, Object...) newInstance(YourClass, Object)}</li>
+ * <li>{@link #cast(Class, Object) castObject(YourClass, Object)}</li>
  * <li>{@link #clone(Class) clone(YourClass)}</li>
  * <li>{@link #reset() YourClass.reset()}</li>
  * </ul>
@@ -55,10 +62,6 @@ import lsafer.lang.Reflect;
  * tips :
  * <ul>
  * <li>add a secondary container like a {@link Map} to your structure so you can store keys even if the class don't have a {@link Field field} matches it.</li>
- * <li>
- * if you want an {@link ArrayList array list} and you want it's elements to be casted to a specific class,
- * please use {@link CastList cast list} and don't make it null, also
- * </li>
  * </ul>
  *
  * <p>
@@ -74,21 +77,21 @@ import lsafer.lang.Reflect;
  * <li>{@link #put(Object, Object)} to put the value in the secondary container (do super first)</li>
  * <li>{@link #remove(Object)} to remove the value from the secondary container (do super first)</li>
  * <li>{@link #reset()} to reset the secondary container too (do super last)</li>
- * <li>{@link #typeOf(Object)} to check the secondary container too (do super first)</li>
- * <li>{@link #isIgnored(Object)} to declare what keys to ignore</li>
  * </ul>
  *
  * @author LSaferSE
- * @version 6 release (28-Jul-2019)
+ * @version 7 release (7-Aug-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"UnusedReturnValue"})
 //TODO
 //  -methods weight improvements
-//  -structure 2 map duel synchronization
-public interface Structure {
+//  -class-structure2sub-class-structure duel synchronization
+public interface Structure extends Serializable {
 
     /**
+     * <b>UTIL</b>
+     * <p>
      * cast the given object to the given klass
      * used to cast objects that we have to cast it manually.
      *
@@ -112,27 +115,16 @@ public interface Structure {
      * @param value to cast
      * @param <T>   type of the class to cast to
      * @return value casted to the given class
-     * @see #newInstance(Class, Object...) used to run a new instance of the klass (case the structuable is assignable from it)
      * @see #putAll(Map) used to fill the structable (case the structuable is assignable from the klass and the value is a map)
      */
-    static <T> T CastObject(Class<T> klass, Object value) {
-        //? <- null
-        //(value equals null)
-        if (value == null) {
-            return null;
-        }
-        //? <- ?
-        //(value instanceOf klass)
-        if (klass.isInstance(value)) {
+    default <T> T cast(Class<T> klass, Object value) {
+        if (value == null || klass.isInstance(value)) {
             return (T) value;
         }
-        //String <- ?
-        //(klass instanceOf String) and (value instanceOf Object)
-        if (klass == String.class) {
+
+        if (String.class == klass) {
             return (T) String.valueOf(value);
         }
-        //Number <- Float | Double | Integer | Long | String
-        //(klass subClassOf Number) and (value instanceOf Number or String)
         if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
             try {
                 return (T) klass.getMethod("valueOf", String.class)
@@ -142,98 +134,140 @@ public interface Structure {
                 return null;
             }
         }
-        //List <- Object[]
-        //(klass subClassOf List) and (value instanceOf Object[])
-        if (klass == List.class && value instanceof Object[]) {
-            return (T) Arrays.asList((Object[]) value);
+        if (File.class.isAssignableFrom(klass) && value instanceof String) {
+            return (T) new File(String.valueOf(value));
         }
-        //Map <- Structure
-        //(klass equals Map) and (value instanceOf Structure)
-        if (klass == Map.class && value instanceof Structure) {
-            return (T) ((Structure) value).map();
+
+        if (ArrayStructure.class.isAssignableFrom(klass) && value instanceof Object[]) {
+            try {
+                ArrayStructure structure = (ArrayStructure) klass.newInstance();
+                structure.putAll((Object[]) value);
+                return (T) structure;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        //Structure <- Map
-        //(klass subClassOf Structure) and (value instanceOf Map)
-        if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
-            Structure structure = Structure.newInstance((Class<? extends Structure>) klass);
-            structure.putAll((Map<String, Object>) value);
-            return (T) structure;
+        if (ArrayStructure.class.isAssignableFrom(klass) && value instanceof List) {
+            try {
+                ArrayStructure structure = (ArrayStructure) klass.newInstance();
+                structure.putAll((List) value);
+                return (T) structure;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        //Structure <- Structure
-        //(klass subClassOf Structure) and (value instanceOf Structure)
+        if (ArrayStructure[].class.isAssignableFrom(klass) && value instanceof Object[][]) {
+            Object[][] arrays = (Object[][]) value;
+            ArrayStructure[] structures = (ArrayStructure[]) Array.newInstance(klass.getComponentType(), arrays.length);
+
+            for (int i = 0; i < arrays.length; i++) {
+                try {
+                    structures[i] = (ArrayStructure) klass.newInstance();
+                    structures[i].putAll(arrays[i]);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return (T) structures;
+        }
+        if (ArrayStructure[].class.isAssignableFrom(klass) && value instanceof List[]) {
+            List[] lists = (List[]) value;
+            ArrayStructure[] structures = (ArrayStructure[]) Array.newInstance(klass.getComponentType(), lists.length);
+
+            for (int i = 0; i < lists.length; i++) {
+                try {
+                    structures[i] = (ArrayStructure) klass.newInstance();
+                    structures[i].putAll(lists[i]);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return (T) structures;
+        }
+
         if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
             return (T) ((Structure) value).clone((Class<? extends Structure>) klass);
         }
-        //to avoid null pointer exception
-        if (Object[].class.isAssignableFrom(klass))
-            //Object[] <- List
-            //(klass subClassOf Object[]) and (value instanceOf List)
-            if (value instanceof List) {
-                //noinspection unchecked
-                return (T) Arrays.asArray((List) value, klass.getComponentType());
+        if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
+            try {
+                Structure structure = (Structure) klass.newInstance();
+                structure.putAll((Map<String, Object>) value);
+                return (T) structure;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            //Map[] <- Structure[]
-            //(klass.component equals Map) and (value instanceOf Structure[])
-            else if (klass.getComponentType() == Map.class && value instanceof Structure[]) {
-                Structure[] structures = (Structure[]) value;
-                Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
+        }
+        if (Structure[].class.isAssignableFrom(klass) && value instanceof Map[]) {
+            Map[] maps = (Map[]) value;
+            Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
 
-                for (int i = 0; i < structures.length; i++) {
-                    maps[i] = structures[i].map();
-                }
-
-                return (T) maps;
-            }
-            //Structure[] <- Map[]
-            //(klass.component subClassOf Structure) and (value instanceOf Map[])
-            else if (Structure.class.isAssignableFrom(klass.getComponentType()) && value instanceof Map[]) {
-                Map[] maps = (Map[]) value;
-                Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
-
-                for (int i = 0; i < maps.length; i++) {
-                    structures[i] = Structure.newInstance((Class<? extends Structure>) klass);
+            for (int i = 0; i < maps.length; i++) {
+                try {
+                    structures[i] = (Structure) klass.newInstance();
                     structures[i].putAll(maps[i]);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
                 }
-
-                return (T) structures;
             }
 
-        //failed to cast
+            return (T) structures;
+        }
+
+        if (Map.class == klass && value instanceof Structure) {
+            return (T) ((Structure) value).map();
+        }
+        if (Map[].class.isAssignableFrom(klass) && value instanceof Structure[]) {
+            Structure[] structures = (Structure[]) value;
+            Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
+
+            for (int i = 0; i < structures.length; i++) {
+                maps[i] = structures[i].map();
+            }
+
+            return (T) maps;
+        }
+
+        if (List.class == klass && value instanceof Object[]) {
+            return (T) Arrays.asList((Object[]) value);
+        }
+        if (List.class == klass && value instanceof ArrayStructure) {
+            return (T) ((ArrayStructure) value).list();
+        }
+        if (List[].class.isAssignableFrom(klass) && value instanceof ArrayStructure[]) {
+            ArrayStructure[] structures = (ArrayStructure[]) value;
+            List[] lists = (List[]) Array.newInstance(klass.getComponentType(), structures.length);
+
+            for (int i = 0; i < structures.length; i++) {
+                lists[i] = structures[i].list();
+            }
+
+            return (T) lists;
+        }
+        if (Object[][].class.isAssignableFrom(klass) && value instanceof ArrayStructure[]) {
+            ArrayStructure[] structures = (ArrayStructure[]) value;
+            Object[][] arrays = (Object[][]) Array.newInstance(klass.getComponentType(), structures.length);
+
+            for (int i = 0; i < structures.length; i++) {
+                arrays[i] = Arrays.generify(structures[i].array());
+            }
+
+            return (T) arrays;
+        }
+
         return null;
     }
 
     /**
-     * get new instance of the given class.
-     * there is no problem init with the constructor directly :)
-     *
-     * @param klass     to run new instance of
-     * @param arguments to pass to the constructor
-     * @param <S>       type of the object
-     * @return new Instance of the given class
-     */
-    static <S extends Structure> S newInstance(Class<? extends S> klass, Object... arguments) {
-        if (Reflect.containsConstructor(klass, Reflect.CONSTRUCTOR_VARARG))
-            return Reflect.getInstanceOf(klass, Reflect.CONSTRUCTOR_VARARG, arguments);
-        else if (Reflect.containsConstructor(klass, Reflect.CONSTRUCTOR_DEFAULT))
-            return Reflect.getInstanceOf(klass, Reflect.CONSTRUCTOR_DEFAULT);
-        else
-            throw new IllegalStateException("can't create new instance of " + klass);
-    }
-
-    /**
-     * default method to cast objects.
-     *
-     * @param klass to cast object to
-     * @param value to be cast
-     * @param <T>   type of the cast value
-     * @return a value casted to the given class
-     * @see #CastObject(Class, Object)
-     */
-    default <T> T castObject(Class<T> klass, Object value) {
-        return Structure.CastObject(klass, value);
-    }
-
-    /**
+     * <b>SUPER BASE</b>
+     * <p>
      * remove any key that this dose not
      * have a field with the same name
      * of it.
@@ -246,6 +280,8 @@ public interface Structure {
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * remove all nodes from this
      * and set all fields to null.
      *
@@ -254,14 +290,10 @@ public interface Structure {
      */
     default <S extends Structure> S clear() {
         for (Field field : this.getClass().getFields())
-            if (!this.isIgnored(field.getName()))
+            if (this.structured(field))
                 try {
                     field.setAccessible(true);
-                    if (field.getType() == CastList.class) {
-                        ((CastList) field.get(this)).clear();
-                    } else {
-                        field.set(this, null);
-                    }
+                    field.set(this, null);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -269,21 +301,32 @@ public interface Structure {
     }
 
     /**
+     * <b>UTIL</b>
+     * <p>
      * copy this structure as other structure class.
      *
      * @param klass to copy to
      * @param <S>   type of the class
      * @return new instance with same values of this but different class
-     * @see #newInstance(Class, Object...) used to run a new instance of the given class
      * @see #putAll(Structure) used to put all of this into the new instance
      */
     default <S extends Structure> S clone(Class<S> klass) {
-        S structure = Structure.newInstance(klass);
-        structure.putAll(this);
-        return structure;
+        try {
+            S structure = (S) (klass == null ? this.getClass() : klass).newInstance();
+            structure.putAll(this);
+            return structure;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * checks if this class contains a field
      * matches the given name and it's type
      * is assignable from the given type.
@@ -292,18 +335,20 @@ public interface Structure {
      * @param type of the field to check
      * @return whether this class contains a field with the given name and matches the given value or not
      */
-    /*final*/
     default boolean containsField(String name, Class<? /*super FIELD_TYPE*/> type) {
-        if (!this.isIgnored(name))
-            try {
-                return type.isAssignableFrom(this.getClass().getField(name).getType());
-            } catch (NoSuchFieldException ignored) {
-            }
+        try {
+            Field field = this.getClass().getField(name);
+
+            return this.structured(field) && type.isAssignableFrom(field.getType());
+        } catch (NoSuchFieldException ignored) {
+        }
 
         return false;
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * check if this contains the given key and it didn't
      * mapped to null.
      *
@@ -311,13 +356,9 @@ public interface Structure {
      * @return whether this contains the given key and not mapped to null
      */
     default boolean containsKey(Object key) {
-        if (key instanceof String && !this.isIgnored(key))
+        if (key instanceof String)
             try {
-                Field field = this.getClass().getField((String) key);
-                field.setAccessible(true);
-                return field.get(this) != null;
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                return this.structured(this.getClass().getField((String) key));
             } catch (NoSuchFieldException ignored) {
             }
 
@@ -325,6 +366,8 @@ public interface Structure {
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * check if any key in this is mapped to the given value.
      *
      * @param value to find
@@ -332,7 +375,7 @@ public interface Structure {
      */
     default boolean containsValue(Object value) {
         for (Field field : this.getClass().getFields())
-            if (!this.isIgnored(field.getName()))
+            if (this.structured(field))
                 try {
                     field.setAccessible(true);
                     if (field.get(this).equals(value))
@@ -345,6 +388,8 @@ public interface Structure {
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * do a function foreach element in this.
      *
      * @param consumer function to apply
@@ -352,25 +397,35 @@ public interface Structure {
      * @return this
      * @see Map#forEach(BiConsumer)
      */
-    /*final*/
+    //TODO heavy weight, uses this.map()
     default <S extends Structure> S forEach(BiConsumer<?, ?> consumer) {
         this.map().forEach((BiConsumer<? super Object, ? super Object>) consumer);
         return (S) this;
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * run a value mapped to the given key.
+     * <p>
+     * fyi : if the passed key == null then the return value well be this
      *
      * @param key to run it's mapped value
      * @param <T> type of value
      * @return the mapped value to the given key
      */
     default <T> T get(Object key) {
-        if (key instanceof String && !this.isIgnored(key))
+        if (key == null)
+            return (T) this;
+
+        if (key instanceof String)
             try {
                 Field field = this.getClass().getField((String) key);
-                field.setAccessible(true);
-                return (T) this.getClass().getField((String) key).get(this);
+
+                if (this.structured(field)) {
+                    field.setAccessible(true);
+                    return (T) field.get(this);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchFieldException ignored) {
@@ -380,6 +435,8 @@ public interface Structure {
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * run a value mapped to the given key
      * and returns the given default value
      * case the key didn't exist or mapped
@@ -390,13 +447,15 @@ public interface Structure {
      * @param <T>   type of value
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
+     *
      */
-    /*final*/
     default <T> T get(Class<? super T> klass, Object key) {
-        return (T) this.castObject(klass, this.get(key));
+        return (T) this.cast(klass, this.get(key));
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * run a value mapped to the given key
      * and returns the given default value
      * case the key didn't exist or mapped
@@ -408,13 +467,14 @@ public interface Structure {
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
      */
-    /*final*/
-    default <T> T get(Object key, Function<?, T> defaultValue) {
+    default <T> T get(Object key, Supplier<T> defaultValue) {
         T value = this.get(key);
-        return value == null ? defaultValue.apply(null) : value;
+        return value == null ? defaultValue.get() : value;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * run a value mapped to the given key
      * and returns the given default value
      * case the key didn't exist or mapped
@@ -427,23 +487,45 @@ public interface Structure {
      * @return the mapped value to the given key
      * @see #get(Object) to run the value
      */
-    /*final*/
-    default <T> T get(Class<? super T> klass, Object key, Function<Class<? super T>, T> defaultValue) {
-        T value = (T) this.castObject(klass, this.get(key));
-        return value == null ? defaultValue.apply(klass) : value;
+    default <T> T get(Class<? super T> klass, Object key, Supplier<T> defaultValue) {
+        T value = (T) this.cast(klass, this.get(key));
+        return value == null ? defaultValue.get() : value;
     }
 
     /**
-     * check whether the given key should be ignored or not.
+     * <b>BASE</b>
+     * <p>
+     * Returns a Set view of the keys contained in this map.
+     * The set is backed by the map,
+     * so changes to the map are reflected in the set,
+     * and vice-versa.
+     * If the map is modified while an iteration over the set is
+     * in progress (except through the iterator's own remove operation),
+     * the results of the iteration are undefined.
+     * The set supports element removal,
+     * which removes the corresponding mapping from the map,
+     * via the Iterator.remove,
+     * Set.remove,
+     * removeAll,
+     * retainAll,
+     * and clear operations.
+     * It does not support the add or addAll operations.
      *
-     * @param key to check
-     * @return whether the given key should be ignored or not
+     * @return a set view of the keys contained in this map
      */
-    default boolean isIgnored(Object key) {
-        return !(key instanceof String) || Strings.any((String) key, "$", "IncrementalChange", "serialVersionUID");
+    default Set<Object> keySet() {
+        Set<Object> set = new HashSet<>();
+
+        for (Field field : this.getClass().getFields())
+            if (this.structured(field))
+                set.add(field.getName());
+
+        return set;
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * run this as a map.
      *
      * @return this as a map
@@ -452,7 +534,7 @@ public interface Structure {
         Map<Object, Object> map = new HashMap<>();
 
         for (Field field : this.getClass().getFields())
-            if (!map.containsKey(field.getName()) && !this.isIgnored(field.getName()))
+            if (this.structured(field) && !map.containsKey(field.getName()))
                 try {
                     field.setAccessible(true);
                     map.put(field.getName(), field.get(this));
@@ -464,81 +546,65 @@ public interface Structure {
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * override the fields inside this from fields inside a super class of this.
      *
      * @param klass to get fields from
      * @param <S>   this
      * @return this
      */
-    /*final*/
     default <S extends Structure> S overrideFromSuper(Class klass) {
+        Class klass1 = klass == null ? this.getClass().getSuperclass() : klass;
         List<String> overridden = new ArrayList<>();
 
-        if (klass.isInstance(this)) {
-            for (Field field : klass.getFields())
-                if (!overridden.contains(field.getName()))
-                    try {
-                        field.setAccessible(true);
-                        this.put(field.getName(), field.get(this));
-                        overridden.add(field.getName());
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-        } else {
-            throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
-        }
+        for (Field field : klass1.getFields())
+            if (this.structured(field) && !overridden.contains(field.getName()))
+                try {
+                    field.setAccessible(true);
+                    this.put(field.getName(), field.get(this));
+                    overridden.add(field.getName());
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
 
         return (S) this;
     }
 
     /**
-     * override the fields inside this from fields inside the parent class of this.
-     *
-     * @param <S> this
-     * @return this
-     */
-    /*final*/
-    default <S extends Structure> S overrideFromSuper() {
-        return this.overrideFromSuper(this.getClass().getSuperclass());
-    }
-
-    /**
+     * <b>SUPER BASE</b>
+     * <p>
      * override fields in a super class of this from the fields inside this.
      *
      * @param klass to override fields inside
      * @param <S>   this
      * @return this
      */
-    /*final*/
     default <S extends Structure> S overrideSuper(Class klass) {
-        if (klass.isInstance(this))
+        Class klass1 = klass == null ? this.getClass().getSuperclass() : klass;
+
+        if (klass1.isInstance(this))
             this.map().forEach((key, value) -> {
                 if (key instanceof String)
                     try {
-                        Field field = klass.getField((String) key);
-                        field.setAccessible(true);
-                        field.set(this, this.castObject(field.getType(), value));
+                        Field field = klass1.getField((String) key);
+
+                        if (this.structured(field))
+
+                            field.setAccessible(true);
+                        field.set(this, this.cast(field.getType(), value));
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     } catch (NoSuchFieldException ignored) {
                     }
             });
-        else throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass);
+        else throw new IllegalStateException(this.getClass() + " isn't an instance of " + klass1);
         return (S) this;
     }
 
     /**
-     * override fields in the parent super class of this from the fields inside this.
-     *
-     * @param <S> this
-     * @return this
-     */
-    /*final*/
-    default <S extends Structure> S overrideSuper() {
-        return this.overrideSuper(this.getClass().getSuperclass());
-    }
-
-    /**
+     * <b>SUPER BASE</b>
+     * <p>
      * map the given value to the given key.
      * <p>
      * this method will try to cast the given
@@ -551,32 +617,19 @@ public interface Structure {
      * @param <V>   type of the value
      * @return the actual value that have been added
      * and null if the passed value is null
-     * @see #castObject(Class, Object) used to cast values to field's type
+     * @see #cast(Class, Object) used to cast values to field's type
      */
     default <V> V put(Object key, V value) {
-        if (key instanceof String && !this.isIgnored(key))
+        if (key instanceof String)
             try {
                 Field field = this.getClass().getField((String) key);
-                field.setAccessible(true);
 
-                if (field.getType() == CastList.class) {
-                    List<Object> value1 = (List<Object>) this.castObject(List.class, value);
+                if (this.structured(field)) {
+                    field.setAccessible(true);
 
-                    if (value1 != null) {
-                        CastList<Object> value2 = (CastList<Object>) field.get(this);
-                        value2 = new CastList<>(value2 == null ? Object.class : value2.getComponentType());
-                        value2.addAll(value1);
-                        value2.castElements();
-                        field.set(this, value2);
-                        return (V) value2;
-                    }
-                } else {
-                    Object value1 = this.castObject(field.getType(), value);
-
-                    if (value1 != null) {
-                        field.set(this, value1);
-                        return (V) value1;
-                    }
+                    Object value1 = this.cast(field.getType(), value);
+                    field.set(this, value1);
+                    return (V) value1;
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -587,6 +640,8 @@ public interface Structure {
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * copy all (key-value) links from the given
      * structure to this.
      *
@@ -594,15 +649,16 @@ public interface Structure {
      * @param <S>       type of this
      * @return this
      * @see #map() used to run structure's map
-     * @see #putAll(Map) used to putAll the structure's map
+     * @see #putAll(Map) used to putAll the structure's ma
      */
-    /*final*/
     default <S extends Structure> S putAll(Structure structure) {
         this.putAll(structure.map());
         return (S) this;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * copy all (key-value) links from the given
      * map to this.
      *
@@ -611,13 +667,14 @@ public interface Structure {
      * @return this
      * @see #put(Object, Object) used to put foreach value
      */
-    /*final*/
     default <S extends Structure> S putAll(Map<?, ?> map) {
         map.forEach(this::put);
         return (S) this;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * map the given key to the given value only if
      * the given key isn't mapped or mapped to null.
      *
@@ -626,13 +683,14 @@ public interface Structure {
      * @param <V>   type of the value
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
-    /*final*/
-    default <V> V putIfAbsent(Object key, Function<?, V> value) {
+    default <V> V putIfAbsent(Object key, Supplier<V> value) {
         V mapped = this.get(key);
-        return mapped == null ? this.put(key, value.apply(null)) : mapped;
+        return this.put(key, mapped == null ? value.get() : mapped);
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * map the given key to the given value only if
      * the given key isn't mapped or mapped to null.
      *
@@ -642,23 +700,27 @@ public interface Structure {
      * @param <V>   type of the value
      * @return the actual value that have been added or the mapped value if the key have already mapped
      */
-    /*final*/
-    default <V> V putIfAbsent(Class<? super V> klass, Object key, Function<Class<? super V>, V> value) {
+    default <V> V putIfAbsent(Class<? super V> klass, Object key, Supplier<V> value) {
         V mapped = this.get(klass, key);
-        return mapped == null ? this.put(key, value.apply(klass)) : mapped;
+        return this.put(key, mapped == null ? value.get() : mapped);
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * unmap the given key from it's value.
      *
      * @param key to unmap
      */
     default void remove(Object key) {
-        if (key instanceof String && !this.isIgnored(key))
+        if (key instanceof String)
             try {
                 Field field = this.getClass().getField((String) key);
-                field.setAccessible(true);
-                field.set(this, null);
+
+                if (this.structured(field)) {
+                    field.setAccessible(true);
+                    field.set(this, null);
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (NoSuchFieldException ignored) {
@@ -666,44 +728,69 @@ public interface Structure {
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * unmap the given key from it's value only if it's
      * value {@link Object#equals(Object) equals} the given key.
      *
      * @param key   to unmap
      * @param value to remove if it's equals the value mapped to the given key
      */
-    /*final*/
     default void remove(Object key, Object value) {
         if (this.get(key).equals(value))
-            this.remove(value);
+            this.remove(key);
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * remove all nodes found in the given map from this.
      *
      * @param map to remove
      * @param <S> type of this
      * @return this
      */
-    /*final*/
     default <S extends Structure> S removeAll(Map<?, ?> map) {
         map.forEach(this::remove);
         return (S) this;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * remove all nodes found in the given structure from this.
      *
      * @param structure to remove
      * @param <S>       type of this
      * @return this
      */
-    /*final*/
     default <S extends Structure> S removeAll(Structure structure) {
         return this.removeAll(structure.map());
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
+     * apply the given function foreach Key-Value in this
+     * and if the function reruns true then it'll be removed.
+     *
+     * @param function to use
+     * @param <S>      this
+     * @return this
+     */
+    //TODO heavy weight, uses this.forEach() witch uses this.map()
+    default <S extends Structure> S removeIf(BiFunction<?, ?, Boolean> function) {
+        this.forEach((k, v) -> {
+            if (((BiFunction<Object, Object, Boolean>) function).apply(k, v))
+                this.remove(k);
+        });
+
+        return (S) this;
+    }
+
+    /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * replace a value in this.
      *
      * @param klass        of the value
@@ -713,20 +800,16 @@ public interface Structure {
      * @param <V>          value type
      * @return old value
      */
-    /*final*/
-    default <V> V replace(Class<V> klass, Object key, Function<Class<? super V>, V> defaultValue, Function<V, V> replacement) {
-        if (!this.isIgnored(key)) {
-            V o = this.get(klass, key);
-            if (o == null) o = defaultValue.apply(klass);
-            V n = replacement.apply(o);
-            this.put(key, n);
-            return o;
-        }
-
-        return null;
+    //TODO too many arguments
+    default <V> V replace(Class<V> klass, Object key, Supplier<V> defaultValue, Function<V, V> replacement) {
+        V o = this.get(klass, key);
+        this.put(key, replacement.apply(o == null ? defaultValue.get() : o));
+        return o;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * replace a value in this.
      *
      * @param key          were the value have been mapped at
@@ -735,149 +818,181 @@ public interface Structure {
      * @param <V>          value type
      * @return old value
      */
-    /*final*/
-    default <V> V replace(Object key, Function<?, V> defaultValue, Function<V, V> replacement) {
-        if (!this.isIgnored(key)) {
-            V o = this.get(key);
-            if (o == null) o = defaultValue.apply(null);
-            V n = replacement.apply(o);
-            this.put(key, n);
-            return o;
-        }
-
-        return null;
+    //TODO too many arguments
+    default <V> V replace(Object key, Supplier<V> defaultValue, Function<V, V> replacement) {
+        V o = this.get(key);
+        this.put(key, replacement.apply(o == null ? defaultValue.get() : o));
+        return o;
     }
 
     /**
+     * <b>OVERLOAD UTIL</b>
+     * <p>
      * replace foreach element in this.
      *
      * @param function to apply (replace) foreach node in this &lt;Key, Value, Return&gt;
      * @param <S>      this
      * @return this
      */
-    /*final*/
+    //TODO heavy weight, uses this.map()
     default <S extends Structure> S replaceAll(BiFunction<?, ?, ?> function) {
         this.map().forEach((key, value) -> this.put(key, ((BiFunction<Object, Object, Object>) function).apply(key, value)));
         return (S) this;
     }
 
     /**
+     * <b>SUPER BASE</b>
+     * <p>
      * reset all values to default.
      *
-     * @param <S> type of this
+     * @param <S> this
      * @return this
-     * @see #newInstance(Class, Object...) used to run defaults from the new Instance
-     * @see #putAll(Structure) used to put defaults
      */
     default <S extends Structure> S reset() {
-        this.putAll(Structure.newInstance(this.getClass()));
+        try {
+            this.putAll(this.getClass().newInstance());
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+
         return (S) this;
     }
 
     /**
-     * get the size of this.
+     * <b>BASE</b>
+     * <p>
+     * get the number of nodes contained in this structure.
      *
      * @return the count of elements inside this
      */
-    /*final*/
     default int size() {
-        return this.map().size();
+        int i = 0;
+        for (Field field : this.getClass().getFields())
+            if (this.structured(field))
+                i++;
+        return i;
     }
 
     /**
-     * get the type of the value mapped
-     * to the given key.
+     * <b>UTIL</b>
+     * <p>
+     * check if the given field is
+     * structured or just transient.
+     * <p>
+     * exp:
+     * structured field well be a node of this structure
+     * and the transient field well not
      *
-     * @param key to get mapped value from
-     * @return the type of the value mapped in the given key
+     * @param field to check if it's structured in this Structure or not
+     * @return whether the given field'll be structured in this structure or well be ignored
      */
-    default Class typeOf(Object key) {
-        if (key instanceof String && !this.isIgnored(key))
-            try {
-                Field field = this.getClass().getField((String) key);
-                field.setAccessible(true);
-                Object object = field.get(this);
-                return object == null ? field.getType() : object.getClass();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException ignored) {
-            }
-
-        return null;
+    default boolean structured(Field field) {
+        return !Modifier.isTransient(field.getModifiers()) &&
+                !field.isAnnotationPresent(Destructed.class) &&
+                !Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");
     }
 
     /**
+     * <b>BASE</b>
+     * <p>
      * get a list of the values contained in this.
      *
      * @return a list of the values contained in this
-     * @see Map#values()
+     * @see Map#values() the same idea in Map
      */
-    /*final*/
     default Collection<Object> values() {
-        return this.map().values();
+        Collection<Object> values = new ArrayList<>();
+
+        for (Field field : this.getClass().getFields())
+            if (this.structured(field))
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(this);
+
+                    if (value != null)
+                        values.add(value);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+        return values;
     }
 
     /**
-     * just an {@link ArrayList array list}
-     * but it can store it's class.
+     *
      */
-    class CastList<E> extends ArrayList<E> {
-        /**
-         * elements class.
-         */
-        private Class<E> klass;
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @interface Destructed {
 
-        /**
-         * init this.
-         *
-         * @param klass elements class
-         */
-        public CastList(Class<E> klass) {
-            super();
-            this.klass = klass;
-        }
-
-        /**
-         * init this.
-         *
-         * @param initialCapacity capacity to began with
-         * @param klass           elements class
-         * @see java.util.ArrayList#ArrayList(int) original method
-         */
-        public CastList(Class<E> klass, int initialCapacity) {
-            super(initialCapacity);
-            this.klass = klass;
-        }
-
-        /**
-         * init this.
-         *
-         * @param klass      elements class
-         * @param collection collection to copy from
-         * @see java.util.ArrayList#ArrayList(Collection) original method
-         */
-        public CastList(Class<E> klass, Collection<E> collection) {
-            super(collection);
-            this.klass = klass;
-        }
-
-        /**
-         * cast elements in this to {@link #klass targeted class}.
-         */
-        public void castElements() {
-            List<E> list = new ArrayList<>();
-            this.forEach((e) -> list.add(Structure.CastObject(this.klass, e)));
-            this.clear();
-            this.addAll(list);
-        }
-
-        /**
-         * get the type of elements of this.
-         *
-         * @return the type of the elements of this
-         */
-        public Class<E> getComponentType() {
-            return this.klass;
-        }
     }
+
+//    /**
+//     * get the type of the value mapped
+//     * to the given key.
+//     *
+//     * @param key to get mapped value from
+//     * @return the type of the value mapped in the given key
+//     */
+//    /*abstract*/
+//    default Class typeOf(Object key) {
+//        if (key instanceof String)
+//            try {
+//                Field field = this.getClass().getField((String) key);
+//
+//                if (this.structured(field)) {
+//                    field.setAccessible(true);
+//                    Object object = field.get(this);
+//                    return object == null ? field.getType() : object.getClass();
+//                }
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            } catch (NoSuchFieldException ignored) {
+//            }
+//
+//        return null;
+//    }
+//    /**
+//     * Returns a Set view of the mappings contained in this map.
+//     * The set is backed by the map,
+//     * so changes to the map are reflected in the set,
+//     * and vice-versa.
+//     * If the map is modified while an iteration over the set
+//     * is in progress (except through the iterator's own remove
+//     * operation,
+//     * or through the setValue operation on a map entry returned by the iterator)
+//     * the results of the iteration are undefined.
+//     * The set supports element removal,
+//     * which removes the corresponding mapping from the map,
+//     * via the Iterator.remove,
+//     * Set.remove,
+//     * removeAll,
+//     * retainAll and clear operations.
+//     * It does not support the add or addAll operations.
+//     *
+//     * NOTE: heavy weight
+//     *
+//     * @return a set view of the mappings contained in this map
+//     */
+//    /*[overload]*/
+//    //TODO remove heavy weight
+//    default Set<Map.Entry<Object, Object>> entrySet() {
+//        Set<Map.Entry<Object, Object>> set = new HashSet<>();
+//
+//        for (Field field : this.getClass().getFields())
+//            if (this.structured(field))
+//                try {
+//                    field.setAccessible(true);
+//                    Object value = field.get(this);
+//
+//                    if (value != null)
+//
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                }
+//
+//        return this.map().entrySet();
+//    }
 }

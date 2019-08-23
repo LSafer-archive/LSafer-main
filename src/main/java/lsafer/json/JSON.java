@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lsafer.util.ArrayStructure;
 import lsafer.util.Arrays;
 import lsafer.util.Strings;
 import lsafer.util.Structure;
@@ -75,7 +76,7 @@ final public class JSON {
     public static boolean is_double(String string) {
         try {
             Double.valueOf(string);
-            return !string.endsWith("f") &&
+            return !string.toLowerCase().endsWith("f") &&
                     string.contains(".");
         } catch (Exception ignored) {
             return false;
@@ -91,7 +92,7 @@ final public class JSON {
     public static boolean is_float(String string) {
         try {
             Float.valueOf(string);
-            return string.endsWith("f");
+            return string.toUpperCase().endsWith("F");
         } catch (Exception ignored) {
             return false;
         }
@@ -123,7 +124,7 @@ final public class JSON {
     public static boolean is_long(String string) {
         try {
             Long.valueOf(string);
-            return string.endsWith("L") &&
+            return string.toUpperCase().endsWith("L") &&
                     !string.contains(".");
         } catch (Exception ignored) {
             return false;
@@ -519,7 +520,7 @@ final public class JSON {
      * @return a JSON text from the given float
      */
     public static String stringify(Float f, String spacing) {
-        return f + "f";
+        return f + "F";
     }
 
     /**
@@ -564,6 +565,8 @@ final public class JSON {
             return JSON.stringify((Float) object, spacing);
         if (object instanceof Long)
             return JSON.stringify((Long) object, spacing);
+        if (object instanceof ArrayStructure)
+            return JSON.stringify(((ArrayStructure) object).list(), spacing);
         if (object instanceof Structure)
             return JSON.stringify((Structure) object, spacing);
         if (object instanceof Character)

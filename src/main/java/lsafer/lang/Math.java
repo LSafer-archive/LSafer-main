@@ -27,7 +27,10 @@ final public class Math {
      * @return : the ratio between value and all values
      */
     public static int ratioOf(Number value, Number all) {
-        return (int) ((((double) value) / ((double) all)) * 100.0);
+        float fv = Float.valueOf(value.toString());
+        float fa = Float.valueOf(all.toString());
+
+        return (int) ((fv / fa) * 100.0f);
     }
 
 }

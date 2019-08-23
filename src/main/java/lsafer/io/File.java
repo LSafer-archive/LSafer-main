@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import lsafer.json.JSON;
 import lsafer.microsoft.INI;
@@ -292,7 +293,7 @@ public class File extends java.io.File {
     public void copy(java.io.File parent, lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("input_folder", this.getParentFile());
         synchronizer.put("output_folder", parent);
-        synchronizer.putIfAbsent("max_progress", (k) -> this.filesCount());
+        synchronizer.putIfAbsent("max_progress", this::filesCount);
         synchronizer.bind();
 
         if (!parent.mkdirs()) {
@@ -363,7 +364,7 @@ public class File extends java.io.File {
      */
     public void delete(lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("output_folder", this.getParentFile());
-        synchronizer.putIfAbsent("max_progress", (k) -> this.filesCount());
+        synchronizer.putIfAbsent("max_progress", this::filesCount);
         synchronizer.bind();
 
         if (this.isDirectory()) {
@@ -629,9 +630,14 @@ public class File extends java.io.File {
      * @param <V>          the type of values written in INI inside this file
      * @return transformed INI object write in this file
      */
-    public <V> Map<String, V> readINI(Map<String, V> defaultValue) {
+    public <V> Map<String, V> readINI(Supplier<Map<String, V>> defaultValue) {
         String string = this.read("");
-        return string.equals("") ? defaultValue : (Map<String, V>) INI.parse(string);
+
+        if (!string.equals("")) {
+            return (Map<String, V>) INI.parse(string);
+        }
+
+        return defaultValue.get();
     }
 
     /**
@@ -643,9 +649,17 @@ public class File extends java.io.File {
      * @param <V>          type of the values inside the map presented in this file as a json
      * @return transformed JSON object write in this file
      */
-    public <K, V> Map<K, V> readJSON(Map<K, V> defaultValue) {
-        Object object = JSON.parse(this.read(""));
-        return object instanceof Map ? (Map<K, V>) object : defaultValue;
+    public <K, V> Map<K, V> readJSON(Supplier<Map<K, V>> defaultValue) {
+        String string = this.read("");
+
+        if (!string.equals("")) {
+            Object object = JSON.parse(string);
+
+            if (object instanceof Map)
+                return (Map<K, V>) object;
+        }
+
+        return defaultValue.get();
     }
 
     /**
@@ -657,18 +671,20 @@ public class File extends java.io.File {
      * @param <S>          content type
      * @return transformed Java Serial write in this file
      */
-    public <S extends Serializable> S readSerial(Class<S> klass, S defaultValue) {
+    public <S extends Serializable> S readSerial(Class<S> klass, Supplier<S> defaultValue) {
         try (FileInputStream fis = new FileInputStream(this);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
             S value = (S) ois.readObject();//reading //wrong cast well cached
 
             //result
-            return klass.isInstance(value) ? value : defaultValue;
+            if (klass.isInstance(value))
+                return value;
         } catch (Exception ignored) {
             //case no mFile or wrong cast
-            return defaultValue;
         }
+
+        return defaultValue.get();
     }
 
     /**

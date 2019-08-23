@@ -14,29 +14,29 @@ package lsafer.io;
 public abstract class FileStructure extends IOStructure<File> {
 
     @Override
-    public boolean check() {
-        return this.$remote.exists() && !this.$remote.isDirectory();
+    public boolean exist() {
+        return this.remote.exists() && !this.remote.isDirectory();
     }
 
     @Override
     public boolean delete() {
-        return this.$remote.delete();
+        return this.remote.delete();
     }
 
     /**
-     * move {@link #$remote targeted file} to the given file.
+     * move {@link #remote targeted file} to the given file.
      *
      * @param parent to move to
      * @return success of moving
      */
     public boolean move(java.io.File parent) {
-        boolean w = this.$remote.move(parent);
-        this.$remote = this.$remote.self;
+        boolean w = this.remote.move(parent);
+        this.remote = this.remote.self;
         return w;
     }
 
     /**
-     * move {@link #$remote targeted file} to the given file.
+     * move {@link #remote targeted file} to the given file.
      *
      * @param parent to move to
      * @return success of moving
@@ -50,35 +50,35 @@ public abstract class FileStructure extends IOStructure<File> {
      * set the targeted File.
      *
      * @param remote targeted file
-     * @param <FS>   type of this
+     * @param <F>   type of this
      * @return this
      */
-    public <FS extends FileStructure> FS remote(java.io.File remote) {
+    public <F extends FileStructure> F remote(java.io.File remote) {
         super.remote(new File(remote));
-        return (FS) this;
+        return (F) this;
     }
 
     /**
      * set the targeted File.
      *
      * @param remote targeted file
-     * @param <FS>   type of this
+     * @param <F>   type of this
      * @return this
      */
     /*final*/
-    public <FS extends FileStructure> FS remote(String remote) {
-        return (FS) this.remote(new File(remote));
+    public <F extends FileStructure> F remote(String remote) {
+        return (F) this.remote(new File(remote));
     }
 
     /**
-     * rename {@link #$remote targeted file} to the given name.
+     * rename {@link #remote targeted file} to the given name.
      *
      * @param name to rename to
      * @return success of the renaming
      */
     public boolean rename(String name) {
-        boolean w = this.$remote.rename(name);
-        this.$remote = this.$remote.self;
+        boolean w = this.remote.rename(name);
+        this.remote = this.remote.self;
         return w;
     }
 

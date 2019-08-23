@@ -2,14 +2,14 @@ package lsafer.io;
 
 import java.util.function.Function;
 
-import lsafer.util.AbstractStructure;
+import lsafer.util.HashStructure;
 import lsafer.util.Structure;
 
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and IO port as a third container
  * <p>
- * make sure your {@link IOStructure io-structure} matches all {@link AbstractStructure structures} rules
+ * make sure your {@link IOStructure io-structure} matches all {@link HashStructure structures} rules
  *
  * @param <R> type of the targeted data solid container.
  * @author LSaferSE
@@ -17,12 +17,12 @@ import lsafer.util.Structure;
  * @since 06-Jul-19
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
-public abstract class IOStructure<R> extends AbstractStructure {
+public abstract class IOStructure<R> extends HashStructure {
 
     /**
      * IO container's remote.
      */
-    protected R $remote;
+    protected transient R remote;
 
     /**
      * copy this structure as other class
@@ -37,13 +37,18 @@ public abstract class IOStructure<R> extends AbstractStructure {
         S structure = super.clone(klass);
 
         if (structure instanceof IOStructure)
-            try {
-                ((IOStructure<R>) structure).$remote = this.$remote;
-            } catch (ClassCastException ignored) {
-                //coping this to a different target type data structure
-            }
+            ((IOStructure<R>) structure).remote = this.remote;
 
         return structure;
+    }
+
+    /**
+     * get the IO container's remote.
+     *
+     * @return IO container's remote
+     */
+    public R remote() {
+        return this.remote;
     }
 
     /**
@@ -54,17 +59,8 @@ public abstract class IOStructure<R> extends AbstractStructure {
      * @return this
      */
     public <I extends IOStructure> I remote(R remote) {
-        this.$remote = remote;
+        this.remote = remote;
         return (I) this;
-    }
-
-    /**
-     * get the IO container's remote.
-     *
-     * @return IO container's remote
-     */
-    public R remote() {
-        return this.$remote;
     }
 
     /**
@@ -74,8 +70,8 @@ public abstract class IOStructure<R> extends AbstractStructure {
      * @return old remote
      */
     public R remote(Function<R, R> remote) {
-        R old = this.$remote;
-        this.$remote = remote.apply(old);
+        R old = this.remote;
+        this.remote = remote.apply(old);
         return old;
     }
 
@@ -84,7 +80,7 @@ public abstract class IOStructure<R> extends AbstractStructure {
      *
      * @return whether the IO container is available or not
      */
-    abstract public boolean check();
+    abstract public boolean exist();
 
     /**
      * delete the IO container.

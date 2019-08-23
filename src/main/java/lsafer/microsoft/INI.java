@@ -78,7 +78,7 @@ final public class INI {
     public static boolean is_float(String string) {
         try {
             Float.valueOf(string);
-            return string.endsWith("f");
+            return string.toUpperCase().endsWith("F");
         } catch (Exception ignored) {
             return false;
         }
@@ -110,7 +110,7 @@ final public class INI {
     public static boolean is_long(String string) {
         try {
             Long.valueOf(string);
-            return string.endsWith("L") &&
+            return string.toUpperCase().endsWith("L") &&
                     !string.contains(".");
         } catch (Exception ignored) {
             return false;
@@ -261,7 +261,17 @@ final public class INI {
      * @return a INI text from the given map
      */
     public static String stringify(Float f) {
-        return f + "f";
+        return f + "F";
+    }
+
+    /**
+     * transform the given {@link Long long} to an INI text.
+     *
+     * @param l to transform
+     * @return a INI text from the given map
+     */
+    public static String stringify(Long l) {
+        return l + "L";
     }
 
     /**

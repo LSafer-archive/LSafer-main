@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import lsafer.lang.Reflect;
 
@@ -136,6 +137,31 @@ final public class Arrays {
             System.arraycopy(array, start, res, 0, array.length - end - start);
 
         return res;
+    }
+
+    /**
+     *
+     */
+    public static <E> void fill(List<E> list, int size, Supplier<E> supplier) {
+        for (int i = list.size(); i < size; i++)
+            list.add(supplier.get());
+    }
+
+    /**
+     * @param array
+     * @param size
+     * @param supplier
+     * @param <T>
+     * @return
+     */
+    public static <T> T[] fill(T[] array, int size, Supplier<T> supplier) {
+        T[] filled = (T[]) Array.newInstance(array.getClass().getComponentType(), size);
+        System.arraycopy(array, 0, filled, 0, array.length);
+
+        for (int i = array.length; i < size; i++)
+            filled[i] = supplier.get();
+
+        return filled;
     }
 
     /**

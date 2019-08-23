@@ -22,8 +22,8 @@ import lsafer.util.Structure;
 public class FolderStructure extends FileStructure {
 
     @Override
-    public boolean check() {
-        return this.$remote.exists() && this.$remote.isDirectory();
+    public boolean exist() {
+        return this.remote.exists() && this.remote.isDirectory();
     }
 
     @Override
@@ -32,7 +32,7 @@ public class FolderStructure extends FileStructure {
 
         if (w[0]) this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
-                w[0] &= ((FileStructure) value).move(this.$remote);
+                w[0] &= ((FileStructure) value).move(this.remote);
         });
 
         return w[0];
@@ -43,7 +43,7 @@ public class FolderStructure extends FileStructure {
         super.remote(file);
         this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
-                ((FileStructure) value).remote(this.$remote.child((String) key));
+                ((FileStructure) value).remote(this.remote.child((String) key));
         });
         return (I) this;
     }
@@ -54,7 +54,7 @@ public class FolderStructure extends FileStructure {
 
         if (w[0]) this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
-                w[0] &= ((FileStructure) value).move(this.$remote);
+                w[0] &= ((FileStructure) value).move(this.remote);
         });
 
         return w[0];
@@ -62,21 +62,27 @@ public class FolderStructure extends FileStructure {
 
     @Override
     public <I extends IOStructure> I load() {
-        for (File file : this.$remote.children()) {
-            Class type = this.typeOf(file.getName());
+        for (File file : this.remote.children())
+            this.putIfAbsent(FileStructure.class, file.getName(), () -> {
+                try {
+                    return file.isDirectory() ?
+                            this.folder_structure().newInstance() :
+                            this.file_structure().newInstance();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
 
-            if (type == null) //that means there isn't ANY value (or field) mapped to the key
-                this.put(file.getName(), Structure.newInstance(file.isDirectory() ? this.folder_structure() : this.file_structure()).remote(file).load());
-            else if (FileStructure.class.isAssignableFrom(type))
-                this.get(FileStructure.class, file.getName(), null).load();
-        }
+                return null;
+            }).remote(file).load();
 
         return (I) this;
     }
 
     @Override
     public boolean save() {
-        boolean[] w = {this.$remote.mkdirs()};
+        boolean[] w = {this.remote.mkdirs()};
 
         if (w[0]) this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
@@ -88,24 +94,20 @@ public class FolderStructure extends FileStructure {
 
     @Override
     public <T> T get(Object key) {
-        if (!this.isIgnored(key)) {
-            T value = super.get(key);
+        T value = super.get(key);
 
-            if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-                ((FileStructure) value).remote(this.$remote.child((String) key));
-        }
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+            ((FileStructure) value).remote(this.remote.child((String) key));
 
-        return null;
+        return value;
     }
 
     @Override
     public <V> V put(Object key, V value) {
-        if (!this.isIgnored(key)) {
-            value = super.put(key, value);
+        value = super.put(key, value);
 
-            if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-                ((FileStructure) value).remote(this.$remote.child((String) key));
-        }
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+            ((FileStructure) value).remote(this.remote.child((String) key));
 
         return value;
     }

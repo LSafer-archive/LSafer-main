@@ -1,13 +1,14 @@
 package lsafer.io;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import lsafer.microsoft.INI;
 
 /**
  * structure linked with {@link java.util.Map} as a secondary container
  * and {@link File INI file} as a third IO container.
- * depends on {@link File#readINI(java.util.Map)} and {@link File#writeINI(java.util.Map)}
+ * depends on {@link File#readINI(java.util.function.Supplier)} and {@link File#writeINI(java.util.Map)}
  * <p>
  * make sure your {@link INIFileStructure ini-file-structure} matches all {@link FileStructure file-structures} rules
  *
@@ -20,13 +21,14 @@ public class INIFileStructure extends FileStructure {
 
     @Override
     public <I extends IOStructure> I load() {
-        this.putAll(this.$remote.readINI(new HashMap<>()));
+        //noinspection RedundantTypeArguments
+        this.putAll(this.remote.<Object>readINI(HashMap::new));
         return (I) this;
     }
 
     @Override
     public boolean save() {
-        return this.$remote.writeINI(this.map());
+        return this.remote.writeINI(this.map());
     }
 
 }

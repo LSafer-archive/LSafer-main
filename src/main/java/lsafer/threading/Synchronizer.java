@@ -3,7 +3,7 @@ package lsafer.threading;
 import java.util.ArrayList;
 import java.util.List;
 
-import lsafer.util.AbstractStructure;
+import lsafer.util.HashStructure;
 
 /**
  * used to be the communication method between 2 threads one of them contains long loop
@@ -18,23 +18,23 @@ import lsafer.util.AbstractStructure;
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
-public class Synchronizer extends AbstractStructure {
+public class Synchronizer extends HashStructure {
 
     /**
      * the operations to do after a value run passed.
      */
-    final public List<OnBindListener> $listeners = new ArrayList<>();
+    final public transient List<OnBindListener<?>> listeners = new ArrayList<>();
 
     /**
      * loops that linked to this.
      */
-    final public List<Loop> $loops = new ArrayList<>();
+    final public transient List<Loop> loops = new ArrayList<>();
 
     /**
      * call all on bind listeners.
      */
     public void bind() {
-        for (OnBindListener listener : this.$listeners)
+        for (OnBindListener listener : this.listeners)
             //noinspection unchecked
             listener.OnBind(this);
     }
@@ -45,7 +45,7 @@ public class Synchronizer extends AbstractStructure {
      * @param command : next position for linked loops
      */
     public void command(Loop.Status command) {
-        for (Loop loop : this.$loops)
+        for (Loop loop : this.loops)
             loop.command(command);
         this.bind();
     }
@@ -56,7 +56,7 @@ public class Synchronizer extends AbstractStructure {
      * @param loop : to be started
      */
     public void startLoop(Loop loop) {
-        this.$loops.add(loop);
+        this.loops.add(loop);
         loop.start();
     }
 

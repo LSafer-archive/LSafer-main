@@ -13,6 +13,7 @@ import java.util.function.Function;
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"WeakerAccess"})
+@Deprecated
 final public class Reflect {
 
     /**
