@@ -1,61 +1,61 @@
 package lsafer.io;
 
-import java.util.function.Function;
-
 import lsafer.util.HashStructure;
 import lsafer.util.Structure;
 
+import java.lang.annotation.*;
+import java.util.function.Function;
+
+import static lsafer.io.IOStructure.Defaults;
+
 /**
- * structure linked with {@link java.util.Map} as a secondary container
- * and IO port as a third container
- * <p>
- * make sure your {@link IOStructure io-structure} matches all {@link HashStructure structures} rules
+ * A structure linked with {@link java.util.Map} as a secondary container. And an IO-port as a third container.
  *
- * @param <R> type of the targeted data solid container.
+ * <ul>
+ * <li>note: make sure your {@link IOStructure io-structure} matches all {@link HashStructure hash-structures} rules.</li>
+ * </ul>
+ *
+ * @param <R> type of the remote of the third IO-port container.
  * @author LSaferSE
- * @version 4 release (19-Jul-2019)
+ * @version 5 release (06-Sep-2019)
  * @since 06-Jul-19
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@Defaults
 public abstract class IOStructure<R> extends HashStructure {
 
     /**
-     * IO container's remote.
+     * The remote of the third IO-port container.
      */
-    protected transient R remote;
+    @Destructed
+    protected R remote;
 
-    /**
-     * copy this structure as other class
-     * and copy the IO container remote if possible.
-     *
-     * @param klass to copy to
-     * @param <S>   type of the class
-     * @return new instance with same values of this but different class
-     */
     @Override
     public <S extends Structure> S clone(Class<S> klass) {
         S structure = super.clone(klass);
 
-        if (structure instanceof IOStructure)
+        if (structure instanceof IOStructure &&
+            structure.getClass().getAnnotation(Defaults.class).remote().isInstance(this.remote))
             ((IOStructure<R>) structure).remote = this.remote;
 
         return structure;
     }
 
     /**
-     * get the IO container's remote.
+     * Get the IO container's remote.
      *
      * @return IO container's remote
+     * @see #remote
      */
     public R remote() {
         return this.remote;
     }
 
     /**
-     * set the IO container's remote.
+     * Set the IO container's remote to a new one.
      *
-     * @param remote IO container remote
-     * @param <I>    type of this
+     * @param remote new remote
+     * @param <I>    this
      * @return this
      */
     public <I extends IOStructure> I remote(R remote) {
@@ -64,44 +64,29 @@ public abstract class IOStructure<R> extends HashStructure {
     }
 
     /**
-     * replace this remote with a new remote.
+     * Replace this remote with a new remote.
      *
-     * @param remote new remote
-     * @return old remote
+     * @param remote new remote function
+     * @param <I>    this
+     * @return this
      */
-    public R remote(Function<R, R> remote) {
-        R old = this.remote;
-        this.remote = remote.apply(old);
-        return old;
+    public <I extends IOStructure> I remote(Function<R, R> remote) {
+        return this.remote(remote.apply(this.remote()));
     }
 
     /**
-     * check if the IO container is available or not.
-     *
-     * @return whether the IO container is available or not
+     * Set the default values for the targeted io-structure.
      */
-    abstract public boolean exist();
-
-    /**
-     * delete the IO container.
-     *
-     * @return success of deleting
-     */
-    abstract public boolean delete();
-
-    /**
-     * load this from the IO container.
-     *
-     * @param <I> type of this
-     * @return this
-     */
-    abstract public <I extends IOStructure> I load();
-
-    /**
-     * save this to the IO container.
-     *
-     * @return success of saving
-     */
-    abstract public boolean save();
+    @Inherited
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Defaults {
+        /**
+         * The type of the remote of third IO-port container of the target.
+         *
+         * @return the remote type
+         */
+        Class<?> remote() default Object.class;
+    }
 
 }

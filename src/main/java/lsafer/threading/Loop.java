@@ -1,17 +1,14 @@
 package lsafer.threading;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
- * controllable loop.
- * <p>
- * the concept is to do a block,
- * check shall continue or not,
- * then do the next block and so on.
+ * Controllable loop. The concept is to do a block. Check if shall continue or not. Then do the next block and so on.
  *
  * @param <I> the type of the items'll be passed while looping
  * @author LSaferSE
- * @version 3
+ * @version 4 release (06-Sep-2019)
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
@@ -20,39 +17,39 @@ public abstract class Loop<I> {
     /**
      * The code to loop.
      */
-    private Block<I> block;
+    private Function<I, Boolean> block;
 
     /**
-     * linking var.
+     * Linking var.
      */
     private volatile boolean check = true;
 
     /**
-     * the position of this loop.
+     * The position of this loop.
      */
     private Status position = Status.resume;
 
     /**
-     * init this.
+     * Initialize this.
      *
-     * @param block : the code to loop
+     * @param block the code to loop
      */
-    public Loop(Block<I> block) {
+    public Loop(Function<I, Boolean> block) {
         this.block = block;
     }
 
     /**
-     * continue the next step of the loop.
+     * Continue the next step of the loop.
      *
-     * @param item : the item to pass it to the next step
-     * @return : if continue the loop or not
+     * @param item to pass it to the next step
+     * @return whether allowed to continue the loop or not
      */
     final protected boolean next(I item) {
-        return this.check() && this.block.next(item);
+        return this.check() && this.block.apply(item);
     }
 
     /**
-     * update the status of loop.
+     * Update the status of loop.
      *
      * @param command new status
      */
@@ -62,13 +59,10 @@ public abstract class Loop<I> {
     }
 
     /**
-     * made for loop original class
-     * to tell the loop what it should do.
-     * <p>
-     * if the position of the loop is "pause" then it'll enter a loop until any new commands
+     * Made for loop original class. To tell the loop what it should do.
+     * If the position of the loop is "pause". Then it'll enter a loop until any new commands.
      *
-     * @return : if true the the loop shall continue else shall break
-     * @see Loop#next(Object) : it shall call this to decides it's operations
+     * @return if true the the loop shall continue else shall break
      */
     private boolean check() {
         if (!this.check) return true; //no updates
@@ -89,9 +83,7 @@ public abstract class Loop<I> {
     }
 
     /**
-     * the looping cod.
-     * call {@link #next(Object)} inside the loop to do the loop
-     * if it's returns false , break the loop
+     * The looping cod. call {@link #next(Object)} inside the loop to do the loop. Break the loop if it returned false.
      *
      * @see Foreach#start() foreach
      * @see Limited#start() limited
@@ -100,67 +92,48 @@ public abstract class Loop<I> {
     protected abstract void start();
 
     /**
-     * the positions of the loops that have been linked to a synchronizer.
+     * The positions of the loops that have been linked to a synchronizer.
      */
     public enum Status {
         /**
-         * loops shall continue looping.
+         * Loop shall continue looping.
          */
         resume,
 
         /**
-         * loops shall pause.
+         * Loop shall pause.
          */
         pause,
 
         /**
-         * loops shall break.
+         * Loop shall break.
          */
         stop
     }
 
     /**
-     * Block of the code to loop.
+     * Loop for each item of a list.
      *
-     * @param <I> type of the item to handle while looping
-     */
-    public interface Block<I> {
-
-        /**
-         * do next step of the loop.
-         *
-         * @param item : the item of loop position
-         * @return : if the loop shall continue or not
-         */
-        boolean next(I item);
-    }
-
-    /**
-     * loop for each item of a list.
-     *
-     * @param <I> : Items Type
+     * @param <I> items Type
      */
     public static class Foreach<I> extends Loop<I> {
 
         /**
-         * list of items to loop.
+         * List of items to loop.
          */
         private List<I> list;
 
         /**
-         * init this.
+         * Initialize this.
          *
-         * @param list  : the items to loop
-         * @param block : code to loop
+         * @param list  of items to be looped foreach
+         * @param block code to loop
          */
-        public Foreach(List<I> list, Block<I> block) {
+        public Foreach(List<I> list, Function<I, Boolean> block) {
             super(block);
             this.list = list;
         }
 
-        /**
-         * looping foreach item.
-         */
         @Override
         protected void start() {
             for (I t : this.list)
@@ -170,66 +143,59 @@ public abstract class Loop<I> {
     }
 
     /**
-     * looping until getNext broken manually.
+     * Looping until get broken manually.
      */
     public static class Forever extends Loop<Integer> {
 
         /**
-         * init this.
+         * Initialize this.
          *
-         * @param block : the code to loop
+         * @param block the code to loop
          */
-        public Forever(Block<Integer> block) {
+        public Forever(Function<Integer, Boolean> block) {
             super(block);
         }
 
-        /**
-         * looping until run broken.
-         */
         @Override
         public void start() {
             for (int i = 0; ; i++)
                 if (!this.next(i))
                     break;
         }
-
     }
 
     /**
-     * loop from specific int to specific other int.
+     * Loop from a specific int to another int.
      */
     public static class Limited extends Loop<Integer> {
 
         /**
-         * the int to stop before.
+         * The int to stop before.
          */
         private int before;
 
         /**
-         * the int to start from.
+         * The int to start from.
          */
         private int from;
 
         /**
-         * init this.
-         * <p>
+         * Initialize this.
+         * <br>
          * example for lists:
-         * mFrom last to first ( size-1 , -1 , ...)
-         * mFrom first to last ( 0 , size , ...)
+         * from last to first ( size-1 , -1 , ...)
+         * from first to last ( 0 , size , ...)
          *
-         * @param from   : number to start mFrom
-         * @param before : number to stop mBefore
-         * @param block  : code to loop
+         * @param from   number to start from
+         * @param before number to stop before
+         * @param block  code to loop
          */
-        public Limited(int from, int before, Block<Integer> block) {
+        public Limited(int from, int before, Function<Integer, Boolean> block) {
             super(block);
             this.from = from;
             this.before = before;
         }
 
-        /**
-         * looping from {@link #from} all the way before {@link #before}.
-         */
         @Override
         public void start() {
             if (this.from > this.before) {

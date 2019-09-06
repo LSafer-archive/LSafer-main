@@ -1,26 +1,28 @@
 package lsafer.util;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.*;
 
 /**
- * structure with a {@link Map} as a secondary container.
- * <p>
- * make sure your {@link HashStructure structure} matches all {@link Structure structurables} rules
+ * A structure with a {@link Map} as a secondary container.
+ *
+ * <ul>
+ *     <li>note: make sure your {@link HashStructure structure} matches all {@link Structure structurables} rules.</li>
+ * </ul>
+ *
  *
  * @author LSafer
- * @version 9 release (19-Jul-2019)
+ * @version 10 release (06-Sep-2019)
  * @since 11 Jun 2019
  **/
-@SuppressWarnings("WeakerAccess")
 public class HashStructure implements Structure {
 
     /**
-     * secondary container.
+     * The secondary container.
      */
-    final transient protected Map<Object, Object> value = new HashMap<>();
+    protected transient Map<Object, Object> value = new HashMap<>();
 
     @Override
     public <S extends Structure> S clean() {
@@ -54,13 +56,15 @@ public class HashStructure implements Structure {
 
     @Override
     public Set<Object> keySet() {
-        return this.value.keySet();
+        Set<Object> set = new HashSet<>(this.value.keySet());
+        set.addAll(Structure.super.keySet());
+        return set;
     }
 
     @Override
-    public Map<Object, Object> map() {
+    public <K, V> Map<K, V> map() {
         //make sure the values in the fields overrides the values in the secondary container
-        Map<Object, Object> map = new HashMap<>(this.value);
+        Map<K, V> map = new HashMap<>((Map<K, V>) this.value);
         map.putAll(Structure.super.map());
         return map;
     }
@@ -68,15 +72,16 @@ public class HashStructure implements Structure {
     @Override
     public <V> V put(Object key, V value) {
         value = Structure.super.put(key, value);
+
         this.value.put(key, value);
 
         return (V) value;
     }
 
     @Override
-    public void remove(Object key) {
-        Structure.super.remove(key);
+    public boolean remove(Object key) {
         this.value.remove(key);
+        return Structure.super.remove(key);
     }
 
     @Override
@@ -88,12 +93,10 @@ public class HashStructure implements Structure {
 
     @Override
     public int size() {
-        return this.overrideMap().value.size();
-    }
+        int size0 = Structure.super.size();
+        int size1 = this.value.size();
 
-    @Override
-    public Collection<Object> values() {
-        return this.value.values();
+        return size0 > size1 ? size0 : size1;
     }
 
     @Override
@@ -101,8 +104,13 @@ public class HashStructure implements Structure {
         return this.map().toString();
     }
 
+    @Override
+    public Collection<Object> values() {
+        return this.map().values();
+    }
+
     /**
-     * put all nodes from the {@link #value map secondary container} to the fields inside this.
+     * Put all nodes from the {@link #value map secondary container} to the fields inside this.
      *
      * @param <H> this
      * @return this
@@ -113,7 +121,7 @@ public class HashStructure implements Structure {
     }
 
     /**
-     * put all node from the fields inside this to the {@link #value map secondary container}.
+     * Put all node from the fields inside this to the {@link #value map secondary container}.
      *
      * @param <H> this
      * @return this
@@ -121,6 +129,29 @@ public class HashStructure implements Structure {
     public <H extends HashStructure> H overrideMap() {
         this.value.putAll(Structure.super.map());
         return (H) this;
+    }
+
+    /**
+     * Backdoor initializing method, or custom deserialization method.
+     *
+     * @param stream to initialize this using
+     * @throws ClassNotFoundException if the class of a serialized object could not be found.
+     * @throws IOException            if an I/O error occurs.
+     */
+    private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
+        stream.defaultReadObject();
+        this.value = (Map<Object, Object>) stream.readObject();
+    }
+
+    /**
+     * Custom hash-structure serialization method.
+     *
+     * @param stream to use to serialize this
+     * @throws IOException if an I/O error occurs
+     */
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        stream.writeObject(this.value);
     }
 
 }

@@ -1,13 +1,12 @@
 package lsafer.io;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import lsafer.json.JSON;
+import lsafer.microsoft.INI;
+import lsafer.threading.Loop;
+import lsafer.util.Arrays;
+import lsafer.util.Strings;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -17,14 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import lsafer.json.JSON;
-import lsafer.microsoft.INI;
-import lsafer.threading.Loop;
-import lsafer.util.Arrays;
-import lsafer.util.Strings;
-
 /**
- * a {@link java.io.File file object} with useful tools.
+ * A {@link java.io.File} with useful tools.
  *
  * @author LSaferSE
  * @version 7
@@ -34,60 +27,66 @@ import lsafer.util.Strings;
 public class File extends java.io.File {
 
     /**
-     * the real this
-     * because some operations
-     * needs to replace the hole object
-     * to effect results
-     * such as renaming or moving the file.
+     * The real this.
+     * Because some operations needs to replace the hole object to effect results.
+     * Such as renaming or moving the file.
      */
     public File self = this;
 
     /**
-     * this file's title without copy number.
-     * <p>
+     * This file's title without copy number.
+     * <br><br><b>example:</b>
+     * <pre>
      * title :      "title (1)"
      * cleanTitle : "title"
+     * </pre>
      */
     private String cleanTitle;
 
     /**
      * if this file's name starts with dot.
-     * <p>
+     * <br>
      * normal :     "file"
      * dotHidden :  ".file"
      */
     private Boolean dotHidden;
 
     /**
-     * this file's type extension.
-     * <p>
+     * This file's type extension.
+     * <br><br><b>example:</b>
+     * <pre>
      * name :       "title.extension"
      * extension :  "extension"
+     * </pre>
      */
     private String extension;
 
     /**
-     * this file's copy number case there is other files with the same name.
-     */
-    private int jrsuffix = 1;
-
-    /**
      * General mime Of this file.
-     * <p>
-     * example :    "image/png"
+     * <br><br><b>example:</b>
+     * <pre>
+     *     "image/png"
+     * </pre>
      */
     private String mime;
 
     /**
-     * this file's name without type extension.
-     * <p>
+     * This file's copy number. In case there is other files with the same name.
+     */
+    private int suffix = 1;
+
+    /**
+     * This file's name without type extension.
+     * <br><br><b>example:</b>
+     * <pre>
      * name :   "title.extension"
      * title :  "title"
+     * </pre>
      */
     private String title;
 
     /**
-     * init this with absolute path.
+     * Initialize this with an absolute path.
      *
      * @param absolute absolute path
      * @see java.io.File#File(String) original method
@@ -97,19 +96,19 @@ public class File extends java.io.File {
     }
 
     /**
-     * copy from other file.
+     * Copy from other file.
      *
-     * @param file to Copy from
+     * @param file to copy from
      */
     public File(java.io.File file) {
         super(file.toString());
     }
 
     /**
-     * init this using parent's file object.
+     * Initialize this using parent's file object.
      *
-     * @param parent of targeted file
-     * @param name   of targeted file
+     * @param parent file of the targeted file
+     * @param name   of the targeted file
      * @see java.io.File#File(java.io.File, String) the original method
      */
     public File(java.io.File parent, String name) {
@@ -117,10 +116,10 @@ public class File extends java.io.File {
     }
 
     /**
-     * init this using parent's path.
+     * Initialize this using parent's path.
      *
-     * @param absolute of targeted file's parent
-     * @param name     of targeted file
+     * @param absolute path of the targeted file's parent
+     * @param name     of the targeted file
      * @see java.io.File#File(String, String) the original method
      */
     public File(String absolute, String name) {
@@ -128,34 +127,17 @@ public class File extends java.io.File {
     }
 
     /**
-     * init this using {@link URI}.
+     * Initialize this using an {@link URI}.
      *
-     * @param uri of targeted file
+     * @param uri of the targeted file
      * @see java.io.File#File(URI) original method
      */
     public File(URI uri) {
         super(uri);
     }
 
-    @Override
-    public String getParent() {
-        String parent = super.getParent();
-        return parent == null ? "" : parent;
-    }
-
     /**
-     * get this file's parent file.
-     *
-     * @return Parent file
-     */
-    @Override
-    public File getParentFile() {
-        return new File(this.getParent());
-    }
-
-    /**
-     * delete this file
-     * this method deletes folders with it's children too.
+     * Delete this file. This method deletes folders with it's children too.
      *
      * @return success of deleting
      */
@@ -164,30 +146,53 @@ public class File extends java.io.File {
         if (!this.exists()) //this is what we need :)
             return true;
 
-        boolean w = true;
-
         //case this is a folder then we have to clear all children before deleting
-        if (this.isDirectory())
-            for (File child : this.children())
-                w &= child.delete();
-
-        w &= super.delete();
-
-        return w;
+        //noinspection ResultOfMethodCallIgnored
+        this.children().forEach(File::delete);
+        return super.delete();
     }
 
+    @Override
+    public String getParent() {
+        String parent = super.getParent();
+        return parent == null ? "" : parent;
+    }
+
+    @Override
+    public File getParentFile() {
+        return new File(this.getParent());
+    }
+
+    /**
+     * Make this file as a directory.
+     *
+     * <ul>
+     * <li>
+     * note: if this file's parent is not a directory.
+     * This method will do nothing about that.
+     * Use {@link #mkdirs()} if you want a solution for that.
+     * </li>
+     * </ul>
+     *
+     * @return whether this is a directory now or not
+     */
     @Override
     public boolean mkdir() {
         return this.isDirectory() || super.mkdir();
     }
 
+    /**
+     * Make this file and it's parent file as a directory.
+     *
+     * @return whether this is a directory now or not
+     */
     @Override
     public boolean mkdirs() {
         return this.isDirectory() || super.mkdirs();
     }
 
     /**
-     * get a child of this with the given name.
+     * Get a child of this with the given name.
      *
      * @param name name of child to get
      * @return a child of this file with specified name
@@ -197,7 +202,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file's children in a {@link List list}.
+     * Get this file's children in a {@link List}.
      *
      * @return this file's children
      */
@@ -214,13 +219,15 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file's title without copy mark
-     * <p>
+     * Get this file's title without the suffix.
+     * <br><br><b>example</b>
+     * <pre>
      * title :      "title (1).extension"
      * cleanTitle : "title.extension"
+     * </pre>
      *
-     * @return this file's title without copy number
-     * @see #cleanTitle solved-cache
+     * @return this file's title without the suffix
+     * @see #cleanTitle cache
      */
     public String cleanTitle() {
         if (this.cleanTitle != null) //if it's already defined or not
@@ -234,7 +241,7 @@ public class File extends java.io.File {
             number = Strings.crop(split[split.length - 1], 1, 1);
 
             if (JSON.is_integer(number)) {
-                this.jrsuffix = Integer.valueOf(number) + 1;
+                this.suffix = Integer.valueOf(number) + 1;
                 split = Arrays.crop(split, 0, 1);
                 return this.cleanTitle = Strings.join(" ", "", split);
             }
@@ -244,7 +251,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * copy all this file's content to other folder.
+     * Copy all this file's content to other folder.
      *
      * @param parent folder to copy in
      * @return success of operation
@@ -283,9 +290,11 @@ public class File extends java.io.File {
     }
 
     /**
-     * copy all this file's content to other folder.
-     * <p>
-     * note : better to invoke in a secondary {@link Thread}
+     * Copy all this file's content to other folder.
+     *
+     * <ul>
+     * <li>note: better to invoke in a secondary {@link Thread}.</li>
+     * </ul>
      *
      * @param parent       folder to copy in
      * @param synchronizer to control the operation and get results fro
@@ -298,7 +307,8 @@ public class File extends java.io.File {
 
         if (!parent.mkdirs()) {
             synchronizer.put("results", false);
-            synchronizer.<List<Exception>>get("error").add(new IllegalStateException("can't make directory in ( " + parent + " )"));
+            synchronizer.<List<Exception>>get("error").add(new IllegalStateException(
+                    "can't make directory in ( " + parent + " )"));
             synchronizer.bind();
             return; //can't copy because no path
         }
@@ -308,7 +318,8 @@ public class File extends java.io.File {
         if (this.isDirectory()) {
             if (!output.mkdir()) { //making the output folder
                 synchronizer.put("results", false);
-                synchronizer.<List<Exception>>get("error").add(new IllegalStateException("can't make directory in ( " + output + " )"));
+                synchronizer.<List<Exception>>get("error").add(new IllegalStateException(
+                        "can't make directory in ( " + output + " )"));
                 synchronizer.bind();
                 return; //can't make folder
             }
@@ -355,10 +366,11 @@ public class File extends java.io.File {
     }
 
     /**
-     * delete all this file's content
-     * this method deletes folders with it's children too.
-     * <p>
-     * note : better to invoke in a secondary {@link Thread}
+     * Delete all this file's content this method deletes folders with it's children too.
+     *
+     * <ul>
+     * <li>note: better to invoke in a secondary {@link Thread}.</li>
+     * </ul>
      *
      * @param synchronizer to control the operation and get results from
      */
@@ -382,13 +394,15 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file's type extension as written on it's name
-     * <p>
+     * Get this file's type extension as written on it's name
+     * <br><br><b>example:</b>
+     * <pre>
      * name :       "title.extension"
      * extension :  "extension"
+     * </pre>
      *
      * @return extension of this file
-     * @see #extension solved-cache
+     * @see #extension cache
      */
     public String extension() {
         if (this.extension != null) //if it's already defined or not
@@ -399,9 +413,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file's parent and grand and grand grand and so on.
-     * <p>
-     * sorted from main-root to this
+     * Get this file's parent and grand and grand grand and so on. Sorted from main-root to this.
      *
      * @return this file and it's parents
      */
@@ -416,7 +428,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * get the total count of files inside this (without folders).
+     * Get the total count of files inside this (without folders).
      *
      * @return count of files
      */
@@ -432,7 +444,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * search for files that contains one of the given queries on it's name.
+     * Search for files that contains one of the given queries on it's name.
      *
      * @param queries the queries of the wanted files
      * @return files that have specific queries
@@ -443,15 +455,14 @@ public class File extends java.io.File {
         if (Strings.any(this.getName(), queries))
             result.add(this);
 
-        if (this.isDirectory())
-            for (File child : this.children())
-                result.addAll(child.find(queries));
+        for (File child : this.children())
+            result.addAll(child.find(queries));
 
         return result;
     }
 
     /**
-     * get the total count of folders inside this.
+     * Get the total count of folders inside this.
      *
      * @return count of folders
      */
@@ -467,10 +478,10 @@ public class File extends java.io.File {
     }
 
     /**
-     * if this file is hidden by a dot at the first of it's name.
+     * Get whether this file is hidden by a dot at the first of it's name or not.
      *
      * @return whether this file is hidden by a dot or not
-     * @see #dotHidden solved-cache
+     * @see #dotHidden cache
      */
     public boolean isDotHidden() {
         if (this.dotHidden != null) //if it's already defined
@@ -480,7 +491,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * if this file is a directory and it has a file named ".nomedia"
+     * whether this file is a directory and it has a file named ".nomedia"
      *
      * @return whether this file contains media or not
      */
@@ -489,10 +500,12 @@ public class File extends java.io.File {
     }
 
     /**
-     * get a file with a name of this and also hadn't used by any of this file's siblings.
-     * <p>
+     * Get a file with a name of this and also hadn't used by any of this file's siblings.
+     * <br><br><b>example:</b>
+     * <pre>
      * used title :     title.extension
      * unused title :   title (1).extension
+     * </pre>
      *
      * @return a file of this with a name that hadn't used by any of this file's siblings
      */
@@ -501,8 +514,9 @@ public class File extends java.io.File {
             return this;
 
         //trying loop
-        for (; ; this.jrsuffix++) {
-            File junior = new File(this.getParent() + "/" + this.cleanTitle() + " (" + this.jrsuffix + ")" + this.extension());
+        for (; ; this.suffix++) {
+            File junior = new File(
+                    this.getParent() + "/" + this.cleanTitle() + " (" + this.suffix + ")" + this.extension());
             //check if need to get a copy with different copy number
             if (!junior.exists())
                 return junior;
@@ -510,7 +524,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * get stiled last modifying date of the file.
+     * Get stiled last modifying date of the file.
      *
      * @return last modifying date of this file
      */
@@ -519,10 +533,10 @@ public class File extends java.io.File {
     }
 
     /**
-     * get the mime of this file by it's name.
+     * Get the mime of this file by it's name.
      *
      * @return this file's mime
-     * @see #mime solved-cache
+     * @see #mime cache
      */
     public String mime() {
         if (this.mime != null) //if it's already defined
@@ -535,7 +549,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * make empty file at this file's path.
+     * Make this as an empty file.
      *
      * @return success of making
      */
@@ -555,7 +569,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * make this as a directory forcefully.
+     * Make this as a directory forcefully.
      *
      * @return success of the operation
      */
@@ -564,7 +578,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * make this and it's parents as a directory forcefully.
+     * Make this and it's parents as a directory forcefully.
      *
      * @return success of the operation
      */
@@ -573,12 +587,8 @@ public class File extends java.io.File {
     }
 
     /**
-     * force make this as a file
-     * and if it's a directory
-     * then delete it then make it
-     * and if one of it's parents
-     * is a file the delete it then
-     * make it as a folder.
+     * Force make this as a file. And if it's a directory. Then delete it then make it as a file.
+     * And if one of it's parents is a file. Then delete it then make it as a folder.
      *
      * @return success of making
      */
@@ -587,7 +597,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * copy this file to other folder.
+     * Copy this file to other folder.
      *
      * @param parent new parent
      * @return result of moving
@@ -601,7 +611,7 @@ public class File extends java.io.File {
     }
 
     /**
-     * read this file's Content as a {@link String string}.
+     * Read this file's Content as a {@link String}.
      *
      * @param defaultValue returned value case error reading file
      * @return value of this file
@@ -623,12 +633,12 @@ public class File extends java.io.File {
     }
 
     /**
-     * Read this file's INI text
-     * and transform it to the targeted class.
+     * Read this file's INI text as a {@link Map}.
      *
      * @param defaultValue returned value case error reading file
      * @param <V>          the type of values written in INI inside this file
      * @return transformed INI object write in this file
+     * @see INI
      */
     public <V> Map<String, V> readINI(Supplier<Map<String, V>> defaultValue) {
         String string = this.read("");
@@ -641,13 +651,13 @@ public class File extends java.io.File {
     }
 
     /**
-     * Read this file's JSON text
-     * and transform it to the targeted class.
+     * Read this file's JSON text as a {@link Map}.
      *
      * @param defaultValue returned value case error reading file
      * @param <K>          type of the keys inside the map presented in this file as a json
      * @param <V>          type of the values inside the map presented in this file as a json
      * @return transformed JSON object write in this file
+     * @see JSON
      */
     public <K, V> Map<K, V> readJSON(Supplier<Map<K, V>> defaultValue) {
         String string = this.read("");
@@ -663,15 +673,15 @@ public class File extends java.io.File {
     }
 
     /**
-     * read this file's java serial text
-     * and transform it to the targeted class.
+     * Read this file's java serial text. And transform it to the targeted class.
      *
      * @param klass        klass of needed object (just to make sure the object we read is instance of the targeted class)
      * @param defaultValue returned value case errors
      * @param <S>          content type
      * @return transformed Java Serial write in this file
+     * @see Serializable
      */
-    public <S extends Serializable> S readSerial(Class<S> klass, Supplier<S> defaultValue) {
+    public <S extends Serializable> S readSerializable(Class<S> klass, Supplier<S> defaultValue) {
         try (FileInputStream fis = new FileInputStream(this);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
@@ -688,9 +698,9 @@ public class File extends java.io.File {
     }
 
     /**
-     * rename to new name.
+     * Rename this file to a new name.
      *
-     * @param name new Name
+     * @param name new name
      * @return success of operation
      */
     public boolean rename(String name) {
@@ -701,38 +711,17 @@ public class File extends java.io.File {
     }
 
     /**
-     * search for files that matching one of given queries.
-     *
-     * @param query to search for
-     * @return files that have specific query on it's name
-     */
-    public List<File> search(String... query) {
-        List<File> result = new ArrayList<>(); //result holder
-
-        for (File child : this.children()) { //for each child
-            if (child.isDirectory()) //so it's contains children
-                result.addAll(child.search(query)); //check grandchildren
-            if (Strings.any(child.getName(), query)) //it's have one of the needed names
-                result.add(child);//define it to the results
-        }
-
-        return result;
-    }
-
-    /**
-     * get the class of the serializable object
-     * written in this file.
+     * Get the class of the serializable object. That have written in this file.
      *
      * @return the type of the object written on this
      */
-    public Class<? extends Serializable> serialType() {
-        Serializable object = this.readSerial(Serializable.class, null);
+    public Class<? extends Serializable> serializableType() {
+        Serializable object = this.readSerializable(Serializable.class, null);
         return object == null ? Serializable.class : (Class<? extends Serializable>) object.getClass();
     }
 
     /**
-     * get a sibling file of this with the
-     * same passed name.
+     * Get a sibling file of this with the same passed name.
      *
      * @param name of the sibling file
      * @return a sibling of this with the same name of the given name
@@ -742,27 +731,31 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file and it's children and their children size.
+     * Get the size of this file.
      *
      * @return this file's total size
      */
     public long size() {
         if (this.isDirectory()) {
             long size = 0;
+
             for (File child : this.children())
                 size += child.size();
-            return size;
-        }
 
-        return this.exists() ? this.length() : 0L;
+            return size;
+        } else {
+            return this.exists() ? this.length() : 0L;
+        }
     }
 
     /**
-     * get file status.
-     * <p>
-     * is directory ? -> d--
-     * can read ? -r-
-     * can write ? --w
+     * Get file status.
+     * <br><br><b>example:</b>
+     * <pre>
+     * is directory ?   -> 'd--'
+     * can be redden ?  -> '-r-'
+     * can be edited ?  -> '--w'
+     * </pre>
      *
      * @return status of this file
      */
@@ -795,12 +788,15 @@ public class File extends java.io.File {
     }
 
     /**
-     * get this file's name without the type extension.
-     * <p>
+     * Get this file's name without the type extension.
+     * <br><br><b>example</b>
+     * <pre>
      * name :   "title.extension"
      * title :  "title"
+     * </pre>
      *
      * @return this file's title
+     * @see #title cache
      */
     public String title() {
         if (this.title != null)//isCommand if it already defined or not
@@ -808,11 +804,11 @@ public class File extends java.io.File {
 
         String[] split = this.getName().split("[.]");
         return this.title = split.length == 1 || split.length == 2 && split[0].equals("") ?
-                split[split.length - 1] : Strings.join(".", "", Arrays.crop(split, 0, 1));
+                            split[split.length - 1] : Strings.join(".", "", Arrays.crop(split, 0, 1));
     }
 
     /**
-     * write a text inside this file.
+     * Write a text inside this file.
      *
      * @param value to write
      * @return success of writing
@@ -831,13 +827,13 @@ public class File extends java.io.File {
     }
 
     /**
-     * write a INI text of the given object
-     * in this file.
+     * Write an INI text of the given {@link Map} in this file.
      *
      * @param value to write
      * @return success of writing
+     * @see INI
      */
-    public boolean writeINI(Map value) {
+    public boolean writeINI(Map<?, ?> value) {
         if (!this.isDirectory() && this.getParentFile().mkdir())
             try (FileWriter fw = new FileWriter(this)) {
                 fw.write(INI.stringify(value));
@@ -851,13 +847,12 @@ public class File extends java.io.File {
     }
 
     /**
-     * write a JSON text of the given object
-     * in this file.
+     * Write a JSON text of the given {@link Map} in this file.
      *
      * @param value to write
      * @return success of writing
      */
-    public boolean writeJSON(Map value) {
+    public boolean writeJSON(Map<?, ?> value) {
         if (!this.isDirectory() && this.getParentFile().mkdir())
             try (FileWriter fw = new FileWriter(this)) {
                 fw.write(JSON.stringify(value));
@@ -871,13 +866,12 @@ public class File extends java.io.File {
     }
 
     /**
-     * write a java serial text of the given object
-     * in this file.
+     * Write a java serial text of the given {@link Serializable} in this file.
      *
      * @param value to write
      * @return success of writing
      */
-    public boolean writeSerial(Serializable value) {
+    public boolean writeSerializable(Serializable value) {
         if (!this.isDirectory() && this.getParentFile().mkdir())
             try (FileOutputStream fos = new FileOutputStream(this);
                  ObjectOutputStream oos = new ObjectOutputStream(fos)) {
@@ -891,50 +885,49 @@ public class File extends java.io.File {
     }
 
     /**
-     * synchronizer version for files.
+     * Synchronizer version for files.
      */
     public static class Synchronizer extends lsafer.threading.Synchronizer {
 
         /**
-         * errors that have occurred during the process.
+         * Errors that have occurred during the process.
          */
         public ArrayList<Exception> error = new ArrayList<>();
 
         /**
-         * the source file that the process is now pointing at.
+         * The source file that the process is now pointing at.
          */
         public File input_file = new File("");
 
         /**
-         * the source folder that the process is now pointing at.
+         * The source folder that the process is now pointing at.
          */
         public File input_folder = new File("");
 
         /**
-         * max progress.
+         * Maximum progress.
          */
         public Integer max_progress = null;
 
         /**
-         * the output file that the process is processing now.
+         * The output file that the process is processing now.
          */
         public File output_file = new File("");
 
         /**
-         * the output folder that the process is processing now.
+         * The output folder that the process is processing now.
          */
         public File output_folder = new File("");
 
         /**
-         * now progressed files count.
+         * Now progressed files count.
          */
         public Integer progress = 0;
 
         /**
-         * results.
+         * Results.
          */
         public Boolean results = true;
-
     }
 
 }

@@ -1,29 +1,61 @@
 package lsafer.io;
 
-import lsafer.util.Structure;
+import java.lang.annotation.*;
+
+import static lsafer.io.FolderStructure.Defaults;
 
 /**
- * structure linked with {@link java.util.Map} as a secondary container
- * and {@link File Folder} as a third IO container
- * <p>
- * make sure your {@link FolderStructure folder-structure} matches all {@link FileStructure file-structures} rules
+ * A structure linked with {@link java.util.Map} as a secondary container. And a {@link File Folder} as a third IO container.
  *
- * <p>
- * field rules:
  * <ul>
- * <li>no null default values</li>
+ * <li>rule: for file-structure fields. no null default values.</li>
+ * <li>note: make sure your {@link FolderStructure folder-structure} matches all {@link FileStructure file-structures} rules.</li>
  * </ul>
  *
  * @author LSaferSE
- * @version 2 release (19-Jul-19)
+ * @version 3 release (06-Sep-19)
  * @since 19-Jul-19
  */
-@SuppressWarnings("WeakerAccess")
+@Defaults
 public class FolderStructure extends FileStructure {
 
     @Override
     public boolean exist() {
         return this.remote.exists() && this.remote.isDirectory();
+    }
+
+    @Override
+    public <T> T get(Object key) {
+        T value = super.get(key);
+
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+            ((FileStructure) value).remote(this.remote.child((String) key));
+
+        return value;
+    }
+
+    @Override
+    public <F extends FileStructure> F load() {
+        for (File file : this.remote.children()) {
+            FileStructure structure = this.putIfAbsent(FileStructure.class, file.getName(), () -> {
+                try {
+                    return file.isDirectory() ?
+                           this.getClass().getAnnotation(Defaults.class).folder().newInstance() :
+                           this.getClass().getAnnotation(Defaults.class).file().newInstance();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            });
+
+            if (structure != null)
+                structure.remote((java.io.File) file).load();
+        }
+
+        return (F) this;
     }
 
     @Override
@@ -39,7 +71,17 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public <I extends FileStructure> I remote(java.io.File file) {
+    public <V> V put(Object key, V value) {
+        value = super.put(key, value);
+
+        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
+            ((FileStructure) value).remote(this.remote.child((String) key));
+
+        return value;
+    }
+
+    @Override
+    public <I extends IOStructure> I remote(File file) {
         super.remote(file);
         this.map().forEach((key, value) -> {
             if (key instanceof String && value instanceof FileStructure)
@@ -61,23 +103,10 @@ public class FolderStructure extends FileStructure {
     }
 
     @Override
-    public <I extends IOStructure> I load() {
-        for (File file : this.remote.children())
-            this.putIfAbsent(FileStructure.class, file.getName(), () -> {
-                try {
-                    return file.isDirectory() ?
-                            this.folder_structure().newInstance() :
-                            this.file_structure().newInstance();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }).remote(file).load();
-
-        return (I) this;
+    public <S extends lsafer.util.Structure> S reset() {
+        super.reset();
+        this.remote(this.remote());
+        return (S) this;
     }
 
     @Override
@@ -92,49 +121,26 @@ public class FolderStructure extends FileStructure {
         return w[0];
     }
 
-    @Override
-    public <T> T get(Object key) {
-        T value = super.get(key);
-
-        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-            ((FileStructure) value).remote(this.remote.child((String) key));
-
-        return value;
-    }
-
-    @Override
-    public <V> V put(Object key, V value) {
-        value = super.put(key, value);
-
-        if (key instanceof String && value instanceof FileStructure && ((FileStructure) value).remote() == null)
-            ((FileStructure) value).remote(this.remote.child((String) key));
-
-        return value;
-    }
-
-    @Override
-    public <S extends Structure> S reset() {
-        super.reset();
-        this.remote(this.remote());
-        return (S) this;
-    }
-
     /**
-     * default structure for files.
-     *
-     * @return the default files structure's class
+     * Set the default values for the targeted folder-structure.
      */
-    public Class<? extends FileStructure> file_structure() {
-        return JSONFileStructure.class;
-    }
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    @Inherited
+    public @interface Defaults {
+        /**
+         * The default file-structure to initialize. for files found but no matching fields for them.
+         *
+         * @return default file-structure class
+         */
+        Class<? extends FileStructure> file() default JSONFileStructure.class;
 
-    /**
-     * default structure for folders.
-     *
-     * @return the default folders structure's class
-     */
-    public Class<? extends FolderStructure> folder_structure() {
-        return FolderStructure.class;
+        /**
+         * The default folder-structure to initialize. for folders found but no matching fields for them.
+         *
+         * @return default folder-structure class
+         */
+        Class<? extends FolderStructure> folder() default FolderStructure.class;
     }
 
 }

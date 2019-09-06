@@ -1,0 +1,366 @@
+[Structure] OLD CASTING METHOD:
+
+//    /**
+//     * <b>UTIL</b>
+//     * <p>
+//     * cast the given object to the given klass
+//     * used to cast objects that we have to cast it manually.
+//     *
+//     * <p>----------</p>
+//     * <p>
+//     * supported casts (else well return null):
+//     * <ul>
+//     * <li>(value equals null)</li>
+//     * <li>(value instanceOf klass)</li>
+//     * <li>(klass subClassOf {@link Structure}) and (value instanceOf {@link Structure})</li>
+//     * <li>(klass subClassOf {@link Structure}) and (value instanceOf {@link Map})</li>
+//     * <li>(klass equals {@link Map}) and (value instanceOf {@link Structure})</li>
+//     * <li>(klass.component subClassOf {@link Structure}) and (value instanceOf {@link Map[]})</li>
+//     * <li>(klass.component equals {@link Map}) and (value instanceOf {@link Structure[]})</li>
+//     * <li>(klass subClassOf {@link Number}) and (value instanceOf {@link Number} or {@link String})</li>
+//     * <li>(klass subClassOf {@link List}) and (value instanceOf {@link Object[]})</li>
+//     * <li>(klass subClassOf {@link Object[]}) and (value instanceOf {@link List})</li>
+//     * </ul>
+//     *
+//     * @param klass to cast to
+//     * @param value to cast
+//     * @param <T>   type of the class to cast to
+//     * @return value casted to the given class
+//     * @see #putAll(Map) used to fill the structure (case the structure is assignable from the klass and the value is a map)
+//     */
+//    default <T> T cast(Class<T> klass, Object value) {
+//        if (value == null || klass.isInstance(value)) {
+//            return (T) value;
+//        }
+//
+//        if (!Object.class.isAssignableFrom(klass)) {
+//            if (klass == char.class)
+//                klass = (Class<T>) Character.class;
+//            else if (klass == int.class)
+//                klass = (Class<T>) Integer.class;
+//            else if (klass == boolean.class)
+//                klass = (Class<T>) Boolean.class;
+//            else if (klass == byte.class)
+//                klass = (Class<T>) Byte.class;
+//            else if (klass == double.class)
+//                klass = (Class<T>) Double.class;
+//            else if (klass == float.class)
+//                klass = (Class<T>) Float.class;
+//            else if (klass == long.class)
+//                klass = (Class<T>) Long.class;
+//            else if (klass == short.class)
+//                klass = (Class<T>) Short.class;
+//        }
+//
+//        if (String.class == klass) {
+//            return (T) String.valueOf(value);
+//        }
+//        if (Number.class.isAssignableFrom(klass) && (value instanceof Number || value instanceof String)) {
+//            try {
+//                return (T) klass.getMethod("valueOf", String.class)
+//                        .invoke(null, klass == Integer.class || klass == Long.class ?
+//                                      String.valueOf(value).split("[.]")[0] : String.valueOf(value));
+//            } catch (Exception ignored) {
+//                return null;
+//            }
+//        }
+//        if (File.class.isAssignableFrom(klass) && value instanceof String) {
+//            return (T) new File(String.valueOf(value));
+//        }
+//
+//        if (ArrayStructure.class.isAssignableFrom(klass) && value instanceof Object[]) {
+//            try {
+//                ArrayStructure structure = (ArrayStructure) klass.newInstance();
+//                structure.putAll((Object[]) value);
+//                return (T) structure;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        if (ArrayStructure.class.isAssignableFrom(klass) && value instanceof List) {
+//            try {
+//                ArrayStructure structure = (ArrayStructure) klass.newInstance();
+//                structure.putAll((List) value);
+//                return (T) structure;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        if (ArrayStructure[].class.isAssignableFrom(klass) && value instanceof Object[][]) {
+//            Object[][] arrays = (Object[][]) value;
+//            ArrayStructure[] structures = (ArrayStructure[]) Array.newInstance(klass.getComponentType(), arrays.length);
+//
+//            for (int i = 0; i < arrays.length; i++) {
+//                try {
+//                    structures[i] = (ArrayStructure) klass.newInstance();
+//                    structures[i].putAll(arrays[i]);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                } catch (InstantiationException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            return (T) structures;
+//        }
+//        if (ArrayStructure[].class.isAssignableFrom(klass) && value instanceof List[]) {
+//            List[] lists = (List[]) value;
+//            ArrayStructure[] structures = (ArrayStructure[]) Array.newInstance(klass.getComponentType(), lists.length);
+//
+//            for (int i = 0; i < lists.length; i++) {
+//                try {
+//                    structures[i] = (ArrayStructure) klass.newInstance();
+//                    structures[i].putAll(lists[i]);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                } catch (InstantiationException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            return (T) structures;
+//        }
+//
+//        if (Structure.class.isAssignableFrom(klass) && value instanceof Structure) {
+//            return (T) ((Structure) value).clone((Class<? extends Structure>) klass);
+//        }
+//        if (Structure.class.isAssignableFrom(klass) && value instanceof Map) {
+//            try {
+//                Structure structure = (Structure) klass.newInstance();
+//                structure.putAll((Map<String, Object>) value);
+//                return (T) structure;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        if (Structure[].class.isAssignableFrom(klass) && value instanceof Map[]) {
+//            Map[] maps = (Map[]) value;
+//            Structure[] structures = (Structure[]) Array.newInstance(klass.getComponentType(), maps.length);
+//
+//            for (int i = 0; i < maps.length; i++) {
+//                try {
+//                    structures[i] = (Structure) klass.newInstance();
+//                    structures[i].putAll(maps[i]);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                } catch (InstantiationException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            return (T) structures;
+//        }
+//
+//        if (Map.class == klass && value instanceof Structure) {
+//            return (T) ((Structure) value).map();
+//        }
+//        if (Map[].class.isAssignableFrom(klass) && value instanceof Structure[]) {
+//            Structure[] structures = (Structure[]) value;
+//            Map[] maps = (Map[]) Array.newInstance(klass.getComponentType(), structures.length);
+//
+//            for (int i = 0; i < structures.length; i++) {
+//                maps[i] = structures[i].map();
+//            }
+//
+//            return (T) maps;
+//        }
+//
+//        if (List.class == klass && value instanceof Object[]) {
+//            return (T) Arrays.asList((Object[]) value);
+//        }
+//        if (List.class == klass && value instanceof ArrayStructure) {
+//            return (T) ((ArrayStructure) value).list();
+//        }
+//        if (List[].class.isAssignableFrom(klass) && value instanceof ArrayStructure[]) {
+//            ArrayStructure[] structures = (ArrayStructure[]) value;
+//            List[] lists = (List[]) Array.newInstance(klass.getComponentType(), structures.length);
+//
+//            for (int i = 0; i < structures.length; i++) {
+//                lists[i] = structures[i].list();
+//            }
+//
+//            return (T) lists;
+//        }
+//        if (Object[][].class.isAssignableFrom(klass) && value instanceof ArrayStructure[]) {
+//            ArrayStructure[] structures = (ArrayStructure[]) value;
+//            Object[][] arrays = (Object[][]) Array.newInstance(klass.getComponentType(), structures.length);
+//
+//            for (int i = 0; i < structures.length; i++) {
+//                arrays[i] = Arrays.generify(structures[i].array());
+//            }
+//
+//            return (T) arrays;
+//        }
+//
+//        return null;
+//    }
+:[Structure] OLD CASTING METHOD
+
+[Structure] EXTRA METHODS:
+//    /**
+//     * get the type of the value mapped
+//     * to the given key.
+//     *
+//     * @param key to get mapped value from
+//     * @return the type of the value mapped in the given key
+//     */
+//    /*abstract*/
+//    default Class typeOf(Object key) {
+//        if (key instanceof String)
+//            try {
+//                Field field = this.getClass().getField((String) key);
+//
+//                if (this.structured(field)) {
+//                    field.setAccessible(true);
+//                    Object object = field.get(this);
+//                    return object == null ? field.getType() : object.getClass();
+//                }
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            } catch (NoSuchFieldException ignored) {
+//            }
+//
+//        return null;
+//    }
+//    /**
+//     * Returns a Set view of the mappings contained in this map.
+//     * The set is backed by the map,
+//     * so changes to the map are reflected in the set,
+//     * and vice-versa.
+//     * If the map is modified while an iteration over the set
+//     * is in progress (except through the iterator's own remove
+//     * operation,
+//     * or through the setValue operation on a map entry returned by the iterator)
+//     * the results of the iteration are undefined.
+//     * The set supports element removal,
+//     * which removes the corresponding mapping from the map,
+//     * via the Iterator.remove,
+//     * Set.remove,
+//     * removeAll,
+//     * retainAll and clear operations.
+//     * It does not support the add or addAll operations.
+//     *
+//     * NOTE: heavy weight
+//     *
+//     * @return a set view of the mappings contained in this map
+//     */
+//    /*[overload]*/
+//    //TODO remove heavy weight
+//    default Set<Map.Entry<Object, Object>> entrySet() {
+//        Set<Map.Entry<Object, Object>> set = new HashSet<>();
+//
+//        for (Field field : this.getClass().getFields())
+//            if (this.structured(field))
+//                try {
+//                    field.setAccessible(true);
+//                    Object value = field.get(this);
+//
+//                    if (value != null)
+//
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                }
+//
+//        return this.map().entrySet();
+//    }
+:[Structure] EXTRA METHODS
+
+[Arrays] EXTRA METHODS:
+//    /**
+//     * transform the given array list into
+//     * a java simple array.
+//     *
+//     * @param list to transform
+//     * @param <E>  type of elements
+//     * @return java simple array from given array list
+//     * @see #asArray(List, Class)  more lighter weight :)
+//     */
+//    @Deprecated
+//    public static <E> E[] asArray(List<E> list) {
+//        return Arrays.generify(list.toArray());
+//    }
+//
+//    /**
+//     * change the type of the given array
+//     * to the best type depending on it's
+//     * elements type.
+//     *
+//     * @param array to generify
+//     * @param <TT>  type of generified array's elements.
+//     * @param <T>   type of old array's elements
+//     * @return the array with the perfect type for it
+//     */
+//    @Deprecated
+//    public static <T, TT extends T> TT[] generify(T[] array) {
+//        TT[] generified = (TT[]) Array.newInstance(Arrays.getComponentType(array), array.length);
+//        //noinspection SuspiciousSystemArraycopy
+//        System.arraycopy(array, 0, generified, 0, array.length);
+//        return generified;
+//    }
+//
+//    /**
+//     * get the type of the given array
+//     * the best type depending on it's
+//     * elements type.
+//     *
+//     * @param array to get type of
+//     * @param <T>   type of elements
+//     * @return the perfect type for the given array
+//     */
+//    @Deprecated
+//    public static <T> Class<? extends T> getComponentType(T[] array) {
+//        return Reflect.getSuperOf(array);
+//    }
+//
+//    /**
+//     * run the type of the given list.
+//     *
+//     * @param list to run type of
+//     * @param <E>  type of elements
+//     * @return the type of the given list
+//     */
+//    @SuppressWarnings("deprecation")
+//    @Deprecated
+//    public static <E> Class<? extends E> getComponentType(List<E> list) {
+//        return (Class<? extends E>) Reflect.getSuperOf(list.toArray());
+//    }
+:[Arrays] EXTRA METHODS
+
+[Strings] EXTRA METHODS:
+    /**
+     * Get the margin queries of the given string. And fill it with new string.
+     * <br><br><b>example:</b>
+     * <pre>
+     *     centerFill("A B C D E F G", " ", ",", 4, 2)
+     * </pre>
+     *
+     * @param string to get from
+     * @param split to split the given string by
+     * @param fill   characters to fill between
+     * @param start  margins length on the given string
+     * @param end    margins length on the given string
+     * @return : string with new content but with the same margins
+     * @throws IndexOutOfBoundsException if 'start' or 'end' is less than 0 or larger than string.split(split)
+     * @throws IllegalStateException if 'start' is bigger or equals to 'end'
+     */
+    public static String centerFill(String string, String split, String fill, int start, int end) {
+        StringBuilder builder = new StringBuilder();
+        String[] split0 = string.split(split);
+
+        if (start >= split0.length || end >= split0.length || start < 0 || end < 0)
+            throw new IndexOutOfBoundsException();
+
+        if (start >= end)
+            throw new IllegalStateException("'start' (" + start + ") should not be equals to 'end' (" + end + ")");
+
+        for (int i = 0; i < start; i++)
+            builder.append(split0[i]);
+
+        builder.append(fill);
+
+        for (int i = split0.length - end; i < split0.length; i++)
+            builder.append(split0[i]);
+
+        return builder.toString();
+    }
+:[Strings] EXTRA METHODS

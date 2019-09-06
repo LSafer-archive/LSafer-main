@@ -1,30 +1,41 @@
 package lsafer.io;
 
 /**
- * structure linked with {@link java.util.Map} as a secondary container
- * and {@link File} as a third IO container
- * <p>
- * make sure your {@link FileStructure file-structure} matches all {@link IOStructure io-structures} rules
+ * A structure linked with {@link java.util.Map} as a secondary container. And a {@link File} as a third IO container.
+ *
+ * <ul>
+ * <li>note: make sure your {@link FileStructure file-structure} matches all {@link IOStructure io-structures} rules.</li>
+ * </ul>
  *
  * @author LSaferSE
- * @version 7 release (19-Jul-2019)
+ * @version 8 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"UnusedReturnValue"})
+@SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
+@IOStructure.Defaults(remote = File.class)
 public abstract class FileStructure extends IOStructure<File> {
 
-    @Override
-    public boolean exist() {
-        return this.remote.exists() && !this.remote.isDirectory();
-    }
-
-    @Override
+    /**
+     * Delete the linked {@link File}.
+     *
+     * @return success of deleting
+     * @see File#delete()
+     */
     public boolean delete() {
         return this.remote.delete();
     }
 
     /**
-     * move {@link #remote targeted file} to the given file.
+     * Check if the linked {@link File} is available or not.
+     *
+     * @return whether the linked file is available or not
+     */
+    public boolean exist() {
+        return this.remote.exists() && !this.remote.isDirectory();
+    }
+
+    /**
+     * Move the linked {@link File} to the given file.
      *
      * @param parent to move to
      * @return success of moving
@@ -36,42 +47,39 @@ public abstract class FileStructure extends IOStructure<File> {
     }
 
     /**
-     * move {@link #remote targeted file} to the given file.
+     * Move the linked {@link File} to the given file.
      *
      * @param parent to move to
      * @return success of moving
      */
-    /*final*/
     public boolean move(String parent) {
         return this.move(new File(parent));
     }
 
     /**
-     * set the targeted File.
+     * Link this with a new {@link File}.
      *
-     * @param remote targeted file
-     * @param <F>   type of this
+     * @param remote to be linked
+     * @param <F>    this
      * @return this
      */
     public <F extends FileStructure> F remote(java.io.File remote) {
-        super.remote(new File(remote));
-        return (F) this;
+        return super.remote(new File(remote));
     }
 
     /**
-     * set the targeted File.
+     * Link this with a new {@link File} from the given file-path.
      *
-     * @param remote targeted file
-     * @param <F>   type of this
+     * @param remote to be linked
+     * @param <F>    this
      * @return this
      */
-    /*final*/
     public <F extends FileStructure> F remote(String remote) {
         return (F) this.remote(new File(remote));
     }
 
     /**
-     * rename {@link #remote targeted file} to the given name.
+     * Rename the linked {@link File} to the given name.
      *
      * @param name to rename to
      * @return success of the renaming
@@ -82,4 +90,18 @@ public abstract class FileStructure extends IOStructure<File> {
         return w;
     }
 
+    /**
+     * Load this from the linked {@link File}.
+     *
+     * @param <F> this
+     * @return this
+     */
+    public abstract <F extends FileStructure> F load();
+
+    /**
+     * Save this to the linked {@link File}.
+     *
+     * @return success of saving
+     */
+    abstract public boolean save();
 }

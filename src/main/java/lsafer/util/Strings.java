@@ -1,21 +1,21 @@
 package lsafer.util;
 
 /**
- * useful utils for strings.
+ * Useful utils for strings.
  *
  * @author LSafer
- * @version 3
+ * @version 4 release (06-Seo-2019)
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class Strings {
 
     /**
-     * the prefixes used with si units.
-     * <p>
-     * i removed "c", "d", "da", "h"
-     * because it's not multiple of 1,000
-     * center index = 6
+     * The prefixes used with si units. The center index is 6.
+     *
+     * <ul>
+     *     <li>note: ["c", "d", "da", "h"] have been removed. Because it's not multiple of 1000.</li>
+     * </ul>
      */
     final public static String[] SI_PREFIXES = {
             "a",        //x10^-18
@@ -38,16 +38,14 @@ final public class Strings {
     };
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
+     * This is a util class. And shall not be instanced as an object.
      */
     private Strings() {
 
     }
 
     /**
-     * check if the given string contains
-     * all of the given queries.
+     * Check if the given string contains all of the given queries.
      *
      * @param string  to check
      * @param queries to check with
@@ -62,8 +60,7 @@ final public class Strings {
     }
 
     /**
-     * check if the given string contains
-     * any of the given queries.
+     * Check if the given string contains any of the given queries.
      *
      * @param string  to check
      * @param queries to check with
@@ -78,10 +75,11 @@ final public class Strings {
     }
 
     /**
-     * remove first/last characters with specific range.
-     * <p>
-     * example :
+     * Remove first/last characters with specific range.
+     * <br><br><b>example:</b>
+     * <pre>
      * crop("example string", 2, 3) == "ample str"
+     * </pre>
      *
      * @param string String to crop
      * @param start  range to remove
@@ -90,15 +88,13 @@ final public class Strings {
      */
     public static String crop(String string, int start, int end) {
         return String.copyValueOf(string.toCharArray(), start, string.length() - start - end);
-
     }
 
     /**
-     * transform the given number to string
-     * and add best measurement unit for it.
+     * Transform the given number to string and add best measurement unit for it.
      *
      * @param number to format
-     * @return : the value with unit
+     * @return the value with unit
      */
     public static String format(long number) {
         int unit = 6;
@@ -108,11 +104,11 @@ final public class Strings {
     }
 
     /**
-     * joining the given strings accordingly
-     * with a specific query between them.
-     * <p>
-     * example :
-     * join(" / ", "abc", "def", "ghi") == "abc/def/ghi"
+     * Joining the given strings accordingly with a specific query between them.
+     * <br><br><b>example</b>
+     * <pre>
+     * join("/", "abc", "def", "ghi") == "abc/def/ghi"
+     * </pre>
      *
      * @param joiner  query to add between strings
      * @param string  to start with
@@ -120,61 +116,40 @@ final public class Strings {
      * @return given strings joined accordingly with a specific query between them
      */
     public static String join(String joiner, String string, String... strings) {
-        for (String string2 : strings)
-            //noinspection StringConcatenationInLoop
-            string += (string.equals("") ? "" : joiner) + string2;
-        return string;
+        StringBuilder builder = new StringBuilder(string);
+
+        if (!string.equals("") && strings.length > 0)
+            builder.append(strings[0]);
+
+        for (int i=1; i< strings.length; i++)
+            builder.append(joiner).append(strings[i]);
+
+        return builder.toString();
     }
 
     /**
-     * run the margin queries of the given string
-     * and fill it with new string.
-     *
-     * @param string to run from
-     * @param fill   characters to fill between
-     * @param start  margins length on the given string
-     * @param end    margins length on the given string
-     * @return : string with new content but with the same margins
-     */
-    public static String refill(String string, String fill, int start, int end) {
-        String[] split = string.split("");
-        String res = "";
-
-        for (int i = 0; i < start; i++)
-            //noinspection StringConcatenationInLoop
-            res += split[i];
-
-        res += fill;
-
-        for (int i = split.length - end; i < split.length; i++)
-            //noinspection StringConcatenationInLoop
-            res += split[i];
-
-        return res;
-    }
-
-    /**
-     * run given string repeated many times as given.
-     * <p>
-     * example :
-     * repetitive("abc ", 3) == "abc abc abc"
+     * Get given string repeated many times as given.
+     * <br><br><b>example</b>
+     * <pre>
+     * repetitive("abc", " ", 3) == "abc abc abc "
+     * </pre>
      *
      * @param string to repeat from
+     * @param spacing to be in the middle of the repeated strings
      * @param times  to repeat
      * @return new string created from repeated given string
      */
-    public static String repetitive(String string, int times) {
-        String str = "";
-        for (int i = 0; i < times; i++)
-            //noinspection StringConcatenationInLoop
-            str += string;
-        return str;
+    public static String repetitive(String string, String spacing, int times) {
+        StringBuilder builder = times < 1 ? new StringBuilder() : new StringBuilder(string);
+
+        for (int i = 2; i <= times; i++)
+            builder.append(spacing).append(string);
+
+        return builder.toString();
     }
 
     /**
-     * from the given string
-     * replace all given queries
-     * with given replacement.
+     * From the given string. Replace all given queries with the given replacement.
      *
      * @param string      to replace from
      * @param replacement string to replace with

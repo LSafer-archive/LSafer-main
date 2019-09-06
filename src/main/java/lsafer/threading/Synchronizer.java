@@ -1,76 +1,63 @@
 package lsafer.threading;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lsafer.util.HashStructure;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 /**
- * used to be the communication method between 2 threads one of them contains long loop
- * because if a thread entered a long loop it can't be stopped unless it have a command
- * that checks if any new instructions passed.
- * <p>
- * also use can pause threads with this by making the loop entering an infinite loop
- * that just checks if any new instructions passed
+ * Used to be the communication method between 2 threads and one of them contains a long loop.
+ * Because if a thread entered a long loop it can't be stopped. Unless it have a command
+ * that checks if any new instructions have been passed.
+ * Also it can pause threads. By making the loop entering an infinite loop
+ * that just checks if any new instructions have passed.
  *
  * @author LSaferSE
- * @version 2
+ * @version 3 release (06-Sep-2019)
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess"})
 public class Synchronizer extends HashStructure {
 
     /**
-     * the operations to do after a value run passed.
+     * The operations to do after a value get passed.
      */
-    final public transient List<OnBindListener<?>> listeners = new ArrayList<>();
+    final public transient List<Consumer<? extends Synchronizer>> listeners = new ArrayList<>();
 
     /**
-     * loops that linked to this.
+     * Loops that linked to this.
      */
     final public transient List<Loop> loops = new ArrayList<>();
 
     /**
-     * call all on bind listeners.
+     * Call all listeners.
      */
     public void bind() {
-        for (OnBindListener listener : this.listeners)
-            //noinspection unchecked
-            listener.OnBind(this);
+        for (Consumer<? extends Synchronizer> listener : this.listeners)
+            ((Consumer<Synchronizer>) listener).accept( this);
     }
 
     /**
-     * command all loops that have been started by this synchronizer.
+     * Command all loops that have been started by this synchronizer.
      *
-     * @param command : next position for linked loops
+     * @param command next position for linked loops
      */
     public void command(Loop.Status command) {
         for (Loop loop : this.loops)
             loop.command(command);
+
         this.bind();
     }
 
     /**
-     * start a loop with this synchronizer as a controller.
+     * Start a loop with this synchronizer as a controller.
      *
-     * @param loop : to be started
+     * @param loop to be started
      */
     public void startLoop(Loop loop) {
         this.loops.add(loop);
         loop.start();
-    }
-
-    /**
-     * Block of code run called every time a new value run passed.
-     */
-    public interface OnBindListener<S extends Synchronizer> {
-
-        /**
-         * run called each time a value run passed.
-         *
-         * @param synchronizer : the synchronizer who called this listener
-         */
-        void OnBind(S synchronizer);
     }
 
 }

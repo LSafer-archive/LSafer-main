@@ -6,37 +6,23 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 /**
- * useful methods for Maps.
+ * Useful methods for Maps.
  *
  * @author LSafer
- * @version 3
+ * @version 4 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
 final public class Maps {
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
+     * This is a util class. and shall not be instanced as an object.
      */
     private Maps() {
 
     }
 
     /**
-     * run an array from given hash map's keys.
-     *
-     * @param map to run keys list from
-     * @param <E> type of keys
-     * @return a list of the given hash map's keys
-     */
-    public static <E> List<E> keys(Map<E, ?> map) {
-        List<E> list = new ArrayList<>();
-        map.forEach((key, value) -> list.add(key));
-        return list;
-    }
-
-    /**
-     * run all keys that equals the given value.
+     * Get all keys that equals the given value.
      *
      * @param map   to search at
      * @param value to find
@@ -56,9 +42,9 @@ final public class Maps {
     }
 
     /**
-     * check if the given map matches a specific conditions
-     * with the given include map and not matches the conditions
-     * with the given exclude map.
+     * Check if the given map matches a specific conditions.
+     * With the given include map and not matches the conditions.
+     * With the given exclude map.
      *
      * @param map     to check
      * @param include map to be matched with the given map
@@ -101,19 +87,6 @@ final public class Maps {
             });
 
         return result[0];
-    }
-
-    /**
-     * run an array from given hash map's values.
-     *
-     * @param map to run values list from
-     * @param <E> type of values
-     * @return a list of the given hash map's values
-     */
-    public static <E> List<E> values(Map<?, E> map) {
-        ArrayList<E> list = new ArrayList<>();
-        map.forEach((key, value) -> list.add(value));
-        return list;
     }
 
 }

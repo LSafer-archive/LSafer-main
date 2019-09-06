@@ -1,30 +1,30 @@
 package lsafer.lang;
 
 /**
- * useful methods for numbers.
+ * Useful methods for numbers.
  *
  * @author LSafer
- * @version 2
+ * @version 3 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
 final public class Math {
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
+     * This is a util class. And shall not be instanced as an object.
      */
     private Math() {
-
     }
 
     /**
-     * simple ratio formula :).
-     * <p>
+     * Get the ratio of the given 'value' number compared to the 'all' number.
+     * <br><br><b>example:</b>
+     * <pre>
      * f(value, all) = value / all
+     * </pre>
      *
      * @param value of ratio
      * @param all   parts
-     * @return : the ratio between value and all values
+     * @return the ratio between value and all values
      */
     public static int ratioOf(Number value, Number all) {
         float fv = Float.valueOf(value.toString());

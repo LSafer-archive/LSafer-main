@@ -1,94 +1,66 @@
 package lsafer.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
+ * A structure linked with {@link Map}. As it's secondary container. And it acts like it's a list.
+ * <br>
+ * TODO more description
+ *
  * @author LSaferSE
- * @version 1 alpha (19-Aug-19)
+ * @version 3 alpha (06-Sep-19)
  * @since 19-Aug-19
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
-public class ArrayStructure implements Structure {
-
-    /**
-     *
-     */
-    final protected transient List<Object> value = new ArrayList<>();
-
-    @Override
-    public <S extends Structure> S clean() {
-        Structure.super.clean();
-        this.value.clear();
-        return (S) this;
-    }
-
-    @Override
-    public <S extends Structure> S clear() {
-        Structure.super.clear();
-        this.value.clear();
-        return (S) this;
-    }
+@SuppressWarnings("WeakerAccess")
+public class ArrayStructure extends HashStructure {
 
     @Override
     public boolean containsKey(Object key) {
-        if (key instanceof Integer) {
-            return this.value.size() > (Integer) key || Structure.super.containsKey("$" + key);
-        } else {
-            return Structure.super.containsKey(key);
-        }
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return this.value.contains(value) || Structure.super.containsValue(value);
-    }
-
-    @Override
-    public <S extends Structure> S forEach(BiConsumer<?, ?> consumer) {
-        List list = this.list();
-        for (int i = 0; i < list.size(); i++)
-            ((BiConsumer<Object, Object>) consumer).accept(i, list.get(i));
-
-        return (S) this;
+        return super.containsKey(key instanceof Integer ? "$" + key : key);
     }
 
     @Override
     public <T> T get(Object key) {
-        if (key instanceof Integer) {
-            Object object = Structure.super.get("$" + key);
-            return (T) (object == null && this.value.size() > (Integer) key ? this.value.get((Integer) key) : object);
-        } else {
-            return (T) Structure.super.get(key);
-        }
+        return super.get(key instanceof Integer ? "$" + key : key);
     }
 
     @Override
     public Set<Object> keySet() {
-        Set<Object> set = new HashSet<>();
+        Set<Object> set = new HashSet<>(super.keySet());
+        Set<Object> set1 = new HashSet<>();
 
-        for (int i = 0; i < value.size(); i++)
-            set.add(i);
+        set.forEach(key -> {
+            if (key instanceof String)
+                try {
+                    set1.add(Integer.valueOf(((String) key).split("[$]")[1]));
+                    return;
+                } catch (NumberFormatException ignored) {
+                } catch (IndexOutOfBoundsException ignored) {
+                }
 
-        return set;
+            set1.add(key);
+        });
+
+        return set1;
     }
 
     @Override
-    public Map<Object, Object> map() {
-        Map<Object, Object> map = new HashMap<>();
+    public <K, V> Map<K, V> map() {
+        Map<K, V> map = new HashMap<>();
 
-        for (int i = 0; i < this.value.size(); i++)
-            map.put(i, this.value.get(i));
+        super.<K, V>map().forEach((key, value) -> {
+            if (key instanceof String)
+                try {
+                    map.put((K) Integer.valueOf(((String) key).split("[$]")[1]), value);
+                    return;
+                } catch (NumberFormatException ignored) {
+                } catch (IndexOutOfBoundsException ignored) {
+                }
 
-        Structure.super.map().forEach((key, value) -> {
-            int index = Integer.valueOf(((String) key).replace("$", ""));
-            map.put(index, value);
+            map.put(key, value);
         });
 
         return map;
@@ -96,43 +68,12 @@ public class ArrayStructure implements Structure {
 
     @Override
     public <V> V put(Object key, V value) {
-        if (key instanceof Integer) {
-            value = Structure.super.put("$" + key, value);
-
-            if (this.value.size() <= ((Integer) key))
-                Arrays.fill(this.value, ((Integer) key) + 1, () -> null);
-
-            this.value.set((Integer) key, value);
-
-            return (V) value;
-        } else {
-            return Structure.super.put(key, value);
-        }
+        return super.put(key instanceof Integer ? "$" + key : key, value);
     }
 
     @Override
-    public void remove(Object key) {
-        int index = (Integer) key;
-
-        Structure.super.remove("$" + index);
-        this.value.remove(index);
-    }
-
-    @Override
-    public <S extends Structure> S reset() {
-        this.value.clear();
-        Structure.super.reset();
-        return (S) this;
-    }
-
-    @Override
-    public int size() {
-        return this.overrideList().value.size();
-    }
-
-    @Override
-    public Collection<Object> values() {
-        return new ArrayList<>(this.value);
+    public boolean remove(Object key) {
+        return super.remove(key instanceof Integer ? "$" + key : key);
     }
 
     @Override
@@ -141,128 +82,182 @@ public class ArrayStructure implements Structure {
     }
 
     /**
+     * Appends the specified element to the end of this list.
      *
+     * <ul>
+     * <li>uses: {@link #list()}.</li>
+     * </ul>
+     *
+     * @param value to be appended in the end of this list
+     * @param <V>   type of the added value
+     * @return the actual value that have been added
      */
     public <V> V add(V value) {
-        int index = this.size();
-        return this.put(index, value);
+        return this.put(this.list().size(), value);
     }
 
     /**
-     * @param <A>
-     * @return
+     * Appends all of the elements in the specified collection to the end of this list.
+     *
+     * <ul>
+     *     <li>uses: heavy {@link Collection#forEach(Consumer)}.</li>
+     *     <li>uses: repetitive {@link #add(Object)}.</li>
+     * </ul>
+     *
+     * @param collection to be appended to the end of this list
+     * @param <A>        this
+     * @return this
      */
-    public <A extends ArrayStructure> A addAll(Object[] array) {
-        for (Object object : array)
+    public <A extends ArrayStructure> A addAll(Collection<?> collection) {
+        collection.forEach(this::add);
+        return (A) this;
+    }
+
+    /**
+     * Appends all of the elements in the specified array to the end of this list.
+     *
+     * <ul>
+     *     <li>uses: heavy foreach.</li>
+     *     <li>uses: repetitive {@link #add(Object)}.</li>
+     * </ul>
+     *
+     * @param objects to be appended to the end of this list
+     * @param <A>     this
+     * @return this
+     */
+    public <A extends ArrayStructure> A addAll(Object[] objects) {
+        for (Object object : objects)
             this.add(object);
 
         return (A) this;
     }
 
     /**
-     * @param <A>
-     * @return
+     * Appends all of the elements in the specified array-structure to the end of this list.
+     *
+     * <ul>
+     *     <li>uses: {@link #list()}.</li>
+     *     <li>uses: {@link #addAll(Collection)}.</li>
+     * </ul>
+     *
+     * @param structure to be appended to the end of this list
+     * @param <A>       this
+     * @return this
      */
-    public <A extends ArrayStructure> A addAll(Collection<?> collection) {
-        collection.forEach(this::add);
-
-        return (A) this;
+    public <A extends ArrayStructure> A addAll(ArrayStructure structure) {
+        return this.addAll(structure.list());
     }
 
     /**
-     * @return
+     * Returns an array containing all of the elements in this list in proper sequence (from first to last element).
+     * The returned array will be "safe" in that no references to it are maintained by this list.
+     * (In other words, this method must allocate a new array).
+     * The caller is thus free to modify the returned array.
+     *
+     * <ul>
+     *     <li>uses: {@link #list()}.</li>
+     * </ul>
+     *
+     * @param <T> the assumed type of the array
+     * @return an array containing all of the elements in this list in proper sequence
      */
-    public Object[] array() {
-        Object[] array = this.value.toArray();
-
-        for (Map.Entry<Object, Object> entry : Structure.super.map().entrySet()) {
-            int index = Integer.valueOf(((String) entry.getKey()).replace("$", ""));
-            Object value = entry.getValue();
-
-            if (array.length > index)
-                array = Arrays.fill(array, index + 1, () -> null);
-
-            array[index] = value;
-        }
-
-        return array;
+    public <T> T[] array() {
+        return (T[]) this.list().toArray();
     }
 
     /**
-     * @return
+     * Returns an array containing all of the elements in this list in proper sequence (from first to last element).
+     * All but elements not extends the given class.
+     * The returned array will be "safe" in that no references to it are maintained by this list.
+     * (In other words, this method must allocate a new array).
+     * The caller is thus free to modify the returned array.
+     *
+     * <ul>
+     *     <li>uses: {@link #list(Class)}.</li>
+     * </ul>
+     *
+     * @param <T>   The assumed type of the array
+     * @param klass to filter any element not extending it
+     * @return An array containing all of the elements in this list in proper sequence
      */
-    public List<Object> list() {
-        List<Object> list = new ArrayList<>(this.value);
+    public <T> T[] array(Class<T> klass) {
+        return this.list(klass).toArray((T[]) Array.newInstance(klass));
+    }
 
-        Structure.super.map().forEach((key, value) -> {
-            if (value != null) {
-                int index = Integer.valueOf(((String) key).replace("$", ""));
+    /**
+     * Returns a list containing all of the elements in this in proper sequence (from first to last element).
+     * The returned list will be "safe" in that no references to it are maintained by this.
+     * (In other words, this method must allocate a new list).
+     * The caller is thus free to modify the returned list.
+     *
+     * <ul>
+     *     <li>uses: {@link #map()}.</li>
+     *     <li>uses: heavy {@link Map#forEach(BiConsumer)}.</li>
+     * </ul>
+     *
+     * @param <E> the assumed type of the list
+     * @return a list containing all of the elements in this in proper sequence
+     */
+    public <E> List<E> list() {
+        List<E> list = new ArrayList<>();
 
-                if (list.size() <= index)
-                    Arrays.fill(list, index + 1, () -> null);
+        super.map().forEach((index_string, element) -> {
+            if (index_string instanceof String)
+                try {
+                    int index = Integer.valueOf(((String) index_string).split("[$]")[1]);
 
-                list.set(index, value);
-            }
+                    if (index >= list.size())
+                        Arrays.fill(list, index + 1, () -> null);
+
+                    list.set(index, (E) element);
+                } catch (NumberFormatException ignored) {
+                } catch (IndexOutOfBoundsException ignored) {
+                }
         });
 
         return list;
     }
 
     /**
-     * put all nodes from the {@link #value map secondary container} to the fields inside this.
+     * Returns a list containing all of the elements in this list in proper sequence (from first to last element).
+     * All but elements not extends the given class.
+     * The returned list will be "safe" in that no references to it are maintained by this.
+     * (In other words, this method must allocate a new list).
+     * The caller is thus free to modify the returned list.
      *
-     * @param <A> this
-     * @return this
-     */
-    public <A extends ArrayStructure> A overrideFromList() {
-        for (int i = 0; i < this.value.size(); i++) {
-            Object object = this.value.get(i);
-            Object stored = Structure.super.put("$" + i, object);
-            if (object != stored)
-                this.value.set(i, stored);
-        }
-
-        return (A) this;
-    }
-
-    /**
-     * put all node from the fields inside this to the {@link #value map secondary container}.
+     * <ul>
+     *     <li>uses: {@link #list()}.</li>
+     *     <li>uses: heavy {@link List#forEach(Consumer)}.</li>
+     * </ul>
      *
-     * @param <A> this
-     * @return this
+     * @param <E>   The assumed type of the list
+     * @param klass to filter any element not extending it
+     * @return A list containing all of the elements in this list in proper sequence
      */
-    public <A extends ArrayStructure> A overrideList() {
-        Structure.super.map().forEach((key, value) -> {
-            if (value != null) {
-                int index = Integer.valueOf(((String) key).replace("$", ""));
+    public <E> List<E> list(Class<E> klass) {
+        List<E> list = new ArrayList<>();
 
-                if (this.value.size() <= index)
-                    Arrays.fill(this.value, index + 1, () -> null);
-
-                this.value.set(index, value);
-            }
+        this.list().forEach(element -> {
+            if (klass.isInstance(element))
+                list.add((E) element);
         });
 
-
-        return (A) this;
+        return list;
     }
 
     /**
-     * @param <A>
-     * @return
+     * Put all the entries ("elements") to this. Using it's indexes as it's "keys". And it itself as it's "values".
+     *
+     * <ul>
+     *     <li>uses: heavy foreach.</li>
+     *     <li>uses: repetitive {@link #put(Object, Object)}.</li>
+     * </ul>
+     *
+     * @param list to be put in this
+     * @param <A>  this
+     * @return this
      */
-    public <A extends ArrayStructure> A putAll(Object[] array) {
-        for (int i = 0; i < array.length; i++)
-            this.put(i, array[i]);
-
-        return (A) this;
-    }
-
-    /**
-     * @param <A>
-     * @return
-     */
-    public <A extends ArrayStructure> A putAll(List list) {
+    public <A extends ArrayStructure> A putAll(List<?> list) {
         for (int i = 0; i < list.size(); i++)
             this.put(i, list.get(i));
 
@@ -270,45 +265,50 @@ public class ArrayStructure implements Structure {
     }
 
     /**
-     * @param <A>
-     * @return
+     * Put all the entries ("elements") to this. Using it's indexes as it's "keys". And it itself as it's "values".
+     *
+     * <ul>
+     *     <li>uses: heavy foreach.</li>
+     *     <li>uses: repetitive {@link #put(Object, Object)}.</li>
+     * </ul>
+     *
+     * @param objects to be put in this
+     * @param <A>     this
+     * @return this
      */
-    public <A extends ArrayStructure> A removeAll(Object[] array) {
-        for (Object object : array)
-            this.removeValue(object);
+    public <A extends ArrayStructure> A putAll(Object[] objects) {
+        for (int i = 0; i < objects.length; i++)
+            this.put(i, objects[i]);
 
         return (A) this;
     }
 
     /**
-     * @param <A>
-     * @return
+     * Removes the element at the specified index in this structure "by it's index".
+     * Shifts any subsequent elements to the left (subtracts one from their indices).
+     * Returns the element that was removed from the list.
+     *
+     * <ul>
+     * <li>uses: {@link #list()}.</li>
+     * <li>uses: {@link #putAll(List)}.</li>
+     * </ul>
+     *
+     * @param index to be removed
+     * @param <T>   the assumed type of the old value
+     * @return the element previously at the specified position
      */
-    public <A extends ArrayStructure> A removeAll(Collection<?> collection) {
-        collection.forEach(this::removeValue);
+    public <T> T removeIndex(int index) {
+        List list = this.list();
 
-        return (A) this;
+        if (index > 0 || index < list.size()) {
+            T old = (T) list.remove(index);
+
+            this.putAll(list);
+            this.remove(list.size());
+
+            return old;
+        }
+
+        return null;
     }
-
-    /**
-     * @param value
-     */
-    public void removeValue(Object value) {
-        this.value.remove(value);
-        this.overrideFromList();
-    }
-
-    //    /**
-//     *
-//     */
-//    public <A extends ArrayStructure> A fix(){
-//        List<Object> list = this.list();
-//
-//        while (list.size() != 0 && list.get(list.size()-1) == null)
-//            list.remove(list.size()-1);
-//
-//        this.clear();
-//        this.putAll(list);
-//        return (A) this;
-//    }
 }

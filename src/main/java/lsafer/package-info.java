@@ -1,28 +1,23 @@
 /**
- * code style.
- * <p>
- * FINAL_FIELDS
- * mPrivateOrProtectedClassMember
- * fPrivateOrProtectedFinalClassMember
- * publicClassMember
- * <p>
- * methodToCall
- * SuperClass
- * ClassSuper
- * Implementable
+ * A utils library made by LSafer.
  *
- *
- * <p>
- * type parameters :
+ * <br><br><b>Code Style:</b>
  * <ul>
- * <li>the name of the inhered class</li>
- * <li>the name of the field stored at</li>
- * <li>parent type parameter on the first type parameter</li>
+ *     <li>A_FIELD_Example / AFieldExample / aFieldExample / a_field_example</li>
+ *     <li>aMethodExample / a_method_example</li>
+ *     <li>AClassExample</li>
+ * </ul>
+ *
+ * <br><b>type parameters:</b>
+ * <ul>
+ * <li>The UpperCase of the first letter of the name of the inhered class.</li>
+ * <li>The UpperCase of the first letter of the name of the field stored at.</li>
+ * <li>The UpperCase of the first letter of the name of parent type parameter on the first type parameter.</li>
  * <li>T</li>
  * </ul>
  *
  * @author LSafersSE
- * @version 1
+ * @version 2 release (06-Sep-2019)
  * @since 20-Jun-2019
  */
 package lsafer;

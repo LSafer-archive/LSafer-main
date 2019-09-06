@@ -1,29 +1,29 @@
 package lsafer.io;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import lsafer.microsoft.INI;
 
+import java.util.HashMap;
+
 /**
- * structure linked with {@link java.util.Map} as a secondary container
- * and {@link File INI file} as a third IO container.
- * depends on {@link File#readINI(java.util.function.Supplier)} and {@link File#writeINI(java.util.Map)}
- * <p>
- * make sure your {@link INIFileStructure ini-file-structure} matches all {@link FileStructure file-structures} rules
+ * A structure linked with {@link java.util.Map} as a secondary container. And an {@link File INI file} as a third IO container.
+ * Depends on {@link File#readINI(java.util.function.Supplier)} and {@link File#writeINI(java.util.Map)}.
+ *
+ * <ul>
+ *     <li>note: make sure your {@link INIFileStructure ini-file-structure} matches all {@link FileStructure file-structures} rules.</li>
+ * </ul>
  *
  * @author LSaferSE
- * @version 3 release (19-Jub-2019)
+ * @version 4 release (06-Sep-2019)
  * @see INI
  * @since 11-Jul-19
  */
 public class INIFileStructure extends FileStructure {
 
     @Override
-    public <I extends IOStructure> I load() {
+    public <F extends FileStructure> F load() {
         //noinspection RedundantTypeArguments
         this.putAll(this.remote.<Object>readINI(HashMap::new));
-        return (I) this;
+        return (F) this;
     }
 
     @Override

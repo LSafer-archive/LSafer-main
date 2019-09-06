@@ -1,54 +1,50 @@
 package lsafer.json;
 
+import lsafer.util.ArrayStructure;
+import lsafer.util.Strings;
+import lsafer.util.Structure;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lsafer.util.ArrayStructure;
-import lsafer.util.Arrays;
-import lsafer.util.Strings;
-import lsafer.util.Structure;
-
 /**
- * useful utils for using JSON.
- * <p>
+ * Useful utils for using JSON.
+ * <br>
  * Including :
  * <ul>
- * <li>transform {@link Object objects} into a JSON style text</li>
- * <li>cast object from JSON text into a Java {@link Object object}</li>
+ * <li>Transforming {@link Object objects} into a JSON style text</li>
+ * <li>Casting objects from JSON text into a Java {@link Object object}</li>
  * </ul>
- * <p>
- * TODO Support inString symbols ignoring
+ * <br>
  *
  * @author LSaferSE
- * @version 3
+ * @version 4 release (06-Sep-2019)
  * @since 09-Jul-19
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class JSON {
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
+     * This is a util class. And shall not be instanced as an object.
      */
     private JSON() {
-
     }
 
     /**
-     * check if the given JSON text is an {@link Object[] object array} or not.
+     * Check if the given JSON text is an {@link Object[] array} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is an array or not
      */
     public static boolean is_array(String string) {
         return string.length() > 1 && (string.charAt(0) == '[' || string.charAt(1) == '[') &&
-                (string.charAt(string.length() - 1) == ']' || string.charAt(string.length() - 2) == ']');
+               (string.charAt(string.length() - 1) == ']' || string.charAt(string.length() - 2) == ']');
     }
 
     /**
-     * check if the given JSON text is a {@link Boolean[] boolean} or not.
+     * Check if the given JSON text is a {@link Boolean[] boolean} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a boolean or not
@@ -58,7 +54,7 @@ final public class JSON {
     }
 
     /**
-     * check if the given JSON text is a {@link Character character} or not.
+     * Check if the given JSON text is a {@link Character character} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a character or not
@@ -68,7 +64,7 @@ final public class JSON {
     }
 
     /**
-     * check if the given JSON text is a {@link Double double} or not.
+     * Check if the given JSON text is a {@link Double double} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a double or not
@@ -77,14 +73,14 @@ final public class JSON {
         try {
             Double.valueOf(string);
             return !string.toLowerCase().endsWith("f") &&
-                    string.contains(".");
+                   string.contains(".");
         } catch (Exception ignored) {
             return false;
         }
     }
 
     /**
-     * check if the given JSON text is a {@link Float float} or not.
+     * Check if the given JSON text is a {@link Float float} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a float or not
@@ -99,7 +95,7 @@ final public class JSON {
     }
 
     /**
-     * check if the given JSON text is an {@link Integer integer} or not.
+     * Check if the given JSON text is an {@link Integer integer} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is an integer or not
@@ -108,15 +104,15 @@ final public class JSON {
         try {
             Integer.valueOf(string);
             return !string.endsWith("L") &&
-                    !string.endsWith("f") &&
-                    !string.contains(".");
+                   !string.endsWith("f") &&
+                   !string.contains(".");
         } catch (Exception ignored) {
             return false;
         }
     }
 
     /**
-     * check if the given JSON text is a {@link Long long} or not.
+     * Check if the given JSON text is a {@link Long long} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is an long or not
@@ -125,43 +121,43 @@ final public class JSON {
         try {
             Long.valueOf(string);
             return string.toUpperCase().endsWith("L") &&
-                    !string.contains(".");
+                   !string.contains(".");
         } catch (Exception ignored) {
             return false;
         }
     }
 
     /**
-     * check if the given JSON text is a {@link Map map} or not.
+     * Check if the given JSON text is a {@link Map map} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a map or not
      */
     public static boolean is_map(String string) {
         return string.length() > 1 && (string.charAt(0) == '{' || string.charAt(1) == '{') &&
-                (string.charAt(string.length() - 1) == '}' || string.charAt(string.length() - 2) == '}');
+               (string.charAt(string.length() - 1) == '}' || string.charAt(string.length() - 2) == '}');
     }
 
     /**
-     * check if the given JSON text is a {@link String string} or not.
+     * Check if the given JSON text is a {@link String string} or not.
      *
      * @param string JSON text to be checked
      * @return whether the passed JSON text is a string or not
      */
     public static boolean is_string(String string) {
         return string.length() > 1 &&
-                string.charAt(0) == '"' &&
-                string.charAt(string.length() - 1) == '"';
+               string.charAt(0) == '"' &&
+               string.charAt(string.length() - 1) == '"';
     }
 
     /**
-     * cast the given JSON text to {@link Object object}.
+     * Cast the given JSON text to {@link Object object}.
      *
      * @param string json text to be casted
      * @return an object that matches the given JSON text
      */
     public static Object parse(String string) {
-        if (string.equals("null") || string.equals(""))
+        if (string == null || string.equals("null") || string.equals(""))
             return null;
         if (JSON.is_string(string))
             return JSON.parse_string(string);
@@ -186,19 +182,21 @@ final public class JSON {
     }
 
     /**
-     * cast the given JSON text to {@link Object[] object array}.
+     * Cast the given JSON text to {@link Object[] object array}.
      *
      * @param string json text to be casted
      * @return an object array from the given JSON text
      */
     public static Object[] parse_array(String string) {
-        string = Strings.crop(string, 1, 1);
+        //remove main braces case exist
+        if (string.charAt(0) == '[' && string.charAt(string.length() - 1) == ']')
+            string = Strings.crop(string, 1, 1);
 
         List<Object> list = new ArrayList<>();
-        StringBuilder pointer = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
-        boolean[] skip0 = {false, false};
-        int[] skip1 = {0, 0};
+        boolean[] skip0 = {false /*quotation mode*/, false /*escaping mode*/};
+        int[] skip1 = {0 /*array braces mode*/, 0/*map braces mode*/};
 
         for (char point : string.toCharArray()) {
             if (skip0[1]) {
@@ -206,16 +204,16 @@ final public class JSON {
                 skip0[1] = false;
                 switch (point) {
                     case 't':
-                        pointer.append('\t');
+                        builder.append('\t');
                         break;
                     case 'n':
-                        pointer.append('\n');
+                        builder.append('\n');
                         break;
                     case 'r':
-                        pointer.append('\r');
+                        builder.append('\r');
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                 }
             } else if (skip0[0]) {
                 //case reading between quotation marks
@@ -224,16 +222,16 @@ final public class JSON {
                         skip0[1] = true;
                         break;
                     case '"':
-                        pointer.append(point);
+                        builder.append(point);
                         skip0[0] = false;
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                         break;
                 }
             } else if (skip1[0] > 0) {
                 //case reading inside a brackets
-                pointer.append(point);
+                builder.append(point);
                 switch (point) {
                     case '[':
                         skip1[0]++;
@@ -247,7 +245,7 @@ final public class JSON {
                 }
             } else if (skip1[1] > 0) {
                 //case reading inside a karly brackets
-                pointer.append(point);
+                builder.append(point);
                 switch (point) {
                     case '{':
                         skip1[1]++;
@@ -269,36 +267,37 @@ final public class JSON {
                     case 65533:
                         break;
                     case '[':
-                        pointer.append(point);
+                        builder.append(point);
                         skip1[0]++;
                         break;
                     case '{':
-                        pointer.append(point);
+                        builder.append(point);
                         skip1[1]++;
                         break;
                     case '"':
-                        pointer.append(point);
+                        builder.append(point);
                         skip0[0] = true;
                         break;
                     case ',':
-                        list.add(JSON.parse(pointer.toString()));
-                        pointer = new StringBuilder();
+                        list.add(JSON.parse(builder.toString()));
+                        builder = new StringBuilder();
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                         break;
                 }
             }
         }
 
-        if (pointer.length() != 0)
-            list.add(JSON.parse(pointer.toString())); //leftovers
+        //leftovers
+        if (builder.length() != 0)
+            list.add(JSON.parse(builder.toString()));
 
-        return Arrays.asArray(list);
+        return list.toArray();
     }
 
     /**
-     * cast the given JSON text to {@link Character character}.
+     * Cast the given JSON text to {@link Character character}.
      *
      * @param string json text to be casted
      * @return an object array from the given JSON text
@@ -308,21 +307,23 @@ final public class JSON {
     }
 
     /**
-     * cast the given JSON text to {@link Map map}.
+     * Cast the given JSON text to {@link Map map}.
      *
      * @param string json text to be casted
      * @return a map object from the given JSON text
      */
     public static Map<Object, Object> parse_map(String string) {
-        string = Strings.crop(string, 1, 1);
+        //remove main braces case exist
+        if (string.charAt(0) == '{' && string.charAt(string.length() - 1) == '}')
+            string = Strings.crop(string, 1, 1);
 
         HashMap<Object, Object> map = new HashMap<>(); //result
-        StringBuilder value = new StringBuilder(); //temporary val holder
-        StringBuilder key = new StringBuilder(); //temporary key holder
+        StringBuilder value_builder = new StringBuilder(); //temporary val holder
+        StringBuilder key_builder = new StringBuilder(); //temporary key holder
+        StringBuilder builder = key_builder; //temporary builder
 
-        boolean[] skip0 = {false, false}; //string, slash
-        int[] skip1 = {0, 0}; //bracket, karly bracket
-        StringBuilder pointer = key;
+        boolean[] skip0 = {false /*quotation mode*/, false /*escaping mode*/}; //string, slash
+        int[] skip1 = {0 /*array braces mode*/, 0 /*map braces mode*/}; //bracket, karly bracket
 
         for (char point : string.toCharArray()) {
             if (skip0[1]) {
@@ -330,16 +331,16 @@ final public class JSON {
                 skip0[1] = false;
                 switch (point) {
                     case 't':
-                        pointer.append('\t');
+                        builder.append('\t');
                         break;
                     case 'n':
-                        pointer.append('\n');
+                        builder.append('\n');
                         break;
                     case 'r':
-                        pointer.append('\r');
+                        builder.append('\r');
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                 }
             } else if (skip0[0]) {
                 //case reading between quotation marks
@@ -348,16 +349,16 @@ final public class JSON {
                         skip0[1] = true;
                         break;
                     case '"':
-                        pointer.append(point);
+                        builder.append(point);
                         skip0[0] = false;
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                         break;
                 }
             } else if (skip1[0] > 0) {
                 //case reading inside a brackets
-                pointer.append(point);
+                builder.append(point);
                 switch (point) {
                     case '[':
                         skip1[0]++;
@@ -371,7 +372,7 @@ final public class JSON {
                 }
             } else if (skip1[1] > 0) {
                 //case reading inside a karly brackets
-                pointer.append(point);
+                builder.append(point);
                 switch (point) {
                     case '{':
                         skip1[1]++;
@@ -393,42 +394,43 @@ final public class JSON {
                     case 65533:
                         break;
                     case '[':
-                        pointer.append(point);
+                        builder.append(point);
                         skip1[0]++;
                         break;
                     case '{':
-                        pointer.append(point);
+                        builder.append(point);
                         skip1[1]++;
                         break;
                     case '"':
-                        pointer.append(point);
+                        builder.append(point);
                         skip0[0] = true;
                         break;
                     case ':':
                     case '=':
-                        pointer = value;
+                        builder = value_builder;
                         break;
                     case ',':
-                        map.put(JSON.parse(key.toString()), JSON.parse(value.toString()));
-                        key = new StringBuilder();
-                        value = new StringBuilder();
-                        pointer = key;
+                        map.put(JSON.parse(key_builder.toString()), JSON.parse(value_builder.toString()));
+                        key_builder = new StringBuilder();
+                        value_builder = new StringBuilder();
+                        builder = key_builder;
                         break;
                     default:
-                        pointer.append(point);
+                        builder.append(point);
                         break;
                 }
             }
         }
 
-        if (key.length() != 0 && value.length() != 0)
-            map.put(JSON.parse(key.toString()), JSON.parse(value.toString())); //leftovers
+        //leftovers
+        if (key_builder.length() != 0 && value_builder.length() != 0)
+            map.put(JSON.parse(key_builder.toString()), JSON.parse(value_builder.toString()));
 
         return map;
     }
 
     /**
-     * cast the given JSON text to {@link String string}.
+     * Cast the given JSON text to {@link String string}.
      *
      * @param string json text to be casted
      * @return a string object from the given JSON text
@@ -438,13 +440,55 @@ final public class JSON {
     }
 
     /**
-     * transform the given {@link Object object array} to a JSON text.
+     * Transform the given {@link Object object} to a JSON text.
+     *
+     * @param object  to transform
+     * @param spacing base
+     * @return a JSON text from the given object
+     */
+    public static String stringify(Object object, String spacing) {
+        if (object == null)
+            return "null";
+        if (object instanceof Float)
+            return JSON.stringify((Float) object, spacing);
+        if (object instanceof Long)
+            return JSON.stringify((Long) object, spacing);
+        if (object instanceof String)
+            return JSON.stringify((String) object, spacing);
+        if (object instanceof Character)
+            return JSON.stringify((Character) object, spacing);
+        if (object instanceof Object[])
+            return JSON.stringify((Object[]) object, spacing);
+        if (object instanceof List)
+            return JSON.stringify((List) object, spacing);
+        if (object instanceof Map)
+            return JSON.stringify((Map) object, spacing);
+        if (object instanceof ArrayStructure)
+            return JSON.stringify(((ArrayStructure) object).list(), spacing);
+        if (object instanceof Structure)
+            return JSON.stringify((Structure) object, spacing);
+
+        return String.valueOf(object);
+    }
+
+    /**
+     * Transform the given {@link Object object} to a JSON text.
+     *
+     * @param object to transform
+     * @return a JSON text from the given object
+     */
+    public static String stringify(Object object) {
+        return JSON.stringify(object, "");
+    }
+
+    /**
+     * Transform the given {@link Object object array} to a JSON text.
      *
      * @param array   to transform
      * @param spacing base
      * @return a JSON text from the given array
      */
-    public static String stringify(Object[] array, String spacing) {
+    private static String stringify(Object[] array, String spacing) {
         StringBuilder text = new StringBuilder();
         text.append("[");
 
@@ -462,24 +506,24 @@ final public class JSON {
     }
 
     /**
-     * transform the given {@link List list} to a JSON text.
+     * Transform the given {@link List list} to a JSON text.
      *
      * @param list    to transform
      * @param spacing base
      * @return a JSON text from the given list
      */
-    public static String stringify(List list, String spacing) {
+    private static String stringify(List list, String spacing) {
         return JSON.stringify(list.toArray(), spacing);
     }
 
     /**
-     * transform the given {@link Map map} to a JSON text.
+     * Transform the given {@link Map map} to a JSON text.
      *
      * @param map     to transform
      * @param spacing base
      * @return a JSON text from the given map
      */
-    public static String stringify(Map<?, ?> map, String spacing) {
+    private static String stringify(Map<?, ?> map, String spacing) {
         StringBuilder text = new StringBuilder();
         text.append("{");
 
@@ -500,100 +544,60 @@ final public class JSON {
     }
 
     /**
-     * transform the given {@link String string} to a JSON text.
+     * Transform the given {@link String string} to a JSON text.
      *
      * @param string  to transform
      * @param spacing base
      * @return a JSON text from the given string
      */
-    public static String stringify(String string, String spacing) {
+    private static String stringify(String string, String spacing) {
         return '"' + string.replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t") + '"';
     }
 
     /**
-     * transform the given {@link Float float} to a JSON text.
+     * Transform the given {@link Float float} to a JSON text.
      *
      * @param f       float to transform
      * @param spacing base
      * @return a JSON text from the given float
      */
-    public static String stringify(Float f, String spacing) {
+    private static String stringify(Float f, String spacing) {
         return f + "F";
     }
 
     /**
-     * transform the given {@link Long long} to a JSON text.
+     * Transform the given {@link Long long} to a JSON text.
      *
      * @param l       long to transform
      * @param spacing base
      * @return a JSON text from the given float
      */
-    public static String stringify(Long l, String spacing) {
+    private static String stringify(Long l, String spacing) {
         return l + "L";
     }
 
     /**
-     * transform the given {@link Structure structure} to a JSON text.
+     * Transform the given {@link Structure structure} to a JSON text.
      *
      * @param structure to transform
      * @param spacing   base
      * @return a JSON text from the given structure
      */
-    public static String stringify(Structure structure, String spacing) {
+    private static String stringify(Structure structure, String spacing) {
         return JSON.stringify(structure.map(), spacing);
     }
 
     /**
-     * transform the given {@link Object object} to a JSON text.
-     *
-     * @param object  to transform
-     * @param spacing base
-     * @return a JSON text from the given object
-     */
-    public static String stringify(Object object, String spacing) {
-        if (object instanceof Object[])
-            return JSON.stringify((Object[]) object, spacing);
-        if (object instanceof List)
-            return JSON.stringify((List) object, spacing);
-        if (object instanceof Map)
-            return JSON.stringify((Map) object, spacing);
-        if (object instanceof String)
-            return JSON.stringify((String) object, spacing);
-        if (object instanceof Float)
-            return JSON.stringify((Float) object, spacing);
-        if (object instanceof Long)
-            return JSON.stringify((Long) object, spacing);
-        if (object instanceof ArrayStructure)
-            return JSON.stringify(((ArrayStructure) object).list(), spacing);
-        if (object instanceof Structure)
-            return JSON.stringify((Structure) object, spacing);
-        if (object instanceof Character)
-            return JSON.stringify((Character) object, spacing);
-
-        return String.valueOf(object);
-    }
-
-    /**
-     * transform the given {@link Object object} to a JSON text.
+     * Transform the given {@link Object object} to a JSON text.
      *
      * @param character to transform
      * @param spacing   base
      * @return a JSON text from the given object
      */
-    public static String stringify(Character character, String spacing) {
+    private static String stringify(Character character, String spacing) {
         return "\'" + character + "\'";
-    }
-
-    /**
-     * transform the given {@link Object object} to a JSON text.
-     *
-     * @param object to transform
-     * @return a JSON text from the given object
-     */
-    public static String stringify(Object object) {
-        return JSON.stringify(object, "");
     }
 
 }

@@ -1,40 +1,37 @@
 package lsafer.microsoft;
 
+import lsafer.util.Strings;
+import lsafer.util.Structure;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lsafer.util.Arrays;
-import lsafer.util.Strings;
-import lsafer.util.Structure;
-
 /**
- * useful utils for using windows INI files.
+ * Useful utils for using windows INI files.
  * Including
  * <ul>
- * <li>transform {@link Object objects} into an INI style text</li>
- * <li>cast object from INI text into a Java {@link Object object}</li>
+ * <li>Transforming {@link Object objects} into an INI style text</li>
+ * <li>Casting object from INI text into a Java {@link Object object}</li>
  * </ul>
- * <p>
+ * <br>
  *
  * @author LSaferSE
- * @version 1 alpha (21-Jul-19)
+ * @version 2 release (06-Sep-19)
  * @since 21-Jul-19
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class INI {
 
     /**
-     * this is a util class and shall
-     * not be instanced as an object.
+     * This is a util class. And shall not be instanced as an object.
      */
     private INI() {
-
     }
 
     /**
-     * check if the given INI text is an {@link Object[] object array} or not.
+     * Check if the given INI text is an {@link Object[] object array} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is an array or not
@@ -44,7 +41,7 @@ final public class INI {
     }
 
     /**
-     * check if the given INI text is a {@link Boolean[] boolean} or not.
+     * Check if the given INI text is a {@link Boolean[] boolean} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is a boolean or not
@@ -54,7 +51,7 @@ final public class INI {
     }
 
     /**
-     * check if the given INI text is a {@link Double double} or not.
+     * Check if the given INI text is a {@link Double double} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is a double or not
@@ -70,7 +67,7 @@ final public class INI {
     }
 
     /**
-     * check if the given INI text is a {@link Float float} or not.
+     * Check if the given INI text is a {@link Float float} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is a float or not
@@ -85,7 +82,7 @@ final public class INI {
     }
 
     /**
-     * check if the given INI text is an {@link Integer integer} or not.
+     * Check if the given INI text is an {@link Integer integer} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is an integer or not
@@ -102,7 +99,7 @@ final public class INI {
     }
 
     /**
-     * check if the given INI text is an {@link Long long} or not.
+     * Check if the given INI text is an {@link Long long} or not.
      *
      * @param string INI text to be checked
      * @return whether the passed INI text is an long or not
@@ -118,9 +115,11 @@ final public class INI {
     }
 
     /**
-     * parse the given INI text into a java {@link Map}.
-     * <p>
-     * note : if you want to parse just an element use {@link #parse_object(String)}
+     * Parse the given INI text into a java {@link Map}.
+     *
+     * <ul>
+     *     <li>note: if you want to parse just an element use {@link #parse_object(String)} instead.</li>
+     * </ul>
      *
      * @param string source
      * @return a java map from the given string
@@ -145,7 +144,7 @@ final public class INI {
     }
 
     /**
-     * cast the given INI text to {@link Object[] object}.
+     * Cast the given INI text to {@link Object[] object}.
      *
      * @param string INI text to be casted
      * @return an object that matches the given INI text
@@ -156,11 +155,11 @@ final public class INI {
         for (String element : string.split(","))
             list.add(INI.parse_object(element));
 
-        return Arrays.asArray(list);
+        return list.toArray();
     }
 
     /**
-     * cast the given INI text to {@link Object object}.
+     * Cast the given INI text to {@link Object object}.
      *
      * @param string INI text to be casted
      * @return an object that matches the given INI text
@@ -185,7 +184,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Map map} to an INI text.
+     * Transform the given {@link Map map} to an INI text.
      *
      * @param map to transform
      * @return a INI text from the given map
@@ -209,7 +208,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Object object} to an INI text.
+     * Transform the given {@link Object object} to an INI text.
      *
      * @param object to transform
      * @return a INI text from the given map
@@ -230,7 +229,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Object[] array} to an INI text.
+     * Transform the given {@link Object[] array} to an INI text.
      *
      * @param array to transform
      * @return a INI text from the given map
@@ -245,7 +244,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link List list} to an INI text.
+     * Transform the given {@link List list} to an INI text.
      *
      * @param list to transform
      * @return a INI text from the given map
@@ -255,7 +254,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Float float} to an INI text.
+     * Transform the given {@link Float float} to an INI text.
      *
      * @param f to transform
      * @return a INI text from the given map
@@ -265,7 +264,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Long long} to an INI text.
+     * Transform the given {@link Long long} to an INI text.
      *
      * @param l to transform
      * @return a INI text from the given map
@@ -275,7 +274,7 @@ final public class INI {
     }
 
     /**
-     * transform the given {@link Structure structure} to an INI text.
+     * Transform the given {@link Structure structure} to an INI text.
      *
      * @param structure to transform
      * @return a INI text from the given map

@@ -1,27 +1,28 @@
 package lsafer.io;
 
-import java.util.HashMap;
-
 import lsafer.json.JSON;
 
+import java.util.HashMap;
+
 /**
- * structure linked with {@link java.util.Map} as a secondary container
- * and {@link File JSON file} as a third IO container.
- * depends on {@link File#readJSON(java.util.function.Supplier)} (Object)} and {@link File#writeJSON(java.util.Map)}
- * <p>
- * make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules
+ * A structure linked with {@link java.util.Map} as a secondary container. And a {@link File JSON file} as a third IO container.
+ * Depends on {@link File#readJSON(java.util.function.Supplier)} (Object)} and {@link File#writeJSON(java.util.Map)}.
+ *
+ * <ul>
+ *     <li>note: make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules.</li>
+ * </ul>
  *
  * @author LSaferSE
- * @version 3 release (19-Jub-2019)
+ * @version 4 release (06-Sep-2019)
  * @see JSON
  * @since 11-Jul-19
  */
 public class JSONFileStructure extends FileStructure {
 
     @Override
-    public <I extends IOStructure> I load() {
+    public <F extends FileStructure> F load() {
         this.putAll(this.remote.readJSON(HashMap::new));
-        return (I) this;
+        return (F) this;
     }
 
     @Override
