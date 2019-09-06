@@ -378,7 +378,7 @@ public interface Structure extends Serializable {
      *
      * @param <K> expected keys type
      * @param <V> expected values type
-     * @return a map of this structure's entries
+     * @return a map from this structure's entries
      */
     default <K, V> Map<K, V> map() {
         Map<K, V> map = new HashMap<>();
