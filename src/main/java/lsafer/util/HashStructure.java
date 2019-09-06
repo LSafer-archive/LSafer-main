@@ -138,7 +138,7 @@ public class HashStructure implements Structure {
      * @throws ClassNotFoundException if the class of a serialized object could not be found.
      * @throws IOException            if an I/O error occurs.
      */
-    private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
+    protected void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
         stream.defaultReadObject();
         this.value = (Map<Object, Object>) stream.readObject();
     }
@@ -149,7 +149,7 @@ public class HashStructure implements Structure {
      * @param stream to use to serialize this
      * @throws IOException if an I/O error occurs
      */
-    private void writeObject(ObjectOutputStream stream) throws IOException {
+    protected void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
         stream.writeObject(this.value);
     }
