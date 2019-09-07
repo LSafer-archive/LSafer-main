@@ -25,7 +25,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class File extends java.io.File {
-
     /**
      * The real this.
      * Because some operations needs to replace the hole object to effect results.
@@ -302,7 +301,7 @@ public class File extends java.io.File {
     public void copy(java.io.File parent, lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("input_folder", this.getParentFile());
         synchronizer.put("output_folder", parent);
-        synchronizer.putIfAbsent("max_progress", this::filesCount);
+        synchronizer.computeIfAbsent("max_progress", this::filesCount);
         synchronizer.bind();
 
         if (!parent.mkdirs()) {
@@ -376,7 +375,7 @@ public class File extends java.io.File {
      */
     public void delete(lsafer.threading.Synchronizer synchronizer) {
         synchronizer.put("output_folder", this.getParentFile());
-        synchronizer.putIfAbsent("max_progress", this::filesCount);
+        synchronizer.computeIfAbsent("max_progress", this::filesCount);
         synchronizer.bind();
 
         if (this.isDirectory()) {
@@ -929,5 +928,4 @@ public class File extends java.io.File {
          */
         public Boolean results = true;
     }
-
 }

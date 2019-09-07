@@ -9,7 +9,7 @@ import java.util.HashMap;
  * Depends on {@link File#readJSON(java.util.function.Supplier)} (Object)} and {@link File#writeJSON(java.util.Map)}.
  *
  * <ul>
- *     <li>note: make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules.</li>
+ * <li>note: make sure your {@link JSONFileStructure json-file-structure} matches all {@link FileStructure file-structures} rules.</li>
  * </ul>
  *
  * @author LSaferSE
@@ -18,7 +18,6 @@ import java.util.HashMap;
  * @since 11-Jul-19
  */
 public class JSONFileStructure extends FileStructure {
-
     @Override
     public <F extends FileStructure> F load() {
         this.putAll(this.remote.readJSON(HashMap::new));
@@ -29,5 +28,4 @@ public class JSONFileStructure extends FileStructure {
     public boolean save() {
         return this.remote.writeJSON(this.map());
     }
-
 }

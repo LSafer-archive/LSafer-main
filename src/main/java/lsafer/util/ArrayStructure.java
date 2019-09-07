@@ -16,7 +16,6 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("WeakerAccess")
 public class ArrayStructure extends HashStructure {
-
     @Override
     public boolean containsKey(Object key) {
         return super.containsKey(key instanceof Integer ? "$" + key : key);
@@ -100,8 +99,8 @@ public class ArrayStructure extends HashStructure {
      * Appends all of the elements in the specified collection to the end of this list.
      *
      * <ul>
-     *     <li>uses: heavy {@link Collection#forEach(Consumer)}.</li>
-     *     <li>uses: repetitive {@link #add(Object)}.</li>
+     * <li>uses: heavy {@link Collection#forEach(Consumer)}.</li>
+     * <li>uses: repetitive {@link #add(Object)}.</li>
      * </ul>
      *
      * @param collection to be appended to the end of this list
@@ -117,8 +116,8 @@ public class ArrayStructure extends HashStructure {
      * Appends all of the elements in the specified array to the end of this list.
      *
      * <ul>
-     *     <li>uses: heavy foreach.</li>
-     *     <li>uses: repetitive {@link #add(Object)}.</li>
+     * <li>uses: heavy foreach.</li>
+     * <li>uses: repetitive {@link #add(Object)}.</li>
      * </ul>
      *
      * @param objects to be appended to the end of this list
@@ -136,8 +135,8 @@ public class ArrayStructure extends HashStructure {
      * Appends all of the elements in the specified array-structure to the end of this list.
      *
      * <ul>
-     *     <li>uses: {@link #list()}.</li>
-     *     <li>uses: {@link #addAll(Collection)}.</li>
+     * <li>uses: {@link #list()}.</li>
+     * <li>uses: {@link #addAll(Collection)}.</li>
      * </ul>
      *
      * @param structure to be appended to the end of this list
@@ -155,7 +154,7 @@ public class ArrayStructure extends HashStructure {
      * The caller is thus free to modify the returned array.
      *
      * <ul>
-     *     <li>uses: {@link #list()}.</li>
+     * <li>uses: {@link #list()}.</li>
      * </ul>
      *
      * @param <T> the assumed type of the array
@@ -173,7 +172,7 @@ public class ArrayStructure extends HashStructure {
      * The caller is thus free to modify the returned array.
      *
      * <ul>
-     *     <li>uses: {@link #list(Class)}.</li>
+     * <li>uses: {@link #list(Class)}.</li>
      * </ul>
      *
      * @param <T>   The assumed type of the array
@@ -191,8 +190,8 @@ public class ArrayStructure extends HashStructure {
      * The caller is thus free to modify the returned list.
      *
      * <ul>
-     *     <li>uses: {@link #map()}.</li>
-     *     <li>uses: heavy {@link Map#forEach(BiConsumer)}.</li>
+     * <li>uses: {@link #map()}.</li>
+     * <li>uses: heavy {@link Map#forEach(BiConsumer)}.</li>
      * </ul>
      *
      * @param <E> the assumed type of the list
@@ -226,8 +225,8 @@ public class ArrayStructure extends HashStructure {
      * The caller is thus free to modify the returned list.
      *
      * <ul>
-     *     <li>uses: {@link #list()}.</li>
-     *     <li>uses: heavy {@link List#forEach(Consumer)}.</li>
+     * <li>uses: {@link #list()}.</li>
+     * <li>uses: heavy {@link List#forEach(Consumer)}.</li>
      * </ul>
      *
      * @param <E>   The assumed type of the list
@@ -249,8 +248,8 @@ public class ArrayStructure extends HashStructure {
      * Put all the entries ("elements") to this. Using it's indexes as it's "keys". And it itself as it's "values".
      *
      * <ul>
-     *     <li>uses: heavy foreach.</li>
-     *     <li>uses: repetitive {@link #put(Object, Object)}.</li>
+     * <li>uses: heavy foreach.</li>
+     * <li>uses: repetitive {@link #put(Object, Object)}.</li>
      * </ul>
      *
      * @param list to be put in this
@@ -268,8 +267,8 @@ public class ArrayStructure extends HashStructure {
      * Put all the entries ("elements") to this. Using it's indexes as it's "keys". And it itself as it's "values".
      *
      * <ul>
-     *     <li>uses: heavy foreach.</li>
-     *     <li>uses: repetitive {@link #put(Object, Object)}.</li>
+     * <li>uses: heavy foreach.</li>
+     * <li>uses: repetitive {@link #put(Object, Object)}.</li>
      * </ul>
      *
      * @param objects to be put in this

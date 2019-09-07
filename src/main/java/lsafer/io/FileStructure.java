@@ -14,7 +14,6 @@ package lsafer.io;
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 @IOStructure.Defaults(remote = File.class)
 public abstract class FileStructure extends IOStructure<File> {
-
     /**
      * Delete the linked {@link File}.
      *

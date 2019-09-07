@@ -9,12 +9,11 @@ package lsafer.util;
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class Strings {
-
     /**
      * The prefixes used with si units. The center index is 6.
      *
      * <ul>
-     *     <li>note: ["c", "d", "da", "h"] have been removed. Because it's not multiple of 1000.</li>
+     * <li>note: ["c", "d", "da", "h"] have been removed. Because it's not multiple of 1000.</li>
      * </ul>
      */
     final public static String[] SI_PREFIXES = {
@@ -121,7 +120,7 @@ final public class Strings {
         if (!string.equals("") && strings.length > 0)
             builder.append(strings[0]);
 
-        for (int i=1; i< strings.length; i++)
+        for (int i = 1; i < strings.length; i++)
             builder.append(joiner).append(strings[i]);
 
         return builder.toString();
@@ -134,9 +133,9 @@ final public class Strings {
      * repetitive("abc", " ", 3) == "abc abc abc "
      * </pre>
      *
-     * @param string to repeat from
+     * @param string  to repeat from
      * @param spacing to be in the middle of the repeated strings
-     * @param times  to repeat
+     * @param times   to repeat
      * @return new string created from repeated given string
      */
     public static String repetitive(String string, String spacing, int times) {
@@ -161,5 +160,4 @@ final public class Strings {
             string = string.replace(query, replacement);
         return string;
     }
-
 }

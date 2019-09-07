@@ -13,7 +13,6 @@ import java.util.function.Function;
  */
 @SuppressWarnings({"WeakerAccess"})
 public abstract class Loop<I> {
-
     /**
      * The code to loop.
      */
@@ -39,26 +38,6 @@ public abstract class Loop<I> {
     }
 
     /**
-     * Continue the next step of the loop.
-     *
-     * @param item to pass it to the next step
-     * @return whether allowed to continue the loop or not
-     */
-    final protected boolean next(I item) {
-        return this.check() && this.block.apply(item);
-    }
-
-    /**
-     * Update the status of loop.
-     *
-     * @param command new status
-     */
-    public void command(Status command) {
-        this.check = true;
-        this.position = command;
-    }
-
-    /**
      * Made for loop original class. To tell the loop what it should do.
      * If the position of the loop is "pause". Then it'll enter a loop until any new commands.
      *
@@ -80,6 +59,26 @@ public abstract class Loop<I> {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Update the status of loop.
+     *
+     * @param command new status
+     */
+    public void command(Status command) {
+        this.check = true;
+        this.position = command;
+    }
+
+    /**
+     * Continue the next step of the loop.
+     *
+     * @param item to pass it to the next step
+     * @return whether allowed to continue the loop or not
+     */
+    final protected boolean next(I item) {
+        return this.check() && this.block.apply(item);
     }
 
     /**
@@ -209,5 +208,4 @@ public abstract class Loop<I> {
             }
         }
     }
-
 }

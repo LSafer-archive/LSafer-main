@@ -3,9 +3,9 @@
  *
  * <br><br><b>Code Style:</b>
  * <ul>
- *     <li>A_FIELD_Example / AFieldExample / aFieldExample / a_field_example</li>
- *     <li>aMethodExample / a_method_example</li>
- *     <li>AClassExample</li>
+ * <li>A_FIELD_Example / AFieldExample / aFieldExample / a_field_example</li>
+ * <li>aMethodExample / a_method_example</li>
+ * <li>AClassExample</li>
  * </ul>
  *
  * <br><b>type parameters:</b>

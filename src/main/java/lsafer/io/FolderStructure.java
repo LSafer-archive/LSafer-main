@@ -18,7 +18,6 @@ import static lsafer.io.FolderStructure.Defaults;
  */
 @Defaults
 public class FolderStructure extends FileStructure {
-
     @Override
     public boolean exist() {
         return this.remote.exists() && this.remote.isDirectory();
@@ -37,7 +36,7 @@ public class FolderStructure extends FileStructure {
     @Override
     public <F extends FileStructure> F load() {
         for (File file : this.remote.children()) {
-            FileStructure structure = this.putIfAbsent(FileStructure.class, file.getName(), () -> {
+            FileStructure structure = this.computeIfAbsent(FileStructure.class, file.getName(), () -> {
                 try {
                     return file.isDirectory() ?
                            this.getClass().getAnnotation(Defaults.class).folder().newInstance() :
@@ -142,5 +141,4 @@ public class FolderStructure extends FileStructure {
          */
         Class<? extends FolderStructure> folder() default FolderStructure.class;
     }
-
 }

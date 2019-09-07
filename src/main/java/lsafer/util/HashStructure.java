@@ -9,16 +9,14 @@ import java.util.*;
  * A structure with a {@link Map} as a secondary container.
  *
  * <ul>
- *     <li>note: make sure your {@link HashStructure structure} matches all {@link Structure structurables} rules.</li>
+ * <li>note: make sure your {@link HashStructure structure} matches all {@link Structure structurables} rules.</li>
  * </ul>
- *
  *
  * @author LSafer
  * @version 10 release (06-Sep-2019)
  * @since 11 Jun 2019
  **/
 public class HashStructure implements Structure {
-
     /**
      * The secondary container.
      */
@@ -153,5 +151,4 @@ public class HashStructure implements Structure {
         stream.defaultWriteObject();
         stream.writeObject(this.value);
     }
-
 }

@@ -24,7 +24,6 @@ import java.util.Map;
  */
 @SuppressWarnings("WeakerAccess")
 public class CastingEngine {
-
     /**
      * To avoid repetitive method searching.
      */
@@ -34,10 +33,10 @@ public class CastingEngine {
      * Cast the given Object to the targeted class. By searching for a matching method then invoke it then return the results of it.
      *
      * <ul>
-     *     <li>
-     *        note: after finding a matching method. It'll be stored for next time casts so
-     *        the next casts will be faster. (using {@link #methods Methods Map}.
-     *     </li>
+     * <li>
+     * note: after finding a matching method. It'll be stored for next time casts so
+     * the next casts will be faster. (using {@link #methods Methods Map}.
+     * </li>
      * </ul>
      *
      * @param klass  to cast the object to
@@ -138,7 +137,6 @@ public class CastingEngine {
      * Default casting engine that supports this library.
      */
     public static class Default extends CastingEngine {
-
         /**
          * The global instance to avoid unnecessary instancing.
          */
@@ -494,7 +492,5 @@ public class CastingEngine {
 
             return maps;
         }
-
     }
-
 }

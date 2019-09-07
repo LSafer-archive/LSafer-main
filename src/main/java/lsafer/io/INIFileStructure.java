@@ -9,7 +9,7 @@ import java.util.HashMap;
  * Depends on {@link File#readINI(java.util.function.Supplier)} and {@link File#writeINI(java.util.Map)}.
  *
  * <ul>
- *     <li>note: make sure your {@link INIFileStructure ini-file-structure} matches all {@link FileStructure file-structures} rules.</li>
+ * <li>note: make sure your {@link INIFileStructure ini-file-structure} matches all {@link FileStructure file-structures} rules.</li>
  * </ul>
  *
  * @author LSaferSE
@@ -18,7 +18,6 @@ import java.util.HashMap;
  * @since 11-Jul-19
  */
 public class INIFileStructure extends FileStructure {
-
     @Override
     public <F extends FileStructure> F load() {
         //noinspection RedundantTypeArguments
@@ -30,5 +29,4 @@ public class INIFileStructure extends FileStructure {
     public boolean save() {
         return this.remote.writeINI(this.map());
     }
-
 }

@@ -8,7 +8,6 @@ package lsafer.lang;
  * @since 11 Jun 2019
  */
 final public class Math {
-
     /**
      * This is a util class. And shall not be instanced as an object.
      */
@@ -32,5 +31,4 @@ final public class Math {
 
         return (int) ((fv / fa) * 100.0f);
     }
-
 }

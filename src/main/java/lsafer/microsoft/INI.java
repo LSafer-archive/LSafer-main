@@ -23,7 +23,6 @@ import java.util.Map;
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class INI {
-
     /**
      * This is a util class. And shall not be instanced as an object.
      */
@@ -60,7 +59,7 @@ final public class INI {
         try {
             Double.valueOf(string);
             return !string.endsWith("f") &&
-                    string.contains(".");
+                   string.contains(".");
         } catch (Exception ignored) {
             return false;
         }
@@ -91,8 +90,8 @@ final public class INI {
         try {
             Integer.valueOf(string);
             return !string.endsWith("L") &&
-                    !string.endsWith("f") &&
-                    !string.contains(".");
+                   !string.endsWith("f") &&
+                   !string.contains(".");
         } catch (Exception e) {
             return false;
         }
@@ -108,7 +107,7 @@ final public class INI {
         try {
             Long.valueOf(string);
             return string.toUpperCase().endsWith("L") &&
-                    !string.contains(".");
+                   !string.contains(".");
         } catch (Exception ignored) {
             return false;
         }
@@ -118,7 +117,7 @@ final public class INI {
      * Parse the given INI text into a java {@link Map}.
      *
      * <ul>
-     *     <li>note: if you want to parse just an element use {@link #parse_object(String)} instead.</li>
+     * <li>note: if you want to parse just an element use {@link #parse_object(String)} instead.</li>
      * </ul>
      *
      * @param string source
@@ -196,7 +195,8 @@ final public class INI {
         int[] index = {0};
         map.forEach((key, value) -> {
             if (value instanceof Map || value instanceof Structure) {
-                last.append(index[0] == 0 ? "" : "\n\n").append("[").append(key).append("]").append("\n").append(INI.stringify(value));
+                last.append(index[0] == 0 ? ""
+                                          : "\n\n").append("[").append(key).append("]").append("\n").append(INI.stringify(value));
 
             } else {
                 string.append(index[0] == 0 ? "" : "\n").append(key).append("=").append(INI.stringify(value));
@@ -282,5 +282,4 @@ final public class INI {
     public static String stringify(Structure structure) {
         return INI.stringify(structure.map());
     }
-
 }

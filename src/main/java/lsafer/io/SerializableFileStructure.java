@@ -7,7 +7,7 @@ import java.io.Serializable;
  * Depends on {@link File#readSerializable(Class, java.util.function.Supplier)} and {@link File#writeSerializable(Serializable)}.
  *
  * <ul>
- *     <li>note: make sure your {@link SerializableFileStructure serial-file-structure} matches all {@link FileStructure file-structures} rules.</li>
+ * <li>note: make sure your {@link SerializableFileStructure serial-file-structure} matches all {@link FileStructure file-structures} rules.</li>
  * </ul>
  *
  * @author LSaferSE
@@ -16,7 +16,6 @@ import java.io.Serializable;
  * @since 13-Jul-19
  */
 public class SerializableFileStructure extends FileStructure {
-
     @Override
     public <F extends FileStructure> F load() {
         this.putAll(this.remote.readSerializable(SerializableFileStructure.class, SerializableFileStructure::new));
@@ -27,5 +26,4 @@ public class SerializableFileStructure extends FileStructure {
     public boolean save() {
         return this.remote.writeSerializable(this);
     }
-
 }

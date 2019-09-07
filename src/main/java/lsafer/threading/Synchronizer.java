@@ -19,7 +19,6 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class Synchronizer extends HashStructure {
-
     /**
      * The operations to do after a value get passed.
      */
@@ -35,7 +34,7 @@ public class Synchronizer extends HashStructure {
      */
     public void bind() {
         for (Consumer<? extends Synchronizer> listener : this.listeners)
-            ((Consumer<Synchronizer>) listener).accept( this);
+            ((Consumer<Synchronizer>) listener).accept(this);
     }
 
     /**
@@ -59,5 +58,4 @@ public class Synchronizer extends HashStructure {
         this.loops.add(loop);
         loop.start();
     }
-
 }

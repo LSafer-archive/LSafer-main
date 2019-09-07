@@ -23,7 +23,6 @@ import static lsafer.io.IOStructure.Defaults;
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 @Defaults
 public abstract class IOStructure<R> extends HashStructure {
-
     /**
      * The remote of the third IO-port container.
      */
@@ -88,5 +87,4 @@ public abstract class IOStructure<R> extends HashStructure {
          */
         Class<?> remote() default Object.class;
     }
-
 }

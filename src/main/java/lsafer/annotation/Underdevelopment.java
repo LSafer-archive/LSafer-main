@@ -14,16 +14,16 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Underdevelopment {
     /**
-     * The message why the target is uncompleted.
-     *
-     * @return why the target is not completed yet
-     */
-    String value() default "";
-
-    /**
      * The current development state of the target.
      *
      * @return the current development state.
      */
     String state() default "";
+
+    /**
+     * The message why the target is uncompleted.
+     *
+     * @return why the target is not completed yet
+     */
+    String value() default "";
 }

@@ -25,7 +25,6 @@ import java.util.Map;
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class JSON {
-
     /**
      * This is a util class. And shall not be instanced as an object.
      */
@@ -599,5 +598,4 @@ final public class JSON {
     private static String stringify(Character character, String spacing) {
         return "\'" + character + "\'";
     }
-
 }

@@ -13,7 +13,6 @@ import java.util.function.BiFunction;
  * @since 11 Jun 2019
  */
 final public class Maps {
-
     /**
      * This is a util class. and shall not be instanced as an object.
      */
@@ -88,5 +87,4 @@ final public class Maps {
 
         return result[0];
     }
-
 }

@@ -71,7 +71,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings({"UnusedReturnValue", "DocLint"})
 public interface Structure extends Serializable {
-
     /**
      * <b>UTIL</b><br>
      * Cast the given object to the targeted class.
@@ -168,6 +167,41 @@ public interface Structure extends Serializable {
         }
 
         return null;
+    }
+
+    /**
+     * <b>OVERLOAD</b>
+     * <br>
+     * Map the given key to the given value. But only if the given key isn't mapped or mapped to null.
+     *
+     * @param key   to map
+     * @param value to generate value if the given key is already have been mapped
+     * @param <V>   type of the value
+     * @return the actual value that have been added or the mapped value if the key have already mapped
+     */
+    default <V> V computeIfAbsent(Object key, Supplier<V> value) {
+        V mapped = this.get(key);
+        return mapped == null ? this.put(key, value.get()) : mapped;
+    }
+
+    /**
+     * <b>OVERLOAD</b>
+     * <br>
+     * Map the given key to the given value. But only if the given key isn't mapped or mapped to null.
+     *
+     * <ul>
+     * <li>note: this will cast the mapped value (if present) and return it but it'll not map the casted instance.</li>
+     * </ul>
+     *
+     * @param klass the class of the value
+     * @param key   to map
+     * @param value to generate value if the given key is already have been mapped
+     * @param <V>   type of the value
+     * @return the actual value that have been added or the mapped value if the key have already mapped
+     */
+    default <V> V computeIfAbsent(Class<? extends V> klass, Object key, Supplier<V> value) {
+        V mapped = this.get(klass, key);
+        return mapped == null ? this.put(key, value.get()) : mapped;
     }
 
     /**
@@ -499,14 +533,13 @@ public interface Structure extends Serializable {
      * Map the given value to the given key.
      *
      * <ul>
-     *     <li>
-     *         note: this method will try to cast the given value.
-     *         To match the field of the given key.
-     *         And will return the casted value.
-     *     </li>
+     * <li>
+     * note: this method will try to cast the given value.
+     * To match the field of the given key.
+     * And will return the casted value.
+     * </li>
      * </ul>
      * <br>
-     *
      *
      * @param key   to map to
      * @param value to map
@@ -569,41 +602,6 @@ public interface Structure extends Serializable {
     default <S extends Structure> S putAll(Map<?, ?> map) {
         map.forEach(this::put);
         return (S) this;
-    }
-
-    /**
-     * <b>OVERLOAD</b>
-     * <br>
-     * Map the given key to the given value. But only if the given key isn't mapped or mapped to null.
-     *
-     * @param key   to map
-     * @param value to generate value if the given key is already have been mapped
-     * @param <V>   type of the value
-     * @return the actual value that have been added or the mapped value if the key have already mapped
-     */
-    default <V> V putIfAbsent(Object key, Supplier<V> value) {
-        V mapped = this.get(key);
-        return mapped == null ? this.put(key, value.get()) : mapped;
-    }
-
-    /**
-     * <b>OVERLOAD</b>
-     * <br>
-     * Map the given key to the given value. But only if the given key isn't mapped or mapped to null.
-     *
-     * <ul>
-     * <li>note: this will cast the mapped value (if present) and return it but it'll not map the casted instance.</li>
-     * </ul>
-     *
-     * @param klass the class of the value
-     * @param key   to map
-     * @param value to generate value if the given key is already have been mapped
-     * @param <V>   type of the value
-     * @return the actual value that have been added or the mapped value if the key have already mapped
-     */
-    default <V> V putIfAbsent(Class<? extends V> klass, Object key, Supplier<V> value) {
-        V mapped = this.get(klass, key);
-        return mapped == null ? this.put(key, value.get()) : mapped;
     }
 
     /**

@@ -15,7 +15,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings({"WeakerAccess"})
 final public class Arrays {
-
     /**
      * This is a util class. And shall not be instanced as an object.
      */
@@ -233,5 +232,4 @@ final public class Arrays {
 
         return res;
     }
-
 }
