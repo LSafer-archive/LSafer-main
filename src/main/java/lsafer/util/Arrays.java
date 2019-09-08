@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  * @version 4 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 final public class Arrays {
     /**
      * This is a util class. And shall not be instanced as an object.

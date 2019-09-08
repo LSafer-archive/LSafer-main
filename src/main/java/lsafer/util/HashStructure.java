@@ -16,6 +16,7 @@ import java.util.*;
  * @version 10 release (06-Sep-2019)
  * @since 11 Jun 2019
  **/
+@SuppressWarnings("unused")
 public class HashStructure implements Structure {
     /**
      * The secondary container.

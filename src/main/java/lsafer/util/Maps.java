@@ -12,6 +12,7 @@ import java.util.function.BiFunction;
  * @version 4 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
+@SuppressWarnings("unused")
 final public class Maps {
     /**
      * This is a util class. and shall not be instanced as an object.

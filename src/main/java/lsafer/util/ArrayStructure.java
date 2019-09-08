@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * @version 3 alpha (06-Sep-19)
  * @since 19-Aug-19
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ArrayStructure extends HashStructure {
     @Override
     public boolean containsKey(Object key) {

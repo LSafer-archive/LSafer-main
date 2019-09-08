@@ -17,6 +17,7 @@ import java.util.HashMap;
  * @see INI
  * @since 11-Jul-19
  */
+@SuppressWarnings("unused")
 public class INIFileStructure extends FileStructure {
     @Override
     public <F extends FileStructure> F load() {

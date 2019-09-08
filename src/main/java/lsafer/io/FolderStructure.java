@@ -16,6 +16,7 @@ import static lsafer.io.FolderStructure.Defaults;
  * @version 3 release (06-Sep-19)
  * @since 19-Jul-19
  */
+@SuppressWarnings("unused")
 @Defaults
 public class FolderStructure extends FileStructure {
     @Override
@@ -51,7 +52,7 @@ public class FolderStructure extends FileStructure {
             });
 
             if (structure != null)
-                structure.remote((java.io.File) file).load();
+                structure.remote(file).load();
         }
 
         return (F) this;

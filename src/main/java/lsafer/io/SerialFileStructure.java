@@ -15,6 +15,7 @@ import java.io.Serializable;
  * @see java.io.Serializable
  * @since 13-Jul-19
  */
+@SuppressWarnings("unused")
 public class SerialFileStructure extends FileStructure {
     @Override
     public <F extends FileStructure> F load() {

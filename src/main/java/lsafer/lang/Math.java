@@ -7,6 +7,7 @@ package lsafer.lang;
  * @version 3 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
+@SuppressWarnings("unused")
 final public class Math {
     /**
      * This is a util class. And shall not be instanced as an object.

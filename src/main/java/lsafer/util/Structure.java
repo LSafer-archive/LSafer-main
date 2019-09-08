@@ -69,7 +69,7 @@ import java.util.function.Supplier;
  * @version 8 release (6-Sep-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings({"UnusedReturnValue", "DocLint"})
+@SuppressWarnings({"UnusedReturnValue", "DocLint", "unused"})
 public interface Structure extends Serializable {
     /**
      * <b>UTIL</b><br>

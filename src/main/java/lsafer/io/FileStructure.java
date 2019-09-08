@@ -11,7 +11,7 @@ package lsafer.io;
  * @version 8 release (06-Sep-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
+@SuppressWarnings({"UnusedReturnValue", "WeakerAccess", "unused"})
 @IOStructure.Defaults(remote = File.class)
 public abstract class FileStructure extends IOStructure<File> {
     /**

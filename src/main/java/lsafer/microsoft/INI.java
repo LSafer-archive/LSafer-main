@@ -21,7 +21,7 @@ import java.util.Map;
  * @version 2 release (06-Sep-19)
  * @since 21-Jul-19
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 final public class INI {
     /**
      * This is a util class. And shall not be instanced as an object.

@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * @version 7
  * @since 18 May 2019
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class File extends java.io.File {
     /**
      * The real this.
@@ -716,7 +716,7 @@ public class File extends java.io.File {
      */
     public Class<? extends Serializable> serializableType() {
         Serializable object = this.readSerializable(Serializable.class, null);
-        return object == null ? Serializable.class : (Class<? extends Serializable>) object.getClass();
+        return object == null ? Serializable.class : object.getClass();
     }
 
     /**

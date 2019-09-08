@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * @version 3 release (06-Sep-2019)
  * @since 18 May 2019
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Synchronizer extends HashStructure {
     /**
      * The operations to do after a value get passed.

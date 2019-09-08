@@ -20,7 +20,7 @@ import static lsafer.io.IOStructure.Defaults;
  * @version 5 release (06-Sep-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "unused"})
 @Defaults
 public abstract class IOStructure<R> extends HashStructure {
     /**

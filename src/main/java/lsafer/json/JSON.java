@@ -23,7 +23,7 @@ import java.util.Map;
  * @version 4 release (06-Sep-2019)
  * @since 09-Jul-19
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 final public class JSON {
     /**
      * This is a util class. And shall not be instanced as an object.

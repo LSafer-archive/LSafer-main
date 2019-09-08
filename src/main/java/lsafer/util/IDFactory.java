@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
  * @version 1 alpha (07-Sep-19)
  * @since 07-Sep-19
  */
+@SuppressWarnings("unused")
 final public class IDFactory<I, F> {
     /**
      * The function to use to create new IDs.

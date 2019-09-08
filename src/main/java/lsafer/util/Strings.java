@@ -7,7 +7,7 @@ package lsafer.util;
  * @version 4 release (06-Seo-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 final public class Strings {
     /**
      * The prefixes used with si units. The center index is 6.
