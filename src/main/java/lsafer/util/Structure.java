@@ -321,7 +321,7 @@ public interface Structure extends Serializable {
      * @return the mapped value to the given key
      */
     default <T> T get(Class<? extends T> klass, Object key) {
-        return (T) this.cast(klass, this.get(key));
+        return this.cast(klass, this.get(key));
     }
 
     /**

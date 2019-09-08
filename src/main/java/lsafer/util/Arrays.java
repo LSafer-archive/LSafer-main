@@ -83,7 +83,7 @@ final public class Arrays {
      * @return java simple array from given array list
      */
     public static <E> E[] asArray(List<E> list, Class<E> type) {
-        return (E[]) list.toArray((E[]) Array.newInstance(type, list.size()));
+        return list.toArray((E[]) Array.newInstance(type, list.size()));
     }
 
 

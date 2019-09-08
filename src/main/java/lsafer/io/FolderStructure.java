@@ -52,7 +52,7 @@ public class FolderStructure extends FileStructure {
             });
 
             if (structure != null)
-                structure.remote(file).load();
+                structure.<FolderStructure>remote(file).load();
         }
 
         return (F) this;

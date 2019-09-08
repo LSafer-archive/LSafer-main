@@ -74,7 +74,7 @@ public class HashStructure implements Structure {
 
         this.value.put(key, value);
 
-        return (V) value;
+        return value;
     }
 
     @Override
