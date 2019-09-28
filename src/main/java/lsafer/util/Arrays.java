@@ -1,235 +1,196 @@
 package lsafer.util;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
+import java.util.Objects;
 
 /**
  * Useful methods for Arrays.
  *
  * @author LSafer
- * @version 4 release (06-Sep-2019)
+ * @version 5 release (28-Sep-2019)
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 final public class Arrays {
-    /**
-     * This is a util class. And shall not be instanced as an object.
-     */
-    private Arrays() {
+	/**
+	 * This is a util class. And shall not be instanced as an object.
+	 */
+	private Arrays() {
 
-    }
+	}
 
-    /**
-     * Check whether the given array contains all the given elements or not.
-     *
-     * @param array    to check
-     * @param elements to check for
-     * @param <E>      type of elements
-     * @return whether the given array contains all of the given elements or not
-     */
-    @SafeVarargs
-    public static <E> boolean all(E[] array, E... elements) {
-        Main:
-        for (E element : elements) {
-            for (E a : elements)
-                if (element == a)
-                    continue Main;
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * Check whether the given array contains all the given elements or not.
+	 *
+	 * @param array    to check
+	 * @param elements to check for
+	 * @param <E>      type of elements
+	 * @return whether the given array contains all of the given elements or not
+	 */
+	@SafeVarargs
+	public static <E> boolean all(E[] array, E... elements) {
+		elements:
+		for (E element : elements)
+			for (E element1 : array) {
+				if (Objects.equals(element, element1))
+					continue elements;
+				return false;
+			}
 
-    /**
-     * Check whether the given array contains any of the given elements or not.
-     *
-     * @param array    to check
-     * @param elements to check for
-     * @param <E>      type of elements
-     * @return whether the given array contains any of the given elements or not
-     */
-    @SafeVarargs
-    public static <E> boolean any(E[] array, E... elements) {
-        for (E a : array)
-            for (E element : elements)
-                if (a == element)
-                    return true;
-        return false;
-    }
+		return true;
+	}
 
-    /**
-     * Append the given elements to the end of the given array.
-     *
-     * @param array    to be appended
-     * @param elements to append
-     * @param <T>      type of elements
-     * @return a brand-new array with the given elements appended
-     */
-    @SafeVarargs
-    public static <T> T[] append(T[] array, T... elements) {
-        T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length + elements.length);
-        System.arraycopy(array, array.length + 1, elements, 0, array.length + elements.length);
-        return res;
-    }
+	/**
+	 * Check whether the given array contains any of the given elements or not.
+	 *
+	 * @param array    to check
+	 * @param elements to check for
+	 * @param <E>      type of elements
+	 * @return whether the given array contains any of the given elements or not
+	 */
+	@SafeVarargs
+	public static <E> boolean any(E[] array, E... elements) {
+		for (E element1 : array)
+			for (E element : elements)
+				if (Objects.equals(element, element1))
+					return true;
+		return false;
+	}
 
-    /**
-     * Transform the given {@link List} into an {@link Object array}.
-     *
-     * @param list to transform
-     * @param type of array's components
-     * @param <E>  type of elements
-     * @return java simple array from given array list
-     */
-    public static <E> E[] asArray(List<E> list, Class<E> type) {
-        return list.toArray((E[]) Array.newInstance(type, list.size()));
-    }
+	/**
+	 * Append the given elements to the end of the given array.
+	 *
+	 * @param array    to be appended
+	 * @param elements to append
+	 * @param <T>      type of elements
+	 * @return a brand-new array with the given elements appended
+	 */
+	@SafeVarargs
+	public static <T> T[] append(T[] array, T... elements) {
+		T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(),
+				array.length + elements.length);
+		System.arraycopy(array, array.length + 1, elements, 0, array.length + elements.length);
+		return res;
+	}
 
+	/**
+	 * Copies an array from the specified source array, beginning at the specified position,
+	 * to the specified position of the destination array. A subsequence of array components
+	 * are copied from the source array referenced by src to the destination array referenced
+	 * by dest. The number of components copied is equal to the length argument. The components
+	 * at positions srcPos through srcPos+length-1 in the source array are copied into positions
+	 * destPos through destPos+length-1, respectively, of the destination array.
+	 *
+	 * @param src     the source array.
+	 * @param srcPos  starting position in the source array.
+	 * @param dest    the destination array.
+	 * @param destPos starting position in the destination data.
+	 * @param length  the number of array elements to be copied.
+	 */
+	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
+		for (int i = 0, is = srcPos, id = destPos; i < length; i++)
+			Array.set(dest, id++, Array.get(src, is++));
+	}
 
-    /**
-     * Transform the given {@link Object array} into a {@link List}.
-     *
-     * @param array to transform
-     * @param <E>   type of the array
-     * @return a new list including from given array
-     */
-    public static <E> List<E> asList(E[] array) {
-        return new ArrayList<>(java.util.Arrays.asList(array));
+	/**
+	 * Check whether the given array contains any of the given elements or not.
+	 *
+	 * @param array   to check
+	 * @param element to check for
+	 * @param <E>     type of elements
+	 * @return whether the given array contains any of the given elements or not
+	 */
+	@SafeVarargs
+	public static <E> boolean contains(E element, E... array) {
+		for (E element1 : array)
+			if (Objects.equals(element, element1))
+				return true;
+		return false;
+	}
 
-    }
+	/**
+	 * Remove the last and the first elements of the given {@link Object array}. Depending on the given values.
+	 *
+	 * @param array to crop
+	 * @param start range to remove
+	 * @param end   range to remove
+	 * @param <T>   type of elements
+	 * @return cropped edge version of the given array
+	 */
+	public static <T> T[] crop(T[] array, int start, int end) {
+		T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(),
+				array.length - (start + end));
 
-    /**
-     * Remove the last and the first elements of the given {@link Object array}. Depending on the given values.
-     *
-     * @param array to crop
-     * @param start range to remove
-     * @param end   range to remove
-     * @param <T>   type of elements
-     * @return cropped edge version of the given array
-     */
-    public static <T> T[] crop(T[] array, int start, int end) {
-        T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length - (start + end));
+		if (array.length - end - start >= 0)
+			System.arraycopy(array, start, res, 0, array.length - end - start);
 
-        if (array.length - end - start >= 0)
-            System.arraycopy(array, start, res, 0, array.length - end - start);
+		return res;
+	}
 
-        return res;
-    }
+	/**
+	 * Get the index of the given element inside the given {@link Object array}.
+	 *
+	 * @param array   to get index from
+	 * @param element to get the index of
+	 * @param <E>     type of elements
+	 * @return the index of the given element inside the given array
+	 */
+	@SafeVarargs
+	public static <E> int indexOf(E element, E... array) {
+		for (int i = 0; i < array.length; i++)
+			if (array[i] != null)
+				if (array[i].equals(element))
+					return i;
+		return -1;
+	}
 
-    /**
-     * Fill the given {@link List}. Using the given supplier. Until it reaches the given size.
-     *
-     * @param list     to be filled
-     * @param size     limit to fill until
-     * @param supplier to use for filling
-     * @param <E>      type of the list's elements
-     */
-    public static <E> void fill(List<E> list, int size, Supplier<E> supplier) {
-        for (int i = list.size(); i < size; i++)
-            list.add(supplier.get());
-    }
+	/**
+	 * Fix the given array to have all {@link Object} elements deep inside it.
+	 *
+	 * @param array to be fixed
+	 * @param <T>   type of the elements inside the fixed array
+	 * @return fixed array from the given array, or the given array if it's already fixed
+	 */
+	public static <T> T[] objective(Object array) {
+		if (!array.getClass().isArray())
+			throw new RuntimeException(array + " is not an array");
 
-    /**
-     * Fill the given {@link Object array}. Using the given supplier. Until it reaches the given size.
-     *
-     * @param array    to be filled
-     * @param size     limit to fill until
-     * @param supplier to use for filling
-     * @param <T>      type of the array's elements
-     * @return the filled array (a new instance/array)
-     */
-    public static <T> T[] fill(T[] array, int size, Supplier<T> supplier) {
-        T[] filled = (T[]) Array.newInstance(array.getClass().getComponentType(), size);
-        System.arraycopy(array, 0, filled, 0, array.length);
+		Class<?> type = array.getClass().getComponentType();
 
-        for (int i = array.length; i < size; i++)
-            filled[i] = supplier.get();
+		for (Class<?> c = type; c != null; c = c.getComponentType())
+			if (!c.isArray() && Object.class.isAssignableFrom(c))
+				return (T[]) array;
 
-        return filled;
-    }
+		int length = Array.getLength(array);
 
-    /**
-     * Get the index of the given element inside the given {@link Object array}.
-     *
-     * @param array   to get index from
-     * @param element to get the index of
-     * @param <E>     type of elements
-     * @return the index of the given element inside the given array
-     */
-    @SafeVarargs
-    public static <E> int indexOf(E element, E... array) {
-        for (int i = 0; i < array.length; i++)
-            if (array[i] != null)
-                if (array[i].equals(element))
-                    return i;
-        return -1;
-    }
+		T[] array1 = (T[]) Array.newInstance(Classes.objective(type), length);
 
-    /**
-     * Check whether any/all of the given list's elements matches specific conditions with the given object or not.
-     *
-     * @param array   to check
-     * @param element to apply conditions with
-     * @param any     condition
-     * @param filters (or conditions) to apply
-     * @param <E>     element type
-     * @return whether the given list matches the conditions with the given object or not
-     */
-    @SafeVarargs
-    public static <E> boolean matches(E[] array, E element, boolean any, BiFunction<E, E, Boolean>... filters) {
-        return Arrays.matches(Arrays.asList(array), element, any, filters);
-    }
+		Arrays.arraycopy(array, 0, array1, 0, length);
 
-    /**
-     * Check whether any/all of the given list's elements matches specific conditions with the given object or not.
-     *
-     * @param list    to check
-     * @param element to apply conditions with
-     * @param any     condition
-     * @param filters (or conditions) to apply
-     * @param <E>     type of elements
-     * @return if the given list matches the conditions with the given object
-     */
-    @SafeVarargs
-    public static <E> boolean matches(List<E> list, E element, boolean any, BiFunction<E, E, Boolean>... filters) {
-        boolean w = true;
+		return array1;
+	}
 
-        for (E element0 : list)
-            for (BiFunction<E, E, Boolean> filter : filters)
-                try {
-                    if (filter.apply(element0, element)) {
-                        if (any)
-                            return true;
-                    } else if (!any) {
-                        return false;
-                    }
-                } catch (Exception ignored) {
-                }
+	/**
+	 * Remove passed objects from passed array.
+	 *
+	 * @param array    to remove from
+	 * @param elements to remove
+	 * @param <T>      type of elements
+	 * @return passed array excluded from passed elements
+	 */
+	@SafeVarargs
+	public static <T> T[] remove(T[] array, T... elements) {
+		T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(),
+				array.length - elements.length);
 
-        return !any;
-    }
+		int i = 0;
 
-    /**
-     * Remove passed objects from passed array.
-     *
-     * @param array    to remove from
-     * @param elements to remove
-     * @param <T>      type of elements
-     * @return passed array excluded from passed elements
-     */
-    @SafeVarargs
-    public static <T> T[] remove(T[] array, T... elements) {
-        T[] res = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length - elements.length);
+		for (T element : array)
+			if (!Arrays.any(elements, element)) {
+				res[i] = element;
+				i++;
+			}
 
-        int i = 0;
-
-        for (T element : array)
-            if (!Arrays.any(elements, element)) {
-                res[i] = element;
-                i++;
-            }
-
-        return res;
-    }
+		return res;
+	}
 }

@@ -1,285 +1,309 @@
 package lsafer.microsoft;
 
-import lsafer.util.Strings;
-import lsafer.util.Structure;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import lsafer.util.StringParser;
+import lsafer.util.Strings;
+
 /**
- * Useful utils for using windows INI files.
- * Including
- * <ul>
- * <li>Transforming {@link Object objects} into an INI style text</li>
- * <li>Casting object from INI text into a Java {@link Object object}</li>
- * </ul>
- * <br>
+ * A Text parser for INI files.
  *
  * @author LSaferSE
- * @version 2 release (06-Sep-19)
+ * @version 3 release (28-Sep-19)
  * @since 21-Jul-19
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
-final public class INI {
-    /**
-     * This is a util class. And shall not be instanced as an object.
-     */
-    private INI() {
-    }
+@SuppressWarnings({"unused"})
+public class INI extends StringParser {
+	/**
+	 * The global instance to avoid unnecessary instancing.
+	 */
+	final public static INI instance = new INI();
 
-    /**
-     * Check if the given INI text is an {@link Object[] object array} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is an array or not
-     */
-    public static boolean is_array(String string) {
-        return string.contains(",");
-    }
+	/**
+	 * Check if the given INI text is an {@link ArrayList array} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is an array or not
+	 */
+	@QueryMethod(ArrayList.class)
+	public boolean is_array(String string) {
+		return string.contains(",");
+	}
 
-    /**
-     * Check if the given INI text is a {@link Boolean[] boolean} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is a boolean or not
-     */
-    public static boolean is_boolean(String string) {
-        return string.equals("true") || string.equals("false");
-    }
+	/**
+	 * Check if the given INI text is a {@link Boolean boolean} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is a boolean or not
+	 */
+	@QueryMethod(Boolean.class)
+	public boolean is_boolean(String string) {
+		return string.equals("true") || string.equals("false");
+	}
 
-    /**
-     * Check if the given INI text is a {@link Double double} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is a double or not
-     */
-    public static boolean is_double(String string) {
-        try {
-            Double.valueOf(string);
-            return !string.endsWith("f") &&
-                   string.contains(".");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given INI text is a {@link Double double} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is a double or not
+	 */
+	@QueryMethod(Double.class)
+	public boolean is_double(String string) {
+		try {
+			Double.valueOf(string);
+			return !string.endsWith("f") &&
+				   string.contains(".");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given INI text is a {@link Float float} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is a float or not
-     */
-    public static boolean is_float(String string) {
-        try {
-            Float.valueOf(string);
-            return string.toUpperCase().endsWith("F");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given INI text is a {@link Float float} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is a float or not
+	 */
+	@QueryMethod(Float.class)
+	public boolean is_float(String string) {
+		try {
+			Float.valueOf(string);
+			return string.toUpperCase().endsWith("F");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given INI text is an {@link Integer integer} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is an integer or not
-     */
-    public static boolean is_integer(String string) {
-        try {
-            Integer.valueOf(string);
-            return !string.endsWith("L") &&
-                   !string.endsWith("f") &&
-                   !string.contains(".");
-        } catch (Exception e) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given INI text is an {@link Integer integer} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is an integer or not
+	 */
+	@QueryMethod(Integer.class)
+	public boolean is_integer(String string) {
+		try {
+			Integer.valueOf(string);
+			return !string.endsWith("L") &&
+				   !string.endsWith("f") &&
+				   !string.contains(".");
+		} catch (Exception e) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given INI text is an {@link Long long} or not.
-     *
-     * @param string INI text to be checked
-     * @return whether the passed INI text is an long or not
-     */
-    public static boolean is_long(String string) {
-        try {
-            Long.valueOf(string);
-            return string.toUpperCase().endsWith("L") &&
-                   !string.contains(".");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given INI text is a {@link Long long} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is an long or not
+	 */
+	@QueryMethod(Long.class)
+	public boolean is_long(String string) {
+		try {
+			Long.valueOf(string);
+			return string.toUpperCase().endsWith("L") &&
+				   !string.contains(".");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Parse the given INI text into a java {@link Map}.
-     *
-     * <ul>
-     * <li>note: if you want to parse just an element use {@link #parse_object(String)} instead.</li>
-     * </ul>
-     *
-     * @param string source
-     * @return a java map from the given string
-     */
-    public static Map<String, Object> parse(String string) {
-        string = Strings.replace(string, "", "\r", "\t", "\u0000", String.valueOf((char) 65533));
-        Map<String, Object> main = new HashMap<>();
-        Map<String, Object> section = null;
+	/**
+	 * Check if the given INI text is a {@link HashMap map} or not.
+	 *
+	 * @param string INI text to be checked
+	 * @return whether the passed INI text is an map or not
+	 */
+	@QueryMethod(HashMap.class)
+	public boolean is_map(String string) {
+		return string.split("\n").length > 1;
+	}
 
-        for (String line : string.split("\n"))
-            if (line.length() > 2)
-                if (line.charAt(0) == '[' && line.charAt(line.length() - 1) == ']') {
-                    main.put(Strings.crop(line, 1, 1), section = new HashMap<>());
+	/**
+	 * Parse the given INI text into an {@link ArrayList array}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public ArrayList<Object> parse_array(String string) {
+		ArrayList<Object> list = new ArrayList<>();
 
-                } else if (line.charAt(0) != ';') {
-                    String[] node = line.split("=");
-                    if (node.length == 2)
-                        (section == null ? main : section).put(node[0], INI.parse_object(node[1]));
-                }
+		for (String element : string.split(","))
+			list.add(this.parse(element));
 
-        return main;
-    }
+		return list;
+	}
 
-    /**
-     * Cast the given INI text to {@link Object[] object}.
-     *
-     * @param string INI text to be casted
-     * @return an object that matches the given INI text
-     */
-    public static Object[] parse_array(String string) {
-        List<Object> list = new ArrayList<>();
+	/**
+	 * Parse the given INI text into a {@link Boolean boolean}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public Boolean parse_boolean(String string) {
+		return Boolean.valueOf(string);
+	}
 
-        for (String element : string.split(","))
-            list.add(INI.parse_object(element));
+	/**
+	 * Parse the given INI text into a {@link Double double}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public Double parse_double(String string) {
+		return Double.valueOf(string);
+	}
 
-        return list.toArray();
-    }
+	/**
+	 * Parse the given INI text into a {@link Float float}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public Float parse_float(String string) {
+		return Float.valueOf(string);
+	}
 
-    /**
-     * Cast the given INI text to {@link Object object}.
-     *
-     * @param string INI text to be casted
-     * @return an object that matches the given INI text
-     */
-    public static Object parse_object(String string) {
-        if (string.equals("null"))
-            return null;
-        if (INI.is_boolean(string))
-            return Boolean.valueOf(string);
-        if (INI.is_float(string))
-            return Float.valueOf(string);
-        if (INI.is_double(string))
-            return Double.valueOf(string);
-        if (INI.is_long(string))
-            return Long.valueOf(string);
-        if (INI.is_integer(string))
-            return Integer.valueOf(string);
-        if (INI.is_array(string))
-            return INI.parse_array(string);
+	/**
+	 * Parse the given INI text into an {@link Integer integer}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public Integer parse_integer(String string) {
+		return Integer.valueOf(string);
+	}
 
-        return string;
-    }
+	/**
+	 * Parse the given INI text into a {@link Long long}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public Long parse_long(String string) {
+		return Long.valueOf(string);
+	}
 
-    /**
-     * Transform the given {@link Map map} to an INI text.
-     *
-     * @param map to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Map<?, ?> map) {
-        StringBuilder string = new StringBuilder();
-        StringBuilder last = new StringBuilder();
+	/**
+	 * Parse the given INI text into an {@link HashMap map}.
+	 *
+	 * @param string INI text to be casted
+	 * @return an object that matches the given INI text
+	 */
+	@ParsingMethod
+	public HashMap<String, Object> parse_map(String string) {
+		string = Strings.replace(string, "", "\r", "\t", "\u0000", String.valueOf((char) 65533));
 
-        int[] index = {0};
-        map.forEach((key, value) -> {
-            if (value instanceof Map || value instanceof Structure) {
-                last.append(index[0] == 0 ? ""
-                                          : "\n\n").append("[").append(key).append("]").append("\n").append(INI.stringify(value));
+		HashMap<String, Object> main = new HashMap<>();
+		HashMap<String, Object> inner = null;
 
-            } else {
-                string.append(index[0] == 0 ? "" : "\n").append(key).append("=").append(INI.stringify(value));
-            }
-            index[0]++;
-        });
+		for (String line : string.split("\n"))
+			if (line.length() > 2)
+				if (line.charAt(0) == '[' && line.charAt(line.length() - 1) == ']') {
+					main.put(Strings.crop(line, 1, 1), inner = new HashMap<>());
 
-        return string.append(last).toString();
-    }
+				} else if (line.charAt(0) != ';') {
+					String[] split = line.split("=");
 
-    /**
-     * Transform the given {@link Object object} to an INI text.
-     *
-     * @param object to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Object object) {
-        if (object instanceof Object[])
-            return INI.stringify((Object[]) object);
-        if (object instanceof List)
-            return INI.stringify((List) object);
-        if (object instanceof Map)
-            return INI.stringify((Map) object);
-        if (object instanceof Float)
-            return INI.stringify((Float) object);
-        if (object instanceof Structure)
-            return INI.stringify((Structure) object);
+					if (split.length == 2)
+						(inner == null ? main : inner).put(split[0], this.parse(split[1]));
+				}
 
-        return String.valueOf(object);
-    }
+		return main;
+	}
 
-    /**
-     * Transform the given {@link Object[] array} to an INI text.
-     *
-     * @param array to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Object[] array) {
-        StringBuilder string = new StringBuilder();
+	/**
+	 * Stringify the given {@link Object[] array} to an INI text.
+	 *
+	 * @param array to stringify
+	 * @return an INI text from the given array
+	 */
+	@StringingMethod
+	public String stringify_array(Object[] array) {
+		StringBuilder string = new StringBuilder();
 
-        for (Object object : array)
-            string.append(string.length() == 0 ? "" : ",").append(INI.stringify(object));
+		for (Object object : array)
+			string.append(string.length() == 0 ? "" : ",")
+					.append(this.stringify(object, ""));
 
-        return string.toString();
-    }
+		return string.toString();
+	}
 
-    /**
-     * Transform the given {@link List list} to an INI text.
-     *
-     * @param list to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(List list) {
-        return INI.stringify(list.toArray());
-    }
+	/**
+	 * Stringify the given {@link Collection collection} to an INI text.
+	 *
+	 * @param collection to stringify
+	 * @return an INI text from the given collection
+	 */
+	@StringingMethod
+	public String stringify_collection(Collection<?> collection) {
+		StringBuilder string = new StringBuilder();
 
-    /**
-     * Transform the given {@link Float float} to an INI text.
-     *
-     * @param f to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Float f) {
-        return f + "F";
-    }
+		for (Object object : collection)
+			string.append(string.length() == 0 ? "" : ",")
+					.append(this.stringify(object, ""));
 
-    /**
-     * Transform the given {@link Long long} to an INI text.
-     *
-     * @param l to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Long l) {
-        return l + "L";
-    }
+		return string.toString();
+	}
 
-    /**
-     * Transform the given {@link Structure structure} to an INI text.
-     *
-     * @param structure to transform
-     * @return a INI text from the given map
-     */
-    public static String stringify(Structure structure) {
-        return INI.stringify(structure.map());
-    }
+	/**
+	 * Stringify the given {@link Float float} to an INI text.
+	 *
+	 * @param f float to stringify
+	 * @return an INI text from the given float
+	 */
+	@StringingMethod
+	public String stringify_float(Float f) {
+		return f + "F";
+	}
+
+	/**
+	 * Stringify the given {@link Long long} to an INI text.
+	 *
+	 * @param l long to stringify
+	 * @return an INI text from the given long
+	 */
+	@StringingMethod
+	public String stringify_long(Long l) {
+		return l + "L";
+	}
+
+	/**
+	 * Stringify the given {@link Map map} to an INI text.
+	 *
+	 * @param map to stringify
+	 * @return an INI text from the given map
+	 */
+	@StringingMethod
+	public String stringify_map(Map<?, ?> map) {
+		StringBuilder nodes = new StringBuilder();
+		StringBuilder maps = new StringBuilder();
+
+		int[] ints = {0};
+		map.forEach((key, value) -> {
+			if (value instanceof Map)
+				maps.append(ints[0]++ == 0 ? "" : "\n\n")
+						.append("[")
+						.append(this.stringify(key))
+						.append("]")
+						.append("\n")
+						.append(this.stringify(value));
+			else nodes.append(ints[0]++ == 0 ? "" : "\n")
+					.append(this.stringify(key))
+					.append("=")
+					.append(this.stringify(value));
+		});
+
+		return nodes.append(maps).toString();
+	}
 }

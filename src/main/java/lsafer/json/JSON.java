@@ -1,601 +1,586 @@
 package lsafer.json;
 
-import lsafer.util.ArrayStructure;
-import lsafer.util.Strings;
-import lsafer.util.Structure;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import lsafer.util.Arrays;
+import lsafer.util.StringParser;
+import lsafer.util.Strings;
+
 /**
- * Useful utils for using JSON.
- * <br>
- * Including :
- * <ul>
- * <li>Transforming {@link Object objects} into a JSON style text</li>
- * <li>Casting objects from JSON text into a Java {@link Object object}</li>
- * </ul>
- * <br>
+ * A text parser for JSON files.
  *
  * @author LSaferSE
- * @version 4 release (06-Sep-2019)
+ * @version 5 release (28-Sep-2019)
  * @since 09-Jul-19
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
-final public class JSON {
-    /**
-     * This is a util class. And shall not be instanced as an object.
-     */
-    private JSON() {
-    }
+@SuppressWarnings("unused")
+public class JSON extends StringParser {
+	/**
+	 * The global instance to avoid unnecessary instancing.
+	 */
+	final public static JSON instance = new JSON();
 
-    /**
-     * Check if the given JSON text is an {@link Object[] array} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is an array or not
-     */
-    public static boolean is_array(String string) {
-        return string.length() > 1 && (string.charAt(0) == '[' || string.charAt(1) == '[') &&
-               (string.charAt(string.length() - 1) == ']' || string.charAt(string.length() - 2) == ']');
-    }
+	/**
+	 * Check if the given JSON text is an {@link ArrayList array} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is an array or not
+	 */
+	@QueryMethod(ArrayList.class)
+	public boolean is_array(String string) {
+		return string.length() > 1 && (string.charAt(0) == '[' || string.charAt(1) == '[') &&
+			   (string.charAt(string.length() - 1) == ']' || string.charAt(string.length() - 2) == ']');
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Boolean[] boolean} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a boolean or not
-     */
-    public static boolean is_boolean(String string) {
-        return string.equals("true") || string.equals("false");
-    }
+	/**
+	 * Check if the given JSON text is a {@link Boolean boolean} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is an boolean or not
+	 */
+	@QueryMethod(Boolean.class)
+	public boolean is_boolean(String string) {
+		return string.equals("true") || string.equals("false");
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Character character} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a character or not
-     */
-    public static boolean is_char(String string) {
-        return string.length() == 3 && string.charAt(0) == '\'' && string.charAt(2) == '\'';
-    }
+	/**
+	 * Check if the given JSON text is a {@link Character character} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is a character or not
+	 */
+	@QueryMethod(Character.class)
+	public boolean is_char(String string) {
+		return string.length() == 3 && string.charAt(0) == '\'' && string.charAt(2) == '\'';
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Double double} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a double or not
-     */
-    public static boolean is_double(String string) {
-        try {
-            Double.valueOf(string);
-            return !string.toLowerCase().endsWith("f") &&
-                   string.contains(".");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given JSON text is a {@link Double double} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is a double or not
+	 */
+	@QueryMethod(Double.class)
+	public boolean is_double(String string) {
+		try {
+			Double.valueOf(string);
+			return !string.toLowerCase().endsWith("f") &&
+				   string.contains(".");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Float float} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a float or not
-     */
-    public static boolean is_float(String string) {
-        try {
-            Float.valueOf(string);
-            return string.toUpperCase().endsWith("F");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given JSON text is a {@link Float float} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is a float or not
+	 */
+	@QueryMethod(Float.class)
+	public boolean is_float(String string) {
+		try {
+			Float.valueOf(string);
+			return string.toUpperCase().endsWith("F");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given JSON text is an {@link Integer integer} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is an integer or not
-     */
-    public static boolean is_integer(String string) {
-        try {
-            Integer.valueOf(string);
-            return !string.endsWith("L") &&
-                   !string.endsWith("f") &&
-                   !string.contains(".");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given JSON text is an {@link Integer integer} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is an integer or not
+	 */
+	@QueryMethod(Integer.class)
+	public boolean is_integer(String string) {
+		try {
+			Integer.valueOf(string);
+			return !string.endsWith("L") &&
+				   !string.endsWith("f") &&
+				   !string.contains(".");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Long long} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is an long or not
-     */
-    public static boolean is_long(String string) {
-        try {
-            Long.valueOf(string);
-            return string.toUpperCase().endsWith("L") &&
-                   !string.contains(".");
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
+	/**
+	 * Check if the given JSON text is a {@link Long long} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is an long or not
+	 */
+	@QueryMethod(Long.class)
+	public boolean is_long(String string) {
+		try {
+			Long.valueOf(string);
+			return string.toUpperCase().endsWith("L") &&
+				   !string.contains(".");
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
 
-    /**
-     * Check if the given JSON text is a {@link Map map} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a map or not
-     */
-    public static boolean is_map(String string) {
-        return string.length() > 1 && (string.charAt(0) == '{' || string.charAt(1) == '{') &&
-               (string.charAt(string.length() - 1) == '}' || string.charAt(string.length() - 2) == '}');
-    }
+	/**
+	 * Check if the given JSON text is a {@link HashMap map} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is a map or not
+	 */
+	@QueryMethod(HashMap.class)
+	public boolean is_map(String string) {
+		return string.length() > 1 && (string.charAt(0) == '{' || string.charAt(1) == '{') &&
+			   (string.charAt(string.length() - 1) == '}' || string.charAt(string.length() - 2) == '}');
+	}
 
-    /**
-     * Check if the given JSON text is a {@link String string} or not.
-     *
-     * @param string JSON text to be checked
-     * @return whether the passed JSON text is a string or not
-     */
-    public static boolean is_string(String string) {
-        return string.length() > 1 &&
-               string.charAt(0) == '"' &&
-               string.charAt(string.length() - 1) == '"';
-    }
+	/**
+	 * Check if the given JSON text is a {@link String string} or not.
+	 *
+	 * @param string JSON text to be checked
+	 * @return whether the passed JSON text is a string or not
+	 */
+	@QueryMethod(String.class)
+	public boolean is_string(String string) {
+		return string.length() > 1 &&
+			   string.charAt(0) == '"' &&
+			   string.charAt(string.length() - 1) == '"';
+	}
 
-    /**
-     * Cast the given JSON text to {@link Object object}.
-     *
-     * @param string json text to be casted
-     * @return an object that matches the given JSON text
-     */
-    public static Object parse(String string) {
-        if (string == null || string.equals("null") || string.equals(""))
-            return null;
-        if (JSON.is_string(string))
-            return JSON.parse_string(string);
-        if (JSON.is_char(string))
-            return JSON.parse_char(string);
-        if (JSON.is_boolean(string))
-            return Boolean.valueOf(string);
-        if (JSON.is_float(string))
-            return Float.valueOf(string);
-        if (JSON.is_double(string))
-            return Double.valueOf(string);
-        if (JSON.is_long(string))
-            return Long.valueOf(string);
-        if (JSON.is_integer(string))
-            return Integer.valueOf(string);
-        if (JSON.is_array(string))
-            return JSON.parse_array(string);
-        if (JSON.is_map(string))
-            return JSON.parse_map(string);
+	/**
+	 * Parse the given JSON text into an {@link ArrayList array}.
+	 *
+	 * @param string json text to be parsed
+	 * @return an array from the given JSON text
+	 */
+	@ParsingMethod
+	public ArrayList parse_array(String string) {
+		if (string.charAt(0) != '[' || string.charAt(string.length() - 1) != ']')
+			string = '[' + string + ']';
 
-        return string;
-    }
+		ArrayList<Object> list = new ArrayList<>();
+		StringBuilder builder = new StringBuilder();
 
-    /**
-     * Cast the given JSON text to {@link Object[] object array}.
-     *
-     * @param string json text to be casted
-     * @return an object array from the given JSON text
-     */
-    public static Object[] parse_array(String string) {
-        //remove main braces case exist
-        if (string.charAt(0) == '[' && string.charAt(string.length() - 1) == ']')
-            string = Strings.crop(string, 1, 1);
+		boolean quotation = false, escape = false;
+		int brackets = -1, karly = 0;
 
-        List<Object> list = new ArrayList<>();
-        StringBuilder builder = new StringBuilder();
+		for (char point : string.toCharArray()) {
+			if (escape) {
+				//case reading between quotation marks and the previous char is '\'
+				escape = false;
+				switch (point) {
+					case 't':
+						builder.append('\t');
+						break;
+					case 'n':
+						builder.append('\n');
+						break;
+					case 'r':
+						builder.append('\r');
+						break;
+					default:
+						builder.append(point);
+				}
+			} else if (quotation) {
+				//case reading between quotation marks
+				switch (point) {
+					case '\\':
+						escape = true;
+						break;
+					case '"':
+						builder.append(point);
+						quotation = false;
+						break;
+					default:
+						builder.append(point);
+						break;
+				}
+			} else if (brackets > 0) {
+				//case reading inside a brackets
+				builder.append(point);
+				switch (point) {
+					case '[':
+						brackets++;
+						break;
+					case ']':
+						brackets--;
+						break;
+					case '"':
+						quotation = true;
+						break;
+				}
+			} else if (karly > 0) {
+				//case reading inside a karly brackets
+				builder.append(point);
+				switch (point) {
+					case '{':
+						karly++;
+						break;
+					case '}':
+						karly--;
+						break;
+					case '"':
+						quotation = true;
+						break;
+				}
+			} else {
+				//case reading in the main section
+				switch (point) {
+					case '\n':
+					case '\t':
+					case '\r':
+					case ' ':
+					case 65533:
+						break;
+					case '[':
+						if (brackets != -1)
+							builder.append(point);
+						brackets++;
+						break;
+					case '{':
+						builder.append(point);
+						karly++;
+						break;
+					case '"':
+						builder.append(point);
+						quotation = true;
+						break;
+					case ',':
+					case ']':
+						String collected = builder.toString();
+						list.add(collected.equals("#") ? list : this.parse(collected));
+						builder = new StringBuilder();
+						break;
+					default:
+						builder.append(point);
+						break;
+				}
+			}
+		}
 
-        boolean[] skip0 = {false /*quotation mode*/, false /*escaping mode*/};
-        int[] skip1 = {0 /*array braces mode*/, 0/*map braces mode*/};
+		return list;
+	}
 
-        for (char point : string.toCharArray()) {
-            if (skip0[1]) {
-                //case reading between quotation marks and the previous char is '\'
-                skip0[1] = false;
-                switch (point) {
-                    case 't':
-                        builder.append('\t');
-                        break;
-                    case 'n':
-                        builder.append('\n');
-                        break;
-                    case 'r':
-                        builder.append('\r');
-                        break;
-                    default:
-                        builder.append(point);
-                }
-            } else if (skip0[0]) {
-                //case reading between quotation marks
-                switch (point) {
-                    case '\\':
-                        skip0[1] = true;
-                        break;
-                    case '"':
-                        builder.append(point);
-                        skip0[0] = false;
-                        break;
-                    default:
-                        builder.append(point);
-                        break;
-                }
-            } else if (skip1[0] > 0) {
-                //case reading inside a brackets
-                builder.append(point);
-                switch (point) {
-                    case '[':
-                        skip1[0]++;
-                        break;
-                    case ']':
-                        skip1[0]--;
-                        break;
-                    case '"':
-                        skip0[0] = true;
-                        break;
-                }
-            } else if (skip1[1] > 0) {
-                //case reading inside a karly brackets
-                builder.append(point);
-                switch (point) {
-                    case '{':
-                        skip1[1]++;
-                        break;
-                    case '}':
-                        skip1[1]--;
-                        break;
-                    case '"':
-                        skip0[0] = true;
-                        break;
-                }
-            } else {
-                //case reading in the main section
-                switch (point) {
-                    case '\n':
-                    case '\t':
-                    case '\r':
-                    case ' ':
-                    case 65533:
-                        break;
-                    case '[':
-                        builder.append(point);
-                        skip1[0]++;
-                        break;
-                    case '{':
-                        builder.append(point);
-                        skip1[1]++;
-                        break;
-                    case '"':
-                        builder.append(point);
-                        skip0[0] = true;
-                        break;
-                    case ',':
-                        list.add(JSON.parse(builder.toString()));
-                        builder = new StringBuilder();
-                        break;
-                    default:
-                        builder.append(point);
-                        break;
-                }
-            }
-        }
+	/**
+	 * Parse the given JSON text into a {@link Boolean boolean}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a boolean from the given JSON text
+	 */
+	@ParsingMethod
+	public Boolean parse_boolean(String string) {
+		return Boolean.valueOf(string);
+	}
 
-        //leftovers
-        if (builder.length() != 0)
-            list.add(JSON.parse(builder.toString()));
+	/**
+	 * Parse the given JSON text into a {@link Character character}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a character from the given JSON text
+	 */
+	@ParsingMethod
+	public Character parse_char(String string) {
+		return string.charAt(1);
+	}
 
-        return list.toArray();
-    }
+	/**
+	 * Parse the given JSON text into a {@link Double double}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a double from the given JSON text
+	 */
+	@ParsingMethod
+	public Double parse_double(String string) {
+		return Double.valueOf(string);
+	}
 
-    /**
-     * Cast the given JSON text to {@link Character character}.
-     *
-     * @param string json text to be casted
-     * @return an object array from the given JSON text
-     */
-    public static char parse_char(String string) {
-        return string.charAt(1);
-    }
+	/**
+	 * Parse the given JSON text into a {@link Float float}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a float from the given JSON text
+	 */
+	@ParsingMethod
+	public Float parse_float(String string) {
+		return Float.valueOf(string);
+	}
 
-    /**
-     * Cast the given JSON text to {@link Map map}.
-     *
-     * @param string json text to be casted
-     * @return a map object from the given JSON text
-     */
-    public static Map<Object, Object> parse_map(String string) {
-        //remove main braces case exist
-        if (string.charAt(0) == '{' && string.charAt(string.length() - 1) == '}')
-            string = Strings.crop(string, 1, 1);
+	/**
+	 * Parse the given JSON text into an {@link Integer integer}.
+	 *
+	 * @param string json text to be parsed
+	 * @return an integer from the given JSON text
+	 */
+	@ParsingMethod
+	public Integer parse_integer(String string) {
+		return Integer.valueOf(string);
+	}
 
-        HashMap<Object, Object> map = new HashMap<>(); //result
-        StringBuilder value_builder = new StringBuilder(); //temporary val holder
-        StringBuilder key_builder = new StringBuilder(); //temporary key holder
-        StringBuilder builder = key_builder; //temporary builder
+	/**
+	 * Parse the given JSON text into a {@link Long long}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a long from the given JSON text
+	 */
+	@ParsingMethod
+	public Long parse_long(String string) {
+		return Long.valueOf(string);
+	}
 
-        boolean[] skip0 = {false /*quotation mode*/, false /*escaping mode*/}; //string, slash
-        int[] skip1 = {0 /*array braces mode*/, 0 /*map braces mode*/}; //bracket, karly bracket
+	/**
+	 * Parse the given JSON text into a {@link HashMap map}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a map from the given JSON text
+	 */
+	@ParsingMethod
+	public HashMap<Object, Object> parse_map(String string) {
+		if (string.charAt(0) != '{' || string.charAt(string.length() - 1) != '}')
+			string = '{' + string + '}';
 
-        for (char point : string.toCharArray()) {
-            if (skip0[1]) {
-                //case reading between quotation marks and the previous char is '\'
-                skip0[1] = false;
-                switch (point) {
-                    case 't':
-                        builder.append('\t');
-                        break;
-                    case 'n':
-                        builder.append('\n');
-                        break;
-                    case 'r':
-                        builder.append('\r');
-                        break;
-                    default:
-                        builder.append(point);
-                }
-            } else if (skip0[0]) {
-                //case reading between quotation marks
-                switch (point) {
-                    case '\\':
-                        skip0[1] = true;
-                        break;
-                    case '"':
-                        builder.append(point);
-                        skip0[0] = false;
-                        break;
-                    default:
-                        builder.append(point);
-                        break;
-                }
-            } else if (skip1[0] > 0) {
-                //case reading inside a brackets
-                builder.append(point);
-                switch (point) {
-                    case '[':
-                        skip1[0]++;
-                        break;
-                    case ']':
-                        skip1[0]--;
-                        break;
-                    case '"':
-                        skip0[0] = true;
-                        break;
-                }
-            } else if (skip1[1] > 0) {
-                //case reading inside a karly brackets
-                builder.append(point);
-                switch (point) {
-                    case '{':
-                        skip1[1]++;
-                        break;
-                    case '}':
-                        skip1[1]--;
-                        break;
-                    case '"':
-                        skip0[0] = true;
-                        break;
-                }
-            } else {
-                //case reading in the main section
-                switch (point) {
-                    case '\n':
-                    case '\t':
-                    case '\r':
-                    case ' ':
-                    case 65533:
-                        break;
-                    case '[':
-                        builder.append(point);
-                        skip1[0]++;
-                        break;
-                    case '{':
-                        builder.append(point);
-                        skip1[1]++;
-                        break;
-                    case '"':
-                        builder.append(point);
-                        skip0[0] = true;
-                        break;
-                    case ':':
-                    case '=':
-                        builder = value_builder;
-                        break;
-                    case ',':
-                        map.put(JSON.parse(key_builder.toString()), JSON.parse(value_builder.toString()));
-                        key_builder = new StringBuilder();
-                        value_builder = new StringBuilder();
-                        builder = key_builder;
-                        break;
-                    default:
-                        builder.append(point);
-                        break;
-                }
-            }
-        }
+		HashMap<Object, Object> map = new HashMap<>(); //result
+		StringBuilder builder = new StringBuilder(); //temporary builder
 
-        //leftovers
-        if (key_builder.length() != 0 && value_builder.length() != 0)
-            map.put(JSON.parse(key_builder.toString()), JSON.parse(value_builder.toString()));
+		String key = ""; //temporary key-string holders
 
-        return map;
-    }
+		boolean quotation = false, escape = false; //modes
+		int brackets = 0, karly = -1; //positions
 
-    /**
-     * Cast the given JSON text to {@link String string}.
-     *
-     * @param string json text to be casted
-     * @return a string object from the given JSON text
-     */
-    public static String parse_string(String string) {
-        return Strings.crop(string, 1, 1);
-    }
+		for (char point : string.toCharArray())
+			if (escape) { //escape mode
+				escape = false;
+				switch (point) {
+					case 't':
+						builder.append('\t');
+						break;
+					case 'n':
+						builder.append('\n');
+						break;
+					case 'r':
+						builder.append('\r');
+						break;
+					default:
+						builder.append(point);
+				}
+			} else if (quotation) { //quotation mode
+				switch (point) {
+					case '\\':
+						escape = true;
+						break;
+					case '"':
+						builder.append(point);
+						quotation = false;
+						break;
+					default:
+						builder.append(point);
+						break;
+				}
+			} else if (brackets > 0) { //square brackets
+				builder.append(point);
+				switch (point) {
+					case '[':
+						brackets++;
+						break;
+					case ']':
+						brackets--;
+						break;
+					case '"':
+						quotation = true;
+						break;
+				}
+			} else if (karly > 0) { //karly brackets
+				builder.append(point);
+				switch (point) {
+					case '{':
+						karly++;
+						break;
+					case '}':
+						karly--;
+						break;
+					case '"':
+						quotation = true;
+						break;
+				}
+			} else {
+				switch (point) {
+					case '\n':
+					case '\t':
+					case '\r':
+					case ' ':
+					case 65533:
+						break;
+					case '"':
+						builder.append(point);
+						quotation = true;
+						break;
+					case '[':
+						builder.append(point);
+						brackets++;
+						break;
+					case '{':
+						if (karly != -1)
+							builder.append(point);
+						karly++;
+						break;
+					case ':':
+					case '=':
+						key = builder.toString();
+						builder = new StringBuilder();
+						break;
+					case ',':
+					case '}':
+						String value = builder.toString();
 
-    /**
-     * Transform the given {@link Object object} to a JSON text.
-     *
-     * @param object  to transform
-     * @param spacing base
-     * @return a JSON text from the given object
-     */
-    public static String stringify(Object object, String spacing) {
-        if (object == null)
-            return "null";
-        if (object instanceof Float)
-            return JSON.stringify((Float) object, spacing);
-        if (object instanceof Long)
-            return JSON.stringify((Long) object, spacing);
-        if (object instanceof String)
-            return JSON.stringify((String) object, spacing);
-        if (object instanceof Character)
-            return JSON.stringify((Character) object, spacing);
-        if (object instanceof Object[])
-            return JSON.stringify((Object[]) object, spacing);
-        if (object instanceof List)
-            return JSON.stringify((List) object, spacing);
-        if (object instanceof Map)
-            return JSON.stringify((Map) object, spacing);
-        if (object instanceof ArrayStructure)
-            return JSON.stringify(((ArrayStructure) object).list(), spacing);
-        if (object instanceof Structure)
-            return JSON.stringify((Structure) object, spacing);
+						map.put(Arrays.contains(key, "#", "(this Map)") ? map : this.parse(key),
+								Arrays.contains(value, "#", "(this Map)") ? map : this.parse(value));
 
-        return String.valueOf(object);
-    }
+						key = "";
+						builder = new StringBuilder();
+						break;
+					default:
+						builder.append(point);
+						break;
+				}
+			}
 
-    /**
-     * Transform the given {@link Object object} to a JSON text.
-     *
-     * @param object to transform
-     * @return a JSON text from the given object
-     */
-    public static String stringify(Object object) {
-        return JSON.stringify(object, "");
-    }
+		return map;
+	}
 
-    /**
-     * Transform the given {@link Object object array} to a JSON text.
-     *
-     * @param array   to transform
-     * @param spacing base
-     * @return a JSON text from the given array
-     */
-    private static String stringify(Object[] array, String spacing) {
-        StringBuilder text = new StringBuilder();
-        text.append("[");
+	/**
+	 * Parse the given JSON text into a {@link String string}.
+	 *
+	 * @param string json text to be parsed
+	 * @return a string from the given JSON text
+	 */
+	@ParsingMethod
+	public String parse_string(String string) {
+		return Strings.crop(string, 1, 1);
+	}
 
-        for (Object object : array)
-            text.append(text.length() == 1 ? "" : ",")
-                    .append("\n\t")
-                    .append(spacing)
-                    .append(JSON.stringify(object, spacing + "\t"));
+	/**
+	 * Stringify the given {@link Object[] array} as a JSON text.
+	 *
+	 * @param array to stringify
+	 * @param shift shifting string
+	 * @return a JSON text from the given array
+	 */
+	@StringingMethod
+	public String stringify_array(Object[] array, String shift) {
+		StringBuilder text = new StringBuilder();
+		text.append("[");
 
-        text.append("\n")
-                .append(spacing)
-                .append("]");
+		for (Object object : array)
+			text.append(text.length() == 1 ? "" : ",")
+					.append("\n\t")
+					.append(shift)
+					.append(object == array ? "#" : this.stringify(object, shift + "\t"));
 
-        return text.toString();
-    }
+		text.append("\n")
+				.append(shift)
+				.append("]");
 
-    /**
-     * Transform the given {@link List list} to a JSON text.
-     *
-     * @param list    to transform
-     * @param spacing base
-     * @return a JSON text from the given list
-     */
-    private static String stringify(List list, String spacing) {
-        return JSON.stringify(list.toArray(), spacing);
-    }
+		return text.toString();
+	}
 
-    /**
-     * Transform the given {@link Map map} to a JSON text.
-     *
-     * @param map     to transform
-     * @param spacing base
-     * @return a JSON text from the given map
-     */
-    private static String stringify(Map<?, ?> map, String spacing) {
-        StringBuilder text = new StringBuilder();
-        text.append("{");
+	/**
+	 * Stringify the given {@link Character character} as a JSON text.
+	 *
+	 * @param character to stringify
+	 * @return a JSON text from the given character
+	 */
+	@StringingMethod
+	public String stringify_character(Character character) {
+		return "\'" + character + "\'";
+	}
 
-        map.forEach((key, value) ->
-                text.append(text.length() == 1 ? "" : ",")
-                        .append("\n")
-                        .append(spacing)
-                        .append("\t")
-                        .append(JSON.stringify(key, spacing + "\t"))
-                        .append(":\t")
-                        .append(JSON.stringify(value, spacing + "\t")));
+	/**
+	 * Stringify the given {@link Collection collection} as a JSON text.
+	 *
+	 * @param collection to stringify
+	 * @param shift      shifting string
+	 * @return a JSON text from the given collection
+	 */
+	@StringingMethod
+	public String stringify_collection(Collection collection, String shift) {
+		StringBuilder text = new StringBuilder();
+		text.append("[");
 
-        text.append("\n")
-                .append(spacing)
-                .append("}");
+		for (Object object : collection)
+			text.append(text.length() == 1 ? "" : ",")
+					.append("\n\t")
+					.append(shift)
+					.append(object == collection ? "#" : this.stringify(object, shift + "\t"));
 
-        return text.toString();
-    }
+		text.append("\n")
+				.append(shift)
+				.append("]");
 
-    /**
-     * Transform the given {@link String string} to a JSON text.
-     *
-     * @param string  to transform
-     * @param spacing base
-     * @return a JSON text from the given string
-     */
-    private static String stringify(String string, String spacing) {
-        return '"' + string.replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t") + '"';
-    }
+		return text.toString();
+	}
 
-    /**
-     * Transform the given {@link Float float} to a JSON text.
-     *
-     * @param f       float to transform
-     * @param spacing base
-     * @return a JSON text from the given float
-     */
-    private static String stringify(Float f, String spacing) {
-        return f + "F";
-    }
+	/**
+	 * Stringify the given {@link Float float} as a JSON text.
+	 *
+	 * @param f float to stringify
+	 * @return a JSON text from the given float
+	 */
+	@StringingMethod
+	public String stringify_float(Float f) {
+		return f + "F";
+	}
 
-    /**
-     * Transform the given {@link Long long} to a JSON text.
-     *
-     * @param l       long to transform
-     * @param spacing base
-     * @return a JSON text from the given float
-     */
-    private static String stringify(Long l, String spacing) {
-        return l + "L";
-    }
+	/**
+	 * Stringify the given {@link Long long} as a JSON text.
+	 *
+	 * @param l long to stringify
+	 * @return a JSON text from the given long
+	 */
+	@StringingMethod
+	public String stringify_long(Long l) {
+		return l + "L";
+	}
 
-    /**
-     * Transform the given {@link Structure structure} to a JSON text.
-     *
-     * @param structure to transform
-     * @param spacing   base
-     * @return a JSON text from the given structure
-     */
-    private static String stringify(Structure structure, String spacing) {
-        return JSON.stringify(structure.map(), spacing);
-    }
+	/**
+	 * Stringify the given {@link Map map} as a JSON text.
+	 *
+	 * @param map   to stringify
+	 * @param shift shifting string
+	 * @return a JSON text from the given map
+	 */
+	@StringingMethod
+	public String stringify_map(Map<?, ?> map, String shift) {
+		StringBuilder text = new StringBuilder();
+		text.append("{");
 
-    /**
-     * Transform the given {@link Object object} to a JSON text.
-     *
-     * @param character to transform
-     * @param spacing   base
-     * @return a JSON text from the given object
-     */
-    private static String stringify(Character character, String spacing) {
-        return "\'" + character + "\'";
-    }
+		map.forEach((key, value) ->
+				text.append(text.length() == 1 ? "" : ",")
+						.append("\n")
+						.append(shift)
+						.append("\t")
+						.append(key == map ? "#" : this.stringify(key, shift + "\t"))
+						.append(":\t")
+						.append(value == map ? "#" : this.stringify(value, shift + "\t")));
+
+		text.append("\n")
+				.append(shift)
+				.append("}");
+
+		return text.toString();
+	}
+
+	/**
+	 * Stringify the given {@link String string} as a JSON text.
+	 *
+	 * @param string to stringify
+	 * @return a JSON text from the given string
+	 */
+	@StringingMethod
+	public String stringify_string(String string) {
+		return '"' + string.replace("\n", "\\n")
+				.replace("\r", "\\r")
+				.replace("\t", "\\t") + '"';
+	}
 }
