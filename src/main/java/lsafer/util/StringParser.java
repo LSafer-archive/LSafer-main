@@ -166,6 +166,9 @@ public abstract class StringParser {
 	 * @return the method to stringify the given type. Or null if this class don't have one
 	 */
 	protected Method querys(Class<?> type) {
+		if (type.isPrimitive())
+			type = Classes.objective(type);
+
 		String key = type.getName();
 
 		if (this.stringifiers.containsKey(key))
@@ -198,8 +201,8 @@ public abstract class StringParser {
 	 * @return a string representation of the object.
 	 */
 	public String stringify(Object object, String shift) {
-		if (object.getClass().isArray())
-			Arrays.objective(object);
+		if (object.getClass().isArray() && object.getClass().getComponentType().isPrimitive())
+			object = Arrays.objective(object);
 
 		Method method = this.querys(object.getClass());
 

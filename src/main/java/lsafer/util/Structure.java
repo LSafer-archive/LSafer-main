@@ -29,7 +29,7 @@ import java.util.Set;
  * </li>
  * <li>
  * tip: You can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type.
- * Depending on {@link Configurations#caster() caster} of this structure.
+ * Depending on {@link #caster() caster} of this structure.
  * </li>
  * <li>
  * tip: declaring fields in the constructor of a super class will not work.
