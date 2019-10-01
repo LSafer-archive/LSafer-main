@@ -171,7 +171,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 			}
 		else if (key instanceof Integer)
 			try {
-				Field field = this.getClass().getField(this.configurations(Configurations.class, Structure.class).indexingKeyword() + key);
+				Field field = this.getClass().getField(this.configurations(Configurations.class, Structure.class).indexer() + key);
 				return this.isTransient(field) ? null : field;
 			} catch (NoSuchFieldException ignored) {
 			}
@@ -187,7 +187,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 */
 	default K getKey(Field field) {
 		String name = field.getName();
-		String indexKeyword = this.configurations(Configurations.class, Structure.class).indexingKeyword();
+		String indexKeyword = this.configurations(Configurations.class, Structure.class).indexer();
 		String[] split = name.split(indexKeyword);
 
 		if (split.length == 2)
@@ -237,7 +237,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 *
 		 * @return the keyword used to define an Index field
 		 */
-		String indexingKeyword() default "i";
+		String indexer() default "i";
 
 		/**
 		 * Defines whether the structure should ignore any field that is not annotated with {@link Transient} annotation.
