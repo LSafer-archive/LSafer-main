@@ -50,7 +50,7 @@ public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements Folder
 	public <A extends Annotation> A configurations(Class<A> type, Class<?> defaults) {
 		A configurations = FolderMap.super.configurations(type, defaults);
 
-		if (type == FolderMap.Configurations.class && configurations == FolderHashMap.class.getAnnotation(FolderMap.Configurations.class))
+		if (type == FolderMap.Configurations.class && configurations == FolderMap.class.getAnnotation(FolderMap.Configurations.class))
 			return (A) new FolderMap.Configurations() {
 				@Override
 				public Class<? extends Annotation> annotationType() {
