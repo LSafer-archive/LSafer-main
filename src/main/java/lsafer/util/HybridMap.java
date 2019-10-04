@@ -29,7 +29,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	/**
-	 * Depending on current indexing position on this structure.
+	 * Depending on current indexing position on this map.
 	 * Add an element at the index after the last index in this.
 	 * <br><br><b>example:</b>
 	 * <pre>
@@ -46,7 +46,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts the specified element at the specified position in this structure indexing system.
+	 * Inserts the specified element at the specified position in this map indexing system.
 	 * Shifts the element currently at that position (if any) and any subsequent
 	 * elements to the right (adds one to their indices).
 	 *
@@ -59,12 +59,12 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Appends all of the elements in the specified collection to the end of this structure indexing system,
+	 * Appends all of the elements in the specified collection to the end of this map indexing system,
 	 * in the order that they are returned by the specified collection's Iterator.
 	 * The behavior of this operation is undefined if the specified collection is modified while the operation is in progress.
 	 *
-	 * @param collection containing elements to be added to this structure
-	 * @return true if this structure changed as a result of the call
+	 * @param collection containing elements to be added to this map
+	 * @return true if this map changed as a result of the call
 	 */
 	default boolean addAll(Collection<V> collection) {
 		int i = this.maxIndex();
@@ -82,7 +82,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 *
 	 * @param index      at which to insert the first element from the specified collection
 	 * @param collection containing elements to be added to this list
-	 * @return true if this structure changed as a result of the call
+	 * @return true if this map changed as a result of the call
 	 */
 	default boolean addAll(int index, Collection<V> collection) {
 		this.shiftIndexes(index, collection.size());
@@ -129,7 +129,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Depending on current indexing position on this structure.
+	 * Depending on current indexing position on this map.
 	 * Push an element at the index before the least index in this.
 	 * <br><br><b>example:</b>
 	 * <pre>
@@ -146,7 +146,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts the specified element at the specified position in this structure indexing system.
+	 * Inserts the specified element at the specified position in this map indexing system.
 	 * Shifts the element currently at that position (if any) and any subsequent
 	 * elements to the left (subtract one to their indices).
 	 *
@@ -159,12 +159,12 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Appends all of the elements in the specified collection to the start of this structure indexing system,
+	 * Appends all of the elements in the specified collection to the start of this map indexing system,
 	 * in the order that they are returned by the specified collection's Iterator.
 	 * The behavior of this operation is undefined if the specified collection is modified while the operation is in progress.
 	 *
-	 * @param collection containing elements to be added to this structure
-	 * @return true if this structure changed as a result of the call
+	 * @param collection containing elements to be added to this map
+	 * @return true if this map changed as a result of the call
 	 */
 	default boolean pushAll(Collection<V> collection) {
 		int size = collection.size();
@@ -183,7 +183,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 *
 	 * @param index      at which to insert the first element from the specified collection
 	 * @param collection containing elements to be added to this list
-	 * @return true if this structure changed as a result of the call
+	 * @return true if this map changed as a result of the call
 	 */
 	default boolean pushAll(int index, Collection<V> collection) {
 		this.shiftIndexes(index, -collection.size());
@@ -196,7 +196,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Copies all of the elements from the specified collection to this structure.
+	 * Copies all of the elements from the specified collection to this map.
 	 * The effect of this call is equivalent to that of calling put(k, v) on this map
 	 * once for each element from index i to element e in the specified collection.
 	 * The behavior of this operation is undefined if the specified map is modified while the operation is in progress.
@@ -210,7 +210,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Copies all of the elements from the specified array to this structure.
+	 * Copies all of the elements from the specified array to this map.
 	 * The effect of this call is equivalent to that of calling put(k, v) on this map
 	 * once for each element from index i to element e in the specified array.
 	 * The behavior of this operation is undefined if the specified map is modified while the operation is in progress.

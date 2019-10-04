@@ -21,13 +21,13 @@ import java.lang.annotation.Annotation;
  */
 public interface Configurable {
 	/**
-	 * Get the configurations annotation annotated to this structure.
+	 * Get the configurations annotation annotated to this.
 	 * Or the default_class's default configurations.
 	 *
 	 * @param type     the type of the annotation targeted
 	 * @param defaults the class to get the default annotation in case it not found in this
 	 * @param <A>      targeted annotation's type
-	 * @return the targeted configurations of this structure
+	 * @return the targeted configurations of this
 	 * @throws NullPointerException if the given (annotation class/the defaults object) is null
 	 */
 	default <A extends Annotation> A configurations(Class<A> type, Class<? /*annotated by A*/> defaults) {

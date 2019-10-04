@@ -19,10 +19,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import lsafer.util.Structure;
+import lsafer.util.JSObject;
 
 /**
- * An abstract to implement needed methods in the interfaces {@link Structure} and {@link Serializable}.
+ * An abstract to implement needed methods in the interfaces {@link JSObject} and {@link Serializable}.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -31,14 +31,14 @@ import lsafer.util.Structure;
  * @since 11 Jun 2019
  **/
 @SuppressWarnings({"unused"})
-public abstract class AbstractStructure<K, V> implements Structure<K, V>, Serializable {
+public abstract class AbstractJSObject<K, V> implements JSObject<K, V>, Serializable {
 	/**
 	 * The secondary container.
 	 */
-	private transient Map<K, Structure.Entry<K, V>> entries = new HashMap<>();
+	private transient Map<K, JSObject.Entry<K, V>> entries = new HashMap<>();
 
 	@Override
-	public Map<K, Structure.Entry<K, V>> entries() {
+	public Map<K, JSObject.Entry<K, V>> entries() {
 		return this.entries;
 	}
 
@@ -88,7 +88,7 @@ public abstract class AbstractStructure<K, V> implements Structure<K, V>, Serial
 	}
 
 	/**
-	 * Custom hash-structure serialization method.
+	 * Custom JSObject serialization method.
 	 *
 	 * @param stream to use to serialize this
 	 * @throws IOException if an I/O error occurs

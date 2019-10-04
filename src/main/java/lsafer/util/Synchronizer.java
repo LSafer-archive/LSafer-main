@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import lsafer.util.impl.AbstractStructure;
+import lsafer.util.impl.AbstractJSObject;
 
 /**
  * Used to be the communication method between 2 threads and one of them contains a long loop.
@@ -30,7 +30,7 @@ import lsafer.util.impl.AbstractStructure;
  * @since 18 May 2019
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class Synchronizer<K, V> extends AbstractStructure<K, V> implements JetMap<K, V>, HybridMap<K, V> {
+public class Synchronizer<K, V> extends AbstractJSObject<K, V> implements JetMap<K, V>, HybridMap<K, V> {
 	/**
 	 * The operations to do after a value get passed.
 	 */

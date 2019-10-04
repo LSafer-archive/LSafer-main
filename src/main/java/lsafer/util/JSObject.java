@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An interface defines that the targeted class can be used as a structure.
- * Basically structure means that the class can be working like a {@link Map}.
+ * An interface defines that the targeted class can be used as a JSObject.
+ * Basically JSObject means that the class can be working like a {@link Map}.
  * And every field of it (that don't matches the conditions of {@link #isTransient(Field)})
  * will be used as an {@link Map.Entry entry}.
  * <br><br>
- * If you want your structure to store {@link Entry entries} Even if there is no {@link Field} to contain it.
- * Then please add a transient field and link it with this by overriding the method {@link #entries()} of your structure.
+ * If you want your JSObject to store {@link Entry entries} Even if there is no {@link Field} to contain it.
+ * Then please add a transient field and link it with this by overriding the method {@link #entries()} of your JSObject.
  *
  * <ul>
  * <li>
@@ -39,7 +39,7 @@ import java.util.Set;
  * </li>
  * <li>
  * tip: You can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type.
- * Depending on {@link #caster() caster} of this structure.
+ * Depending on {@link #caster() caster} of this JSObject.
  * </li>
  * <li>
  * tip: declaring fields in the constructor of a super class will not work.
@@ -54,8 +54,8 @@ import java.util.Set;
  * @since 06-Jul-19
  */
 @SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
-@Structure.Configurations
-public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
+@JSObject.Configurations
+public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	@Override
 	default void clear() {
 		this.entrySet().forEach(entry -> ((Entry<K, V>) entry).remove());
@@ -142,7 +142,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	/**
-	 * Get the extra-entries container. Needed because the structure can't handle
+	 * Get the extra-entries container. Needed because the JSObject can't handle
 	 * those entries. That it have no fields to carry them. Or null if not needed
 	 *
 	 * @return the extra-entries container. Or null if not needed
@@ -181,7 +181,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 			}
 		else if (key instanceof Integer)
 			try {
-				Field field = this.getClass().getField(this.configurations(Configurations.class, Structure.class).indexer() + key);
+				Field field = this.getClass().getField(this.configurations(Configurations.class, JSObject.class).indexer() + key);
 				return this.isTransient(field) ? null : field;
 			} catch (NoSuchFieldException ignored) {
 			}
@@ -197,7 +197,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 */
 	default K getKey(Field field) {
 		String name = field.getName();
-		String indexKeyword = this.configurations(Configurations.class, Structure.class).indexer();
+		String indexKeyword = this.configurations(Configurations.class, JSObject.class).indexer();
 		String[] split = name.split(indexKeyword);
 
 		if (split.length == 2)
@@ -223,12 +223,12 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 			   Modifier.isTransient(modifier) ||
 			   field.isAnnotationPresent(Transient.class) ?
 			   field.getAnnotation(Transient.class).value() :
-			   this.configurations(Configurations.class, Structure.class).restricted() ||
+			   this.configurations(Configurations.class, JSObject.class).restricted() ||
 			   Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");
 	}
 
 	/**
-	 * A runtime annotation. Targets {@link Structure structures}. And sets the configurations of it's targeted structure.
+	 * A runtime annotation. Targets {@link JSObject structures}. And sets the configurations of it's targeted JSObject.
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ElementType.TYPE, ElementType.TYPE_USE})
@@ -250,9 +250,9 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		String indexer() default "i";
 
 		/**
-		 * Defines whether the structure should ignore any field that is not annotated with {@link Transient} annotation.
+		 * Defines whether the JSObject should ignore any field that is not annotated with {@link Transient} annotation.
 		 *
-		 * @return whether the structure should ignored unannotated field
+		 * @return whether the JSObject should ignored unannotated field
 		 */
 		boolean restricted() default true;
 	}
@@ -272,7 +272,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	/**
-	 * An object to manage entries in the structure. The entry is the responsible
+	 * An object to manage entries in the JSObject. The entry is the responsible
 	 * for (remove, set, get) methods. And it's the one manages the appliance of
 	 * operations for the it's targeted key for both field and map containers.
 	 *
@@ -281,12 +281,12 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 */
 	final class Entry<K, V> implements java.util.Map.Entry<K, V> {
 		/**
-		 * A reference of the map where all entries of the structure this entry belongs to is contained on.
+		 * A reference of the map where all entries of the JSObject this entry belongs to is contained on.
 		 */
 		public Map<K, Entry<K, V>> entries;
 
 		/**
-		 * The field where this entry is linked to in the structure this entry belongs to.
+		 * The field where this entry is linked to in the JSObject this entry belongs to.
 		 */
 		public Field field;
 
@@ -298,7 +298,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		/**
 		 * The field where this entry is belongs to.
 		 */
-		public Structure<K, V> structure;
+		public JSObject<K, V> object;
 
 		/**
 		 * The value represented by this entry.
@@ -309,13 +309,13 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * Initialize this.
 		 * TODO more description
 		 *
-		 * @param structure the structure that this entry belongs to
-		 * @param entries   a reference to the entries map instance of the structure that this entry belongs to (null if there is no such instance)
+		 * @param object the JSObject that this entry belongs to
+		 * @param entries   a reference to the entries map instance of the JSObject that this entry belongs to (null if there is no such instance)
 		 * @param field     the field where this entry is linked to (null if there is no such field)
 		 * @param key       the key represented by this entry
 		 */
-		private Entry(Structure<K, V> structure, Map<K, Entry<K, V>> entries, Field field, K key) {
-			this.structure = structure;
+		private Entry(JSObject<K, V> object, Map<K, Entry<K, V>> entries, Field field, K key) {
+			this.object = object;
 			this.key = key;
 			this.entries = entries;
 			this.field = field;
@@ -330,7 +330,7 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		public V getValue() {
 			if (this.field != null)
 				try {
-					return (V) this.field.get(this.structure);
+					return (V) this.field.get(this.object);
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();
 				}
@@ -349,12 +349,12 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 				if (this.field.getType().isInstance(value)) {
 					try {
 						this.field.setAccessible(true);
-						this.field.set(this.structure, value);
+						this.field.set(this.object, value);
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
 					}
 				} else {
-					this.structure.put(this.key, (V) this.structure.caster().cast(this.field.getType(), value));
+					this.object.put(this.key, (V) this.object.caster().cast(this.field.getType(), value));
 					return old;
 				}
 
@@ -372,9 +372,9 @@ public interface Structure<K, V> extends Map<K, V>, Configurable, Caster.User {
 		}
 
 		/**
-		 * Remove this entry from the structure where it's belongs to.
+		 * Remove this entry from the JSObject where it's belongs to.
 		 * By removing it from the {@link #entries entries object} in the linked
-		 * structure (If the object is not null). Or setting the {@link #value value of this}
+		 * JSObject (If the object is not null). Or setting the {@link #value value of this}
 		 * to null. If this entry is linked to any {@link #field}.
 		 *
 		 * @return the previous value associated with this.
