@@ -80,12 +80,9 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		Set<Map.Entry<K, V>> set = entries == null ? new HashSet<>() : new HashSet<>(entries.values());
 
 		for (Field field : this.getClass().getFields())
-			if (!this.isTransient(field)) {
-				K key = this.getKey(field);
-
-				set.add(entries == null ? new Entry<>(this, null, field, key) :
-						entries.computeIfAbsent(key, k -> new Entry<>(this, entries, field, key)));
-			}
+			if (!this.isTransient(field))
+				set.add(entries == null ? new Entry<>(this, null, field, this.getKey(field)) :
+						entries.computeIfAbsent(this.getKey(field), k -> new Entry<>(this, entries, field, k)));
 
 		return set;
 	}
@@ -153,7 +150,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 
 	/**
 	 * Get the entry associated with the passed key.
-	 * Or create a brand new one if there is not instance
+	 * Or create a brand new one if there is no instance
 	 * for it.
 	 *
 	 * @param key associated with the targeted entry
@@ -197,8 +194,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 */
 	default K getKey(Field field) {
 		String name = field.getName();
-		String indexKeyword = this.configurations(Configurations.class, JSObject.class).indexer();
-		String[] split = name.split(indexKeyword);
+		String[] split = name.split(this.configurations(Configurations.class, JSObject.class).indexer());
 
 		if (split.length == 2)
 			try {
@@ -228,24 +224,23 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	/**
-	 * A runtime annotation. Targets {@link JSObject structures}. And sets the configurations of it's targeted JSObject.
+	 * A runtime annotation. Sets the configurations of it's targeted JSObject.
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ElementType.TYPE, ElementType.TYPE_USE})
 	@Inherited
 	@interface Configurations {
 		/**
-		 * The keyword that defines that. The field with that keyword in the start of it's name.
-		 * Is an Index field and it should be used as an list element holder.
+		 * The word that if it found on the start of a name of a field. Then the field's name is an Integer (without that word).
 		 * <br><br>
 		 * note: the field name that starts with the keyword. SHOULD have an Integer name (excluding the keyword).
 		 * <br><b>example:</b>
 		 * <pre>
-		 *     If: index=3 & keyword="i"
+		 *     If: name=3 & indexer="i"
 		 *     Then: field_name="i3"
 		 * </pre>
 		 *
-		 * @return the keyword used to define an Index field
+		 * @return the keyword used to define an Integer field name
 		 */
 		String indexer() default "i";
 
@@ -309,10 +304,10 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * Initialize this.
 		 * TODO more description
 		 *
-		 * @param object the JSObject that this entry belongs to
-		 * @param entries   a reference to the entries map instance of the JSObject that this entry belongs to (null if there is no such instance)
-		 * @param field     the field where this entry is linked to (null if there is no such field)
-		 * @param key       the key represented by this entry
+		 * @param object  the JSObject that this entry belongs to
+		 * @param entries a reference to the entries map instance of the JSObject that this entry belongs to (null if there is no such instance)
+		 * @param field   the field where this entry is linked to (null if there is no such field)
+		 * @param key     the key represented by this entry
 		 */
 		private Entry(JSObject<K, V> object, Map<K, Entry<K, V>> entries, Field field, K key) {
 			this.object = object;

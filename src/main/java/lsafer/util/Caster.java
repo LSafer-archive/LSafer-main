@@ -403,7 +403,7 @@ public abstract class Caster {
 			try {
 				C collection = (C) klass.newInstance();
 
-				map.forEach((key, value) -> collection.add(value));
+				collection.addAll(map.values());
 
 				return collection;
 			} catch (IllegalAccessException e) {
@@ -435,7 +435,7 @@ public abstract class Caster {
 
 					if (key instanceof Integer) {
 						if (((Integer) key) >= list.size())
-							Collections.fill(list, (Integer) key, i -> null);
+							Collections.fill(list, ((Integer) key) + 1, i -> null);
 
 						list.set((Integer) key, entry.getValue());
 					}
