@@ -30,7 +30,7 @@ import lsafer.util.impl.JSONFileHashMap;
  * @version 7 release (28-Sep-19)
  * @since 19-Jul-19
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 @FolderMap.Configurations
 public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 	@Override
@@ -118,8 +118,12 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 	default <F extends FolderMap> F applyRemote() {
 		File remote = this.remote();
 		this.forEach(((key, value) -> {
-			if (key instanceof String && value instanceof FileMap)
+			if (key instanceof String && value instanceof FileMap) {
 				((FileMap<?, ?>) value).remote(remote.child(((String) key)));
+
+				if (value instanceof FolderMap)
+					((FolderMap<?, ?>) value).applyRemote();
+			}
 		}));
 		return (F) this;
 	}
