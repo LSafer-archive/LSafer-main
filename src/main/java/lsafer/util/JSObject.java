@@ -340,8 +340,10 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 			if (this.entries != null)
 				this.entries.put(this.key, this);
 
-			if (this.field != null)
-				if (this.field.getType().isInstance(value)) {
+			if (this.field != null) {
+				Class<?> type = this.field.getType();
+
+				if (type.isInstance(value)) {
 					try {
 						this.field.setAccessible(true);
 						this.field.set(this.object, value);
@@ -349,9 +351,11 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 						e.printStackTrace();
 					}
 				} else {
-					this.object.put(this.key, (V) this.object.caster().cast(this.field.getType(), value));
+					V casted = (V) this.object.caster().cast(type, value);
+					this.object.put(this.key, type.isInstance(value) ? casted : null);
 					return old;
 				}
+			}
 
 			this.value = value;
 			return old;
