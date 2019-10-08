@@ -29,7 +29,7 @@ public abstract class IOHashMap<R, K, V> extends HashMap<K, V> implements IOMap<
 	/**
 	 * The 3rd IO-container's remote.
 	 */
-	protected transient R remote;
+	protected R remote;
 
 	@Override
 	public R remote() {

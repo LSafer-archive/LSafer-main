@@ -30,7 +30,7 @@ public abstract class AbstractIOJSObject<R, K, V> extends AbstractJSObject<K, V>
 	/**
 	 * The 3rd IO-container's remote.
 	 */
-	protected transient R remote;
+	protected R remote;
 
 	@Override
 	public R remote() {
