@@ -390,7 +390,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 					this.entries.remove(this.key, this);
 			} else try {
 				this.field.setAccessible(true);
-				this.field.set(this, null);
+				this.field.set(this.object, null);
 				this.value = null;
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
