@@ -217,9 +217,8 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		return Modifier.isPrivate(modifier) ||
 			   Modifier.isProtected(modifier) ||
 			   Modifier.isTransient(modifier) ||
-			   field.isAnnotationPresent(Transient.class) ?
-			   field.getAnnotation(Transient.class).value() :
-			   this.configurations(Configurations.class, JSObject.class).restricted() ||
+			   (field.isAnnotationPresent(Transient.class) ? field.getAnnotation(Transient.class).value() :
+				this.configurations(Configurations.class, JSObject.class).restricted()) ||
 			   Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");
 	}
 
