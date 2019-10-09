@@ -211,6 +211,8 @@ public abstract class StringParser {
 	 * @return a string representation of the object.
 	 */
 	public String stringify(Object object, String shift) {
+		if (object == null)
+			return "null";
 		if (object.getClass().isArray() && object.getClass().getComponentType().isPrimitive())
 			object = Arrays.objective(object);
 
