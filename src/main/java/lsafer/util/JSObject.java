@@ -351,7 +351,13 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 						e.printStackTrace();
 					}
 				} else {
-					V casted = (V) this.object.caster().cast(type, value);
+					V casted = null;
+
+					try {
+						casted = (V) this.object.caster().cast(type, value);
+					}catch (Exception e){
+						e.printStackTrace();
+					}
 
 					if(type.isInstance(casted) || (casted == null && !primitive))
 						this.object.put(this.key, casted);
