@@ -60,9 +60,7 @@ public abstract class StringParser {
 	public static Object Parse(Class<? extends StringParser> parser, String string) {
 		try {
 			return ((StringParser) parser.getField("instance").get(null)).parse(string);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalAccessException | NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -77,9 +75,7 @@ public abstract class StringParser {
 	public static String Stringify(Class<? extends StringParser> parser, Object object) {
 		try {
 			return ((StringParser) parser.getField("instance").get(null)).stringify(object);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalAccessException | NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -95,9 +91,7 @@ public abstract class StringParser {
 	public static String Stringify(Class<? extends StringParser> parser, Object object, String shift) {
 		try {
 			return ((StringParser) parser.getField("instance").get(null)).stringify(object, shift);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalAccessException | NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -117,9 +111,7 @@ public abstract class StringParser {
 			if (parser != null)
 				try {
 					return parser.invoke(this, string);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				} catch (InvocationTargetException e) {
+				} catch (IllegalAccessException | InvocationTargetException e) {
 					throw new RuntimeException(e);
 				}
 		}
@@ -139,9 +131,7 @@ public abstract class StringParser {
 				try {
 					if ((boolean) method.invoke(this, string))
 						return method.getAnnotation(QueryMethod.class).value();
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				} catch (InvocationTargetException e) {
+				} catch (IllegalAccessException | InvocationTargetException e) {
 					throw new RuntimeException(e);
 				}
 
@@ -226,9 +216,7 @@ public abstract class StringParser {
 					case 2:
 						return (String) method.invoke(this, object, shift);
 				}
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
+			} catch (IllegalAccessException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 

@@ -47,9 +47,7 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 					return file.isDirectory() ?
 						   (V) this.configurations(Configurations.class, FolderMap.class).folder().newInstance() :
 						   (V) this.configurations(Configurations.class, FolderMap.class).file().newInstance();
-				} catch (InstantiationException e) {
-					throw new RuntimeException(e);
-				} catch (IllegalAccessException e) {
+				} catch (InstantiationException | IllegalAccessException e) {
 					throw new RuntimeException(e);
 				}
 			});

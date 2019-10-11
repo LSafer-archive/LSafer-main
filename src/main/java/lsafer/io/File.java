@@ -684,9 +684,7 @@ public class File extends java.io.File {
 			//result
 			if (klass.isInstance(value))
 				return value;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 

@@ -22,15 +22,46 @@ import lsafer.util.Strings;
  * A Text parser for INI files.
  *
  * @author LSaferSE
- * @version 3 release (28-Sep-19)
+ * @version 4 release (11-Oct-19)
  * @since 21-Jul-19
  */
-@SuppressWarnings({"unused"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class INI extends StringParser {
 	/**
 	 * The global instance to avoid unnecessary instancing.
 	 */
 	final public static INI instance = new INI();
+
+	/**
+	 * Parse the passed ini-string into a java object.
+	 *
+	 * @param string to be parsed
+	 * @return an object parsed from the given string
+	 */
+	public static Object Parse(String string) {
+		return instance.parse(string);
+	}
+
+	/**
+	 * Stringify the given object to be a ini-text.
+	 *
+	 * @param object to be stringed
+	 * @param shift  the shift that the string should have
+	 * @return a string from stringing the given object
+	 */
+	public static String Stringify(Object object, String shift) {
+		return instance.stringify(object, shift);
+	}
+
+	/**
+	 * Stringify the given object to be a ini-text.
+	 *
+	 * @param object to be stringed
+	 * @return a string from stringing the given object
+	 */
+	public static String Stringify(Object object) {
+		return instance.stringify(object);
+	}
 
 	/**
 	 * Check if the given INI text is an {@link ArrayList array} or not.

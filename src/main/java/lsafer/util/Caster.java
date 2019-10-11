@@ -30,7 +30,7 @@ import java.util.Map;
  * Each casting method is (suppose to be) designed to be invoked by {@link #cast(Class, Object) the main dynamic casting method}.
  *
  * @author LSaferSE
- * @version 4 release (28-Sep-19)
+ * @version 5 release (11-Oct-19)
  * @since 31-Aug-19
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -61,11 +61,28 @@ public abstract class Caster {
 			return Default.instance.cast(klass, object);
 		else try {
 			return ((Caster) caster.getField("instance").get(null)).cast(klass, object);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalAccessException | NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Cast the given Object to the targeted class. By searching for a matching method then invoke it then return the results of it.
+	 *
+	 * <ul>
+	 * <li>
+	 * note: after finding a matching method. It'll be stored for next time casts so
+	 * the next casts will be faster. (using {@link #casting_methods Methods Map}.
+	 * </li>
+	 * </ul>
+	 *
+	 * @param klass  to cast the object to
+	 * @param object to be casted
+	 * @param <T>    type of the targeted class
+	 * @return the given object casted to the given class, or null case casting failure
+	 */
+	public static <T> T defaultCast(Class<T> klass, Object object) {
+		return Default.instance.cast(klass, object);
 	}
 
 	/**
@@ -98,12 +115,8 @@ public abstract class Caster {
 					case 2:
 						return klass.cast(method.invoke(this, klass, object));
 				}
-			} catch (IllegalAccessException e) {
+			} catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
 				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
-				throw new RuntimeException(e);
-			} catch (ClassCastException e) {
-				throw new RuntimeException(method + " have some casting issues", e);
 			}
 
 		return null;
@@ -270,9 +283,7 @@ public abstract class Caster {
 				C collection = (C) klass.newInstance();
 				collection.addAll(java.util.Arrays.asList(array));
 				return collection;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -296,9 +307,7 @@ public abstract class Caster {
 					map.put(i, array[i]);
 
 				return map;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -342,9 +351,7 @@ public abstract class Caster {
 					map.put(i++, element);
 
 				return map;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -361,13 +368,7 @@ public abstract class Caster {
 		public <F extends File> F file2file(Class<? super F> klass, File file) {
 			try {
 				return (F) klass.getConstructor(File.class).newInstance(file);
-			} catch (NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
-				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
+			} catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -406,9 +407,7 @@ public abstract class Caster {
 				collection.addAll(map.values());
 
 				return collection;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -442,9 +441,7 @@ public abstract class Caster {
 				});
 
 				return list;
-			} catch (InstantiationException e) {
-				throw new RuntimeException(e);
-			} catch (IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -465,9 +462,7 @@ public abstract class Caster {
 				//noinspection unchecked
 				instance.putAll(map);
 				return instance;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -552,13 +547,7 @@ public abstract class Caster {
 		public <F extends File> F string2file(Class<? super F> klass, String string) {
 			try {
 				return (F) klass.getConstructor(String.class).newInstance(string);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (InstantiationException e) {
-				throw new RuntimeException(e);
-			} catch (NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
 				throw new RuntimeException(e);
 			}
 		}

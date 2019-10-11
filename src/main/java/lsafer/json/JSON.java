@@ -23,7 +23,7 @@ import lsafer.util.Strings;
  * A text parser for JSON files.
  *
  * @author LSaferSE
- * @version 5 release (28-Sep-2019)
+ * @version 6 release (11-Oct-2019)
  * @since 09-Jul-19
  */
 @SuppressWarnings("unused")
@@ -32,6 +32,37 @@ public class JSON extends StringParser {
 	 * The global instance to avoid unnecessary instancing.
 	 */
 	final public static JSON instance = new JSON();
+
+	/**
+	 * Parse the passed json-string into a java object.
+	 *
+	 * @param string to be parsed
+	 * @return an object parsed from the given string
+	 */
+	public static Object Parse(String string) {
+		return instance.parse(string);
+	}
+
+	/**
+	 * Stringify the given object to be a json-text.
+	 *
+	 * @param object to be stringed
+	 * @param shift  the shift that the string should have
+	 * @return a string from stringing the given object
+	 */
+	public static String Stringify(Object object, String shift) {
+		return instance.stringify(object, shift);
+	}
+
+	/**
+	 * Stringify the given object to be a json-text.
+	 *
+	 * @param object to be stringed
+	 * @return a string from stringing the given object
+	 */
+	public static String Stringify(Object object) {
+		return instance.stringify(object);
+	}
 
 	/**
 	 * Check if the given JSON text is an {@link ArrayList array} or not.
