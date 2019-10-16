@@ -240,6 +240,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	default void shiftIndexes(int at, int by) {
 		HashMap<Integer, Object> newMap = new HashMap<>();
 
+		//noinspection Java8MapForEach value may not be used
 		this.entrySet().forEach(entry -> {
 			Object key = entry.getKey();
 			if (key instanceof Integer && (by > 0 ? ((Integer) key >= at) : ((Integer) key <= at)))

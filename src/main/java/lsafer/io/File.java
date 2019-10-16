@@ -10,28 +10,19 @@
  */
 package lsafer.io;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URLConnection;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import lsafer.json.JSON;
 import lsafer.util.Arrays;
 import lsafer.util.Loop;
 import lsafer.util.StringParser;
 import lsafer.util.Strings;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URLConnection;
+import java.text.DateFormat;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A {@link java.io.File} with useful tools.
@@ -218,18 +209,34 @@ public class File extends java.io.File {
 	}
 
 	/**
-	 * Get this file's children in a {@link List}.
+	 * Get this file's children in a {@link Set}.
 	 *
 	 * @return this file's children
 	 */
-	public List<File> children() {
-		List<File> children = new ArrayList<>();
+	public Set<File> children() {
+		Set<File> children = new HashSet<>();
 
 		String[] list = this.list();
 
 		if (list != null)
 			for (String child : list)
 				children.add(new File(this, child));
+
+		return children;
+	}
+
+	/**
+	 * Get this file's children in a {@link List}.
+	 *
+	 * @return this file's children
+	 */
+	public Set<String> children0() {
+		Set<String> children = new HashSet<>();
+
+		String[] list = this.list();
+
+		if (list != null)
+			children.addAll(java.util.Arrays.asList(list));
 
 		return children;
 	}
@@ -257,7 +264,7 @@ public class File extends java.io.File {
 			number = Strings.crop(split[split.length - 1], 1, 1);
 
 			if (JSON.instance.is_integer(number)) {
-				this.suffix = Integer.valueOf(number) + 1;
+				this.suffix = Integer.parseInt(number) + 1;
 				split = Arrays.crop(split, 0, 1);
 				return this.clean_title = Strings.join(" ", "", split);
 			}

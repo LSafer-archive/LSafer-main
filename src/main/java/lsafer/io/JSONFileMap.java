@@ -10,10 +10,10 @@
  */
 package lsafer.io;
 
+import lsafer.json.JSON;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import lsafer.json.JSON;
 
 /**
  * A {@link Map} that is linked to {@link File JSON-File} as it's IO-Container.
@@ -27,10 +27,9 @@ import lsafer.json.JSON;
  */
 public interface JSONFileMap<K, V> extends FileMap<K, V> {
 	@Override
-	default <F extends FileMap> F load() {
+	default Map<K, V> read() {
 		//noinspection unchecked
-		this.putAll(this.remote().read(JSON.class, Map.class, HashMap::new));
-		return (F) this;
+		return this.remote().read(JSON.class, Map.class, HashMap::new);
 	}
 
 	@Override

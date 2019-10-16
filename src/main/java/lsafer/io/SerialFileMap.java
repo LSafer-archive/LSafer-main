@@ -11,7 +11,9 @@
 package lsafer.io;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A {@link Map} that is linked to {@link File Serial-File} as it's IO-Container.
@@ -26,14 +28,9 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public interface SerialFileMap<K, V> extends FileMap<K, V>, Serializable {
 	@Override
-	default <F extends FileMap> F load() {
-		SerialFileMap structure = this.remote().readSerializable(SerialFileMap.class, () -> null);
-
-		if (structure != null)
-			//noinspection unchecked
-			this.putAll(structure);
-
-		return (F) this;
+	default Map<K, V> read() {
+		//noinspection unchecked
+		return this.remote().readSerializable(SerialFileMap.class, (Supplier<SerialFileMap>)(Supplier) HashMap::new);
 	}
 
 	@Override

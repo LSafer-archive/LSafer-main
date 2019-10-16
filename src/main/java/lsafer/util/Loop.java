@@ -10,7 +10,6 @@
  */
 package lsafer.util;
 
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -124,22 +123,22 @@ public abstract class Loop<I> {
 		/**
 		 * List of items to loop.
 		 */
-		private List<I> list;
+		private Iterable<I> iterable;
 
 		/**
 		 * Initialize this.
 		 *
-		 * @param list  of items to be looped foreach
+		 * @param iterable  of items to be looped foreach
 		 * @param block code to loop
 		 */
-		public Foreach(List<I> list, Function<I, Boolean> block) {
+		public Foreach(Iterable<I> iterable, Function<I, Boolean> block) {
 			super(block);
-			this.list = list;
+			this.iterable = iterable;
 		}
 
 		@Override
 		protected void start() {
-			for (I t : this.list)
+			for (I t : this.iterable)
 				if (!this.next(t))
 					break;
 		}

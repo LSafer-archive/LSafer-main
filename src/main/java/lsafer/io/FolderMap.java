@@ -10,16 +10,16 @@
  */
 package lsafer.io;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Map;
-
 import lsafer.util.Configurable;
 import lsafer.util.impl.FolderHashMap;
 import lsafer.util.impl.JSONFileHashMap;
+
+import java.lang.annotation.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A {@link Map} that is linked to {@link File Folder} as it's IO-Container.
@@ -27,7 +27,7 @@ import lsafer.util.impl.JSONFileHashMap;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 7 release (28-Sep-19)
+ * @version 8 release (17-Oct-19)
  * @since 19-Jul-19
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
@@ -40,24 +40,63 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 	}
 
 	@Override
-	default <F extends FileMap> F load() {
-		for (File file : this.remote().children()) {
-			V value = this.computeIfAbsent((K) file.getName(), key -> {
-				try {
-					return file.isDirectory() ?
-						   (V) this.configurations(Configurations.class, FolderMap.class).folder().newInstance() :
-						   (V) this.configurations(Configurations.class, FolderMap.class).file().newInstance();
-				} catch (InstantiationException | IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-			});
+	default Map<K, V> read() {
+		Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
+		Map<K, V> map = new HashMap<>();
 
-			if (value instanceof FileMap) {
-				((FileMap<?, ?>) value).remote(file);
-				((FileMap) value).load();
+		this.remote().children().forEach(file -> {
+			try {
+				String key = file.getName();
+				FileMap<?, ?> value = file.isDirectory() ?
+						  configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
+						  configurations.file().getDeclaredConstructor(new Class[0]).newInstance();
+
+				value.remote(file);
+				value.load();
+				map.put((K) key, (V) value);
+			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+				throw new RuntimeException(e);
 			}
-		}
+		});
 
+		return map;
+	}
+
+	@Override
+	default <F extends FileMap> F load() {
+		Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
+		Set<String> children = this.remote().children0();
+		Set<K> removed = new HashSet<>();
+
+		this.forEach((key, value) -> {
+			String key1 = String.valueOf(key);
+
+			if (children.contains(key1)) {
+				if (value instanceof FileMap) {
+					((FileMap<?, ?>) value).remote(this.remote().child(key1));
+					((FileMap<?, ?>) value).load();
+				}
+				children.remove(key1);
+			} else {
+				removed.add(key);
+			}
+		});
+
+		children.forEach(key -> {
+			try {
+				File file = new File(key);
+				FileMap<?, ?> value = (file.isDirectory() ?
+									 configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
+									 configurations.file().getDeclaredConstructor(new Class[0]).newInstance());
+				value.remote(file);
+				value.load();
+				this.put((K) key, (V) value);
+			} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		removed.forEach(this::remove);
 		return (F) this;
 	}
 

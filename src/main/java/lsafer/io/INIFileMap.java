@@ -10,10 +10,10 @@
  */
 package lsafer.io;
 
+import lsafer.microsoft.INI;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import lsafer.microsoft.INI;
 
 /**
  * A {@link Map} that is linked to {@link File INI-File} as it's IO-Container.
@@ -28,10 +28,9 @@ import lsafer.microsoft.INI;
 @SuppressWarnings("unused")
 public interface INIFileMap<K, V> extends FileMap<K, V> {
 	@Override
-	default <F extends FileMap> F load() {
+	default Map<K, V> read() {
 		//noinspection unchecked
-		this.putAll(this.remote().read(INI.class, Map.class, HashMap::new));
-		return (F) this;
+		return this.remote().read(INI.class, Map.class, HashMap::new);
 	}
 
 	@Override

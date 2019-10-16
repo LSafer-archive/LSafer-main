@@ -280,10 +280,10 @@ public abstract class Caster {
 		@CastingMethod(subs = true)
 		public <C extends Collection<E>, E> C array2collection(Class<? super C> klass, E[] array) {
 			try {
-				C collection = (C) klass.newInstance();
+				C collection = (C) klass.getDeclaredConstructor(new Class[0]).newInstance();
 				collection.addAll(java.util.Arrays.asList(array));
 				return collection;
-			} catch (IllegalAccessException | InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -301,13 +301,13 @@ public abstract class Caster {
 		@CastingMethod(subs = true)
 		public <M extends Map<? super Integer, V>, V> M array2map(Class<? super M> klass, V[] array) {
 			try {
-				M map = (M) klass.newInstance();
+				M map = (M) klass.getDeclaredConstructor(new Class[0]).newInstance();
 
 				for (int i = 0; i < array.length; i++)
 					map.put(i, array[i]);
 
 				return map;
-			} catch (IllegalAccessException | InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -344,14 +344,14 @@ public abstract class Caster {
 		@CastingMethod(subs = true)
 		public <M extends Map<? super Integer, V>, V> M collection2map(Class<? super M> klass, Collection<V> collection) {
 			try {
-				M map = (M) klass.newInstance();
+				M map = (M) klass.getDeclaredConstructor(new Class[0]).newInstance();
 
 				int i = 0;
 				for (V element : collection)
 					map.put(i++, element);
 
 				return map;
-			} catch (IllegalAccessException | InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -402,12 +402,12 @@ public abstract class Caster {
 		@CastingMethod(subs = true, exclude = List.class)
 		public <C extends Collection<E>, E> C map2collection(Class<? super C> klass, Map<?, E> map) {
 			try {
-				C collection = (C) klass.newInstance();
+				C collection = (C) klass.getDeclaredConstructor(new Class[0]).newInstance();
 
 				collection.addAll(map.values());
 
 				return collection;
-			} catch (IllegalAccessException | InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -427,8 +427,9 @@ public abstract class Caster {
 		@CastingMethod(subs = true)
 		public <L extends List<E>, E> L map2list(Class<? super L> klass, Map<?, E> map) {
 			try {
-				L list = (L) klass.newInstance();
+				L list = (L) klass.getDeclaredConstructor(new Class[0]).newInstance();
 
+				//noinspection Java8MapForEach value may not be used
 				map.entrySet().forEach(entry -> {
 					Object key = entry.getKey();
 
@@ -441,7 +442,7 @@ public abstract class Caster {
 				});
 
 				return list;
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -458,11 +459,11 @@ public abstract class Caster {
 		@CastingMethod(subs = true)
 		public <M extends Map> M map2map(Class<? super M> klass, Map<?, ?> map) {
 			try {
-				M instance = (M) klass.newInstance();
+				M instance = (M) klass.getDeclaredConstructor(new Class[0]).newInstance();
 				//noinspection unchecked
 				instance.putAll(map);
 				return instance;
-			} catch (IllegalAccessException | InstantiationException e) {
+			} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -497,8 +498,12 @@ public abstract class Caster {
 		 */
 		@CastingMethod
 		public Integer number2integer(Number number) {
-			String string = number.toString();
-			return string.contains("E") ? (int) (float) Float.valueOf(string) : Integer.valueOf(string.split("[.]")[0]);
+			try {
+				String string = number.toString();
+				return string.contains("E") ? (int) Float.parseFloat(string) : Integer.parseInt(string.split("[.]")[0]);
+			} catch (Exception e) {
+				return null;
+			}
 		}
 
 		/**
@@ -509,8 +514,12 @@ public abstract class Caster {
 		 */
 		@CastingMethod
 		public Long number2long(Number number) {
-			String string = number.toString();
-			return string.contains("E") ? (long) (float) Float.valueOf(string) : Long.valueOf(string.split("[.]")[0]);
+			try {
+				String string = number.toString();
+				return string.contains("E") ? (long) Float.parseFloat(string) : Long.parseLong(string.split("[.]")[0]);
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
 		}
 
 		/**
@@ -571,7 +580,7 @@ public abstract class Caster {
 		 */
 		@CastingMethod
 		public Integer string2integer(String string) {
-			return string.contains("E") ? (int) (float) Float.valueOf(string) : Integer.valueOf(string.split("[.]")[0]);
+			return string.contains("E") ? (int) Float.parseFloat(string) : Integer.parseInt(string.split("[.]")[0]);
 		}
 
 		/**
@@ -582,7 +591,7 @@ public abstract class Caster {
 		 */
 		@CastingMethod
 		public Long string2long(String string) {
-			return string.contains("E") ? (long) (float) Float.valueOf(string) : Long.valueOf(string.split("[.]")[0]);
+			return string.contains("E") ? (long) Float.parseFloat(string) : Long.parseLong(string.split("[.]")[0]);
 		}
 	}
 }

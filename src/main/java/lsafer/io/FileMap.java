@@ -10,9 +10,11 @@
  */
 package lsafer.io;
 
-import java.util.Map;
-
 import lsafer.util.Caster;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A {@link Map} that is linked to {@link File} as it's IO-Container.
@@ -20,7 +22,7 @@ import lsafer.util.Caster;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 12 release (28-Sep-2019)
+ * @version 13 release (16-Oct-2019)
  * @since 11 Jun 2019
  */
 @SuppressWarnings({"UnusedReturnValue", "unused"})
@@ -90,12 +92,34 @@ public interface FileMap<K, V> extends IOMap<File, K, V>, Caster.User {
 	}
 
 	/**
+	 * Read the contents of this file as a map and return it.
+	 *
+	 * @return a map of contents of this file
+	 */
+	Map<K, V> read();
+
+	/**
 	 * Load this from the linked {@link File}.
 	 *
 	 * @param <F> this
 	 * @return this
 	 */
-	<F extends FileMap> F load();
+	default <F extends FileMap> F load() {
+		Map<K, V> map = this.read();
+		Set<K> keys = map.keySet();
+		Set<K> removed = new HashSet<>();
+
+		this.keySet().forEach(k -> {
+			if (!keys.contains(k)) {
+				removed.add(k);
+				keys.remove(k);
+			}
+		});
+
+		removed.forEach(this::remove);
+		keys.forEach(k -> this.put(k, map.get(k)));
+		return (F) this;
+	}
 
 	/**
 	 * Save this to the linked {@link File}.

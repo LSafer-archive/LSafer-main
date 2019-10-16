@@ -10,14 +10,14 @@
  */
 package lsafer.json;
 
+import lsafer.util.Arrays;
+import lsafer.util.StringParser;
+import lsafer.util.Strings;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import lsafer.util.Arrays;
-import lsafer.util.StringParser;
-import lsafer.util.Strings;
 
 /**
  * A text parser for JSON files.
@@ -197,6 +197,7 @@ public class JSON extends StringParser {
 	 * @param string json text to be parsed
 	 * @return an array from the given JSON text
 	 */
+	@SuppressWarnings("DuplicatedCode")
 	@ParsingMethod
 	public ArrayList parse_array(String string) {
 		if (string.charAt(0) != '[' || string.charAt(string.length() - 1) != ']')
@@ -292,7 +293,10 @@ public class JSON extends StringParser {
 					case ',':
 					case ']':
 						String collected = builder.toString();
-						list.add(collected.equals("#") ? list : this.parse(collected));
+
+						if (!collected.equals(""))
+							list.add(collected.equals("#") ? list : this.parse(collected));
+
 						builder = new StringBuilder();
 						break;
 					default:
@@ -377,6 +381,7 @@ public class JSON extends StringParser {
 	 * @param string json text to be parsed
 	 * @return a map from the given JSON text
 	 */
+	@SuppressWarnings("DuplicatedCode")
 	@ParsingMethod
 	public HashMap<Object, Object> parse_map(String string) {
 		if (string.charAt(0) != '{' || string.charAt(string.length() - 1) != '}')
@@ -475,8 +480,9 @@ public class JSON extends StringParser {
 					case '}':
 						String value = builder.toString();
 
-						map.put(Arrays.contains(key, "#", "(this Map)") ? map : this.parse(key),
-								Arrays.contains(value, "#", "(this Map)") ? map : this.parse(value));
+						if (!key.equals(""))
+							map.put(Arrays.contains(key, "#", "(this Map)") ? map : this.parse(key),
+									Arrays.contains(value, "#", "(this Map)") ? map : this.parse(value));
 
 						key = "";
 						builder = new StringBuilder();
@@ -508,6 +514,7 @@ public class JSON extends StringParser {
 	 * @param shift shifting string
 	 * @return a JSON text from the given array
 	 */
+	@SuppressWarnings("DuplicatedCode")
 	@StringingMethod
 	public String stringify_array(Object[] array, String shift) {
 		StringBuilder text = new StringBuilder();
@@ -544,6 +551,7 @@ public class JSON extends StringParser {
 	 * @param shift      shifting string
 	 * @return a JSON text from the given collection
 	 */
+	@SuppressWarnings("DuplicatedCode")
 	@StringingMethod
 	public String stringify_collection(Collection collection, String shift) {
 		StringBuilder text = new StringBuilder();

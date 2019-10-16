@@ -133,6 +133,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	default Collection<V> values() {
 		List<V> collection = new ArrayList<>();
 
+		//noinspection Java8MapForEach key not used
 		this.entrySet().forEach(entry -> collection.add(entry.getValue()));
 
 		return collection;
