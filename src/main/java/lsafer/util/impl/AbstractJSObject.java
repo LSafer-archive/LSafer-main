@@ -10,6 +10,8 @@
  */
 package lsafer.util.impl;
 
+import lsafer.util.JSObject;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,8 +20,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import lsafer.util.JSObject;
 
 /**
  * An abstract to implement needed methods in the interfaces {@link JSObject} and {@link Serializable}.

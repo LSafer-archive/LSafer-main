@@ -10,10 +10,10 @@
  */
 package lsafer.util.impl;
 
-import java.io.Serializable;
-
 import lsafer.io.IOMap;
 import lsafer.util.JSObject;
+
+import java.io.Serializable;
 
 /**
  * An abstract for structures with the needed methods for the interfaces {@link JSObject}, {@link Serializable} and {@link IOMap}.

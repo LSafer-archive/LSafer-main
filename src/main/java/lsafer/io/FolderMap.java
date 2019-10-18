@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
  * A {@link Map} that is linked to {@link File Folder} as it's IO-Container.
@@ -48,8 +49,8 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 			try {
 				String key = file.getName();
 				FileMap<?, ?> value = file.isDirectory() ?
-						  configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
-						  configurations.file().getDeclaredConstructor(new Class[0]).newInstance();
+									  configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
+									  configurations.file().getDeclaredConstructor(new Class[0]).newInstance();
 
 				value.remote(file);
 				value.load();
@@ -63,40 +64,44 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 	}
 
 	@Override
-	default <F extends FileMap> F load() {
+	default <F extends FileMap> F load(BiConsumer<K, V> removed, BiConsumer<K, V> added) {
 		Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
 		Set<String> children = this.remote().children0();
-		Set<K> removed = new HashSet<>();
+		Set<K> remove = new HashSet<>();
 
-		this.forEach((key, value) -> {
-			String key1 = String.valueOf(key);
+		this.entrySet().forEach(entry -> {
+			String key = String.valueOf(entry.getKey());
 
-			if (children.contains(key1)) {
+			if (children.contains(key)) {
+				V value = entry.getValue();
 				if (value instanceof FileMap) {
-					((FileMap<?, ?>) value).remote(this.remote().child(key1));
+					((FileMap<?, ?>) value).remote(this.remote().child(key));
 					((FileMap<?, ?>) value).load();
 				}
-				children.remove(key1);
+				children.remove(key);
 			} else {
-				removed.add(key);
+				remove.add((K) key);
 			}
 		});
 
+		remove.forEach((key) -> {
+			V value = this.remove(key);
+			removed.accept(key, value);
+		});
 		children.forEach(key -> {
 			try {
 				File file = new File(key);
 				FileMap<?, ?> value = (file.isDirectory() ?
-									 configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
-									 configurations.file().getDeclaredConstructor(new Class[0]).newInstance());
+									   configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
+									   configurations.file().getDeclaredConstructor(new Class[0]).newInstance());
 				value.remote(file);
 				value.load();
 				this.put((K) key, (V) value);
+				added.accept((K) key, (V) value);
 			} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 		});
-
-		removed.forEach(this::remove);
 		return (F) this;
 	}
 

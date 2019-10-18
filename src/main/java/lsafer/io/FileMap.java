@@ -15,6 +15,7 @@ import lsafer.util.Caster;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
  * A {@link Map} that is linked to {@link File} as it's IO-Container.
@@ -105,19 +106,42 @@ public interface FileMap<K, V> extends IOMap<File, K, V>, Caster.User {
 	 * @return this
 	 */
 	default <F extends FileMap> F load() {
+		return this.load((k, v) -> {
+		}, (k, v) -> {
+		});
+	}
+
+	/**
+	 * Load this from the linked {@link File}.
+	 *
+	 * @param removed to do with the removed entries
+	 * @param added   to do with added entries
+	 * @param <F>     this
+	 * @return this
+	 */
+	default <F extends FileMap> F load(BiConsumer<K, V> removed, BiConsumer<K, V> added) {
 		Map<K, V> map = this.read();
 		Set<K> keys = map.keySet();
-		Set<K> removed = new HashSet<>();
+		Set<K> remove = new HashSet<>();
 
 		this.keySet().forEach(k -> {
-			if (!keys.contains(k)) {
-				removed.add(k);
+			if (keys.contains(k)) {
+				this.put(k, map.get(k));
 				keys.remove(k);
+			} else {
+				remove.add(k);
 			}
 		});
 
-		removed.forEach(this::remove);
-		keys.forEach(k -> this.put(k, map.get(k)));
+		remove.forEach(key -> {
+			V value = this.remove(key);
+			removed.accept(key, value);
+		});
+		keys.forEach(key -> {
+			V value = map.get(key);
+			this.put(key, value);
+			added.accept(key, value);
+		});
 		return (F) this;
 	}
 

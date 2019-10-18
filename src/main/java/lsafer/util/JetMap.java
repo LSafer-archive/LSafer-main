@@ -12,6 +12,7 @@ package lsafer.util;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -87,5 +88,24 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 			keySet.forEach(this::remove);
 			return true;
 		}
+	}
+
+	/**
+	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value.
+	 * This method removes the first value equals to the given value. Then return the
+	 * key it associated to. Or null if ether the key is null. Or there is no such
+	 * value equals to the given value in this map.
+	 *
+	 * @param value to be removed
+	 * @return the key the value is associated to
+	 */
+	default K removeValue(Object value) {
+		for (Map.Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(entry.getValue(), value)) {
+				K key = entry.getKey();
+				this.remove(key);
+				return key;
+			}
+		return null;
 	}
 }

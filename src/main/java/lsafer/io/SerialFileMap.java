@@ -30,7 +30,7 @@ public interface SerialFileMap<K, V> extends FileMap<K, V>, Serializable {
 	@Override
 	default Map<K, V> read() {
 		//noinspection unchecked
-		return this.remote().readSerializable(SerialFileMap.class, (Supplier<SerialFileMap>)(Supplier) HashMap::new);
+		return this.remote().readSerializable(SerialFileMap.class, (Supplier<SerialFileMap>) (Supplier) HashMap::new);
 	}
 
 	@Override

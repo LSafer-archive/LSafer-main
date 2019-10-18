@@ -10,10 +10,10 @@
  */
 package lsafer.util.impl;
 
-import java.util.HashMap;
-
 import lsafer.util.HybridMap;
 import lsafer.util.JetMap;
+
+import java.util.HashMap;
 
 /**
  * An implementation of {@link JetMap} and {@link HybridMap} to {@link HashMap}.

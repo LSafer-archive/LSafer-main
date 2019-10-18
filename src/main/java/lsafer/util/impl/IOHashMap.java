@@ -10,9 +10,9 @@
  */
 package lsafer.util.impl;
 
-import java.util.HashMap;
-
 import lsafer.io.IOMap;
+
+import java.util.HashMap;
 
 /**
  * An abstract for hash-maps with the needed methods for interface {@link IOMap}.

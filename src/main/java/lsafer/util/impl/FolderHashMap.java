@@ -10,13 +10,13 @@
  */
 package lsafer.util.impl;
 
-import java.lang.annotation.Annotation;
-
 import lsafer.io.File;
 import lsafer.io.FileMap;
 import lsafer.io.FolderMap;
 import lsafer.util.HybridMap;
 import lsafer.util.JetMap;
+
+import java.lang.annotation.Annotation;
 
 /**
  * An implement of 3 interfaces. To be a map that have a 3rd folder container.

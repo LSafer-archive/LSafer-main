@@ -10,10 +10,7 @@
  */
 package lsafer.util;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A {@link Map maps} plugin interface. An Interface that adds all {@link List lists} base methods
@@ -26,7 +23,7 @@ import java.util.Map;
  * @version 4 release (28-Sep-19)
  * @since 15-Sep-19
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused"})
 public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	/**
 	 * Depending on current indexing position on this map.
@@ -54,7 +51,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 * @param element element to be inserted
 	 */
 	default void add(int index, V element) {
-		this.shiftIndexes(index, 1);
+		this.shiftIndexes(index, null, 1);
 		this.put((K) (Object) index, element);
 	}
 
@@ -85,7 +82,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 * @return true if this map changed as a result of the call
 	 */
 	default boolean addAll(int index, Collection<V> collection) {
-		this.shiftIndexes(index, collection.size());
+		this.shiftIndexes(index, null, collection.size());
 
 		int i = 0;
 		for (V object : collection)
@@ -154,7 +151,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 * @param element element to be inserted
 	 */
 	default void push(int index, V element) {
-		this.shiftIndexes(index, -1);
+		this.shiftIndexes(null, index, -1);
 		this.put((K) (Object) index, element);
 	}
 
@@ -186,7 +183,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	 * @return true if this map changed as a result of the call
 	 */
 	default boolean pushAll(int index, Collection<V> collection) {
-		this.shiftIndexes(index, -collection.size());
+		this.shiftIndexes(null, index, -collection.size());
 
 		int i = 0;
 		for (V object : collection)
@@ -223,33 +220,77 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Shift indexes by the passed integer 'by',
-	 * Starting from the passed index 'at'.
-	 * <br><br><b>example:</b>
+	 * Shift indexes within the given range by the given value.
+	 * <p>
+	 * ex.
 	 * <pre>
-	 *     toString -> {-1:"-one", 0:"zero", 1:"one"}
-	 *     shiftIndexes <- (0, 2)
-	 *     toString -> {-1:"-one", 2:"zero", 3:"one"}
-	 *     shiftIndexes <- (-1, -3)
-	 *     toString -> {-4:"-one", 2:"zero", 3:"one"}
+	 *     map = {0:zero, 1:one, 2:two, 3:three}
+	 *     map.shiftIndexes(<font color="gray">start</font> 1, <font color="gray">end</font> 2, <font color="gray">by</font> -1)
+	 *     map => {0:zero, 1:two, 3:three}
+	 *
+	 *     map = {0:A, 1:B, 2:C, 3:D, 4:E}
+	 *     map.shiftIndexes(<font color="gray">start</font> 2, <font color="gray">end</font> null, <font color="gray">by</font> 2)
+	 *     map => {0:A, 1:B, 4:C, 5:D, 6:E}
 	 * </pre>
 	 *
-	 * @param at from where to start
-	 * @param by how much to shift
+	 * @param start the start of the shifting range (aka min)(null for no start)
+	 * @param end   the end of the shifting range (aka max)(null for no end)
+	 * @param by    the length to shift the values of this by
 	 */
-	default void shiftIndexes(int at, int by) {
-		HashMap<Integer, Object> newMap = new HashMap<>();
+	default void shiftIndexes(Integer start, Integer end, int by) {
+		HashMap<K, V> modified = new HashMap<>();
+
+		boolean noStart = start == null;
+		boolean noEnd = end == null;
 
 		//noinspection Java8MapForEach value may not be used
 		this.entrySet().forEach(entry -> {
-			Object key = entry.getKey();
-			if (key instanceof Integer && (by > 0 ? ((Integer) key >= at) : ((Integer) key <= at)))
-				newMap.put((Integer) key, entry.getValue());
+			K key = entry.getKey();
+			//noinspection RedundantCast can't compile without it
+			if (key instanceof Integer && (noStart || (Integer) key >= start) && (noEnd || (Integer) key <= end))
+				modified.put(key, entry.getValue());
 		});
 
-		newMap.forEach((k, v) -> {
-			this.remove(k, v);
-			((Map<Integer, Object>) this).put(k + by, v);
+		modified.forEach((key, value) -> {
+			this.remove(key, value);
+			int index = (Integer) key + by;
+
+			if ((noStart || index >= start) && (noEnd || index <= end))
+				this.put((K) (Integer) index, value);
 		});
+	}
+
+	/**
+	 * Remove a value in a specific index in this map. Then shift indexes to fill it's empty index.
+	 *
+	 * @param index to remove it's value
+	 * @return the value that was in that index (before shifting indexes)
+	 */
+	default V removeIndex(int index) {
+		V value = this.remove(index);
+		this.shiftIndexes(index, null, -1);
+		return value;
+	}
+
+	/**
+	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value. This method removes
+	 * the first value equals to the given value (If it's index is instanceOf {@link Integer}). Then return the
+	 * index it associated to. Or -1 if there is no such value equals to the given value in this map.
+	 * Then shift indexes to fill it's empty index.
+	 *
+	 * @param value to be removed
+	 * @return the index that was associated to the given value
+	 */
+	default int removeIndexOf(Object value) {
+		for (Map.Entry<K, V> entry : this.entrySet()) {
+			K key = entry.getKey();
+			if (key instanceof Integer && Objects.equals(entry.getValue(), value)) {
+				int index = (Integer) key;
+				this.remove(index);
+				this.shiftIndexes(index, null, -1);
+				return index;
+			}
+		}
+		return -1;
 	}
 }

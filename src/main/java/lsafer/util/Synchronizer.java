@@ -10,11 +10,11 @@
  */
 package lsafer.util;
 
+import lsafer.util.impl.AbstractJSObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import lsafer.util.impl.AbstractJSObject;
 
 /**
  * Used to be the communication method between 2 threads and one of them contains a long loop.

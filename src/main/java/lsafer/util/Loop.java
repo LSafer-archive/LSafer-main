@@ -128,8 +128,8 @@ public abstract class Loop<I> {
 		/**
 		 * Initialize this.
 		 *
-		 * @param iterable  of items to be looped foreach
-		 * @param block code to loop
+		 * @param iterable of items to be looped foreach
+		 * @param block    code to loop
 		 */
 		public Foreach(Iterable<I> iterable, Function<I, Boolean> block) {
 			super(block);

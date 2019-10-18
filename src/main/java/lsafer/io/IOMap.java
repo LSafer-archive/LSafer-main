@@ -10,16 +10,12 @@
  */
 package lsafer.io;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Map;
-import java.util.function.Function;
-
 import lsafer.util.Caster;
 import lsafer.util.Configurable;
+
+import java.lang.annotation.*;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * A {@link Map} that is linked to some sort of IO-Container.

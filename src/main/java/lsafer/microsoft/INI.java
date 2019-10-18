@@ -10,13 +10,13 @@
  */
 package lsafer.microsoft;
 
+import lsafer.util.StringParser;
+import lsafer.util.Strings;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import lsafer.util.StringParser;
-import lsafer.util.Strings;
 
 /**
  * A Text parser for INI files.
