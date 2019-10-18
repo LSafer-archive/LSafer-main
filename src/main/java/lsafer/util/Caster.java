@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * A class that contains a casting methods that designed to cast for each casting situation.
  * <br>
- * Each casting method is (suppose to be) designed to be invoked by {@link #cast(Class, Object) the main dynamic casting method}.
+ * Each casting method is (suppose to be) designed to be invoked by {@link #cast(Class, Object, boolean)} ) the main dynamic casting method}.
  *
  * @author LSaferSE
  * @version 5 release (11-Oct-19)
@@ -72,6 +72,33 @@ public abstract class Caster {
 	 * </li>
 	 * </ul>
 	 *
+	 * @param caster caster class (MUST HAVE PUBLIC INSTANCE)
+	 * @param klass  to cast the object to
+	 * @param object to be casted
+	 * @param clone  whether you want the object be cloned if it's instance of the given class or you want the same instance
+	 * @param <T>    type of the targeted class
+	 * @return the given object casted to the given class, or null case casting failure
+	 */
+	public static <T> T cast(Class<? extends Caster> caster, Class<T> klass, Object object, boolean clone) {
+		if (caster == null)
+			return Default.instance.cast(klass, object);
+		else try {
+			return ((Caster) caster.getField("instance").get(null)).cast(klass, object, clone);
+		} catch (IllegalAccessException | NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Cast the given Object to the targeted class. By searching for a matching method then invoke it then return the results of it.
+	 *
+	 * <ul>
+	 * <li>
+	 * note: after finding a matching method. It'll be stored for next time casts so
+	 * the next casts will be faster. (using {@link #casting_methods Methods Map}.
+	 * </li>
+	 * </ul>
+	 *
 	 * @param klass  to cast the object to
 	 * @param object to be casted
 	 * @param <T>    type of the targeted class
@@ -93,11 +120,32 @@ public abstract class Caster {
 	 *
 	 * @param klass  to cast the object to
 	 * @param object to be casted
+	 * @param clone  whether you want the object be cloned if it's instance of the given class or you want the same instance
 	 * @param <T>    type of the targeted class
 	 * @return the given object casted to the given class, or null case casting failure
 	 */
-	public <T> T cast(Class<T> klass, Object object) {
-		if (object == null || klass.isInstance(object))
+	public static <T> T defaultCast(Class<T> klass, Object object, boolean clone) {
+		return Default.instance.cast(klass, object, clone);
+	}
+
+	/**
+	 * Cast the given Object to the targeted class. By searching for a matching method then invoke it then return the results of it.
+	 *
+	 * <ul>
+	 * <li>
+	 * note: after finding a matching method. It'll be stored for next time casts so
+	 * the next casts will be faster. (using {@link #casting_methods Methods Map}.
+	 * </li>
+	 * </ul>
+	 *
+	 * @param klass  to cast the object to
+	 * @param object to be casted
+	 * @param clone  whether you want the object be cloned if it's instance of the given class or you want the same instance
+	 * @param <T>    type of the targeted class
+	 * @return the given object casted to the given class, or null case casting failure
+	 */
+	public <T> T cast(Class<T> klass, Object object, boolean clone) {
+		if (object == null || (!clone && klass.isInstance(object)))
 			return (T) object;
 		if (object.getClass().isArray() && !(object instanceof Object[]))
 			object = Arrays.objective(object);
@@ -116,6 +164,25 @@ public abstract class Caster {
 			}
 
 		return null;
+	}
+
+	/**
+	 * Cast the given Object to the targeted class. By searching for a matching method then invoke it then return the results of it.
+	 *
+	 * <ul>
+	 * <li>
+	 * note: after finding a matching method. It'll be stored for next time casts so
+	 * the next casts will be faster. (using {@link #casting_methods Methods Map}.
+	 * </li>
+	 * </ul>
+	 *
+	 * @param klass  to cast the object to
+	 * @param object to be casted
+	 * @param <T>    type of the targeted class
+	 * @return the given object casted to the given class, or null case casting failure
+	 */
+	public <T> T cast(Class<T> klass, Object object) {
+		return this.cast(klass, object, false);
 	}
 
 	/**
@@ -213,7 +280,7 @@ public abstract class Caster {
 	/**
 	 * Defines that the implement class is a {@link Caster} user.
 	 */
-	public interface User {
+	public interface User extends Cloneable {
 		/**
 		 * Get the caster used by this.
 		 *
@@ -231,7 +298,7 @@ public abstract class Caster {
 		 * @return a new clone casted from this to the given class
 		 */
 		default <T> T clone(Class<T> klass) {
-			return this.caster().cast(klass, this);
+			return this.caster().cast(klass, this, true);
 		}
 	}
 
