@@ -69,6 +69,7 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 		Set<String> children = this.remote().children0();
 		Set<K> remove = new HashSet<>();
 
+		//noinspection Java8MapForEach value may not be used
 		this.entrySet().forEach(entry -> {
 			String key = String.valueOf(entry.getKey());
 
@@ -90,7 +91,7 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 		});
 		children.forEach(key -> {
 			try {
-				File file = new File(key);
+				File file = this.remote().child(key);
 				FileMap<?, ?> value = (file.isDirectory() ?
 									   configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
 									   configurations.file().getDeclaredConstructor(new Class[0]).newInstance());
