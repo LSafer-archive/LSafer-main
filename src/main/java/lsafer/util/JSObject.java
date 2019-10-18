@@ -241,6 +241,16 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * @return whether the JSObject should ignored unannotated field
 		 */
 		boolean restricted() default true;
+
+		/**
+		 * Since we are using fields to store some of the entries. We can't remove an entry associated with a field.
+		 * So even when {@link #remove(Object)} get called. We can't remove that entry. So this configuration
+		 * determine if the {@link Entry entry} should be set to null (instead of trying to remove it). Or just ignore
+		 * the call.
+		 *
+		 * @return whether the entry (associated to a field) should be set to null (when remove get called) or ignored.
+		 */
+		boolean removeFieldWithNull() default false;
 	}
 
 	/**
@@ -385,13 +395,14 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 			if (this.field == null) {
 				if (this.entries != null)
 					this.entries.remove(this.key, this);
-			} else try {
-				this.field.setAccessible(true);
-				this.field.set(this.object, null);
-				this.value = null;
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+			} else if (this.object.configurations(Configurations.class, JSObject.class).removeFieldWithNull())
+				try {
+					this.field.setAccessible(true);
+					this.field.set(this.object, null);
+					this.value = null;
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
 
 			return old;
 		}
