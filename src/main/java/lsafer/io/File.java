@@ -331,7 +331,7 @@ public class File extends java.io.File {
 
 		if (!parent.mkdirs()) {
 			synchronizer.put("results", false);
-			synchronizer.doIfPresent(List.class, "error", (Consumer<List>) l ->
+			synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l ->
 					l.add(new RuntimeException("can't make directory in ( " + parent + " )")));
 			synchronizer.bind();
 			return; //can't copy because no path
@@ -342,7 +342,7 @@ public class File extends java.io.File {
 		if (this.isDirectory()) {
 			if (!output.mkdir()) { //making the output folder
 				synchronizer.put("results", false);
-				synchronizer.doIfPresent(List.class, "error", (Consumer<List>) l ->
+				synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l ->
 						l.add(new RuntimeException("can't make directory in ( " + output + " )")));
 				synchronizer.bind();
 				return; //can't make folder
@@ -372,14 +372,14 @@ public class File extends java.io.File {
 					} catch (IOException e) {
 						e.printStackTrace();
 						synchronizer.put("results", false); //break the loop there is a problem
-						synchronizer.doIfPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
+						synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
 						synchronizer.bind();
 						return false;
 					}
 				}));
 			} catch (Exception e) {
 				e.printStackTrace();
-				synchronizer.doIfPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
+				synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
 				synchronizer.put("results", false);
 				synchronizer.bind();
 			} finally {
