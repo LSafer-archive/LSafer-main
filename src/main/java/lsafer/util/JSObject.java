@@ -248,9 +248,11 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * determine if the {@link Entry entry} should be set to null (instead of trying to remove it). Or just ignore
 		 * the call.
 		 *
+		 * This will be overridden by fields annotated with {@link Transient}
+		 *
 		 * @return whether the entry (associated to a field) should be set to null (when remove get called) or ignored.
 		 */
-		boolean removeFieldWithNull() default false;
+		boolean nullable() default true;
 	}
 
 	/**
@@ -265,6 +267,14 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * @return whether the annotated field is transient or not
 		 */
 		boolean value();
+
+		/**
+		 * Whether the annotated field is allowed to be set to null or not.
+		 * This will only affect when trying to call the {@link #remove} on it.
+		 *
+		 * @return whether the annotated field is nullable or not
+		 */
+		boolean nullable() default true;
 	}
 
 	/**
@@ -395,7 +405,9 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 			if (this.field == null) {
 				if (this.entries != null)
 					this.entries.remove(this.key, this);
-			} else if (this.object.configurations(Configurations.class, JSObject.class).removeFieldWithNull())
+			} else if (this.field.isAnnotationPresent(Transient.class) ?
+					   this.field.getAnnotation(Transient.class).nullable() :
+					   this.object.configurations(Configurations.class, JSObject.class).nullable())
 				try {
 					this.field.setAccessible(true);
 					this.field.set(this.object, null);
