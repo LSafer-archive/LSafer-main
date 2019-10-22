@@ -209,9 +209,9 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		return Modifier.isPrivate(modifier) ||
 			   Modifier.isProtected(modifier) ||
 			   Modifier.isTransient(modifier) ||
-			   (field.isAnnotationPresent(Transient.class) ? field.getAnnotation(Transient.class).value() :
-				this.configurations(Configurations.class, JSObject.class).restricted()) ||
-			   Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");
+			   (field.isAnnotationPresent(EntryField.class) ? !field.getAnnotation(EntryField.class).value() :
+				this.configurations(Configurations.class, JSObject.class).restricted()); /*||
+			   Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");*/
 	}
 
 	/**
@@ -236,7 +236,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		String indexer() default "i";
 
 		/**
-		 * Defines whether the JSObject should ignore any field that is not annotated with {@link Transient} annotation.
+		 * Defines whether the JSObject should ignore any field that is not annotated with {@link EntryField} annotation.
 		 *
 		 * @return whether the JSObject should ignored unannotated field
 		 */
@@ -248,25 +248,25 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 * determine if the {@link Entry entry} should be set to null (instead of trying to remove it). Or just ignore
 		 * the call.
 		 *
-		 * This will be overridden by fields annotated with {@link Transient}
+		 * This will be overridden by fields annotated with {@link EntryField}
 		 *
 		 * @return whether the entry (associated to a field) should be set to null (when remove get called) or ignored.
 		 */
-		boolean nullable() default true;
+		boolean removable() default true;
 	}
 
 	/**
-	 * Defines whether the annotated field is transient or not.
+	 * Defines whether the annotated field is an entry-field or not.
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
-	@interface Transient {
+	@interface EntryField {
 		/**
-		 * True if the field is transient. Or false if it's an entry container.
+		 * True if the field is an entry container. Or false if it's transient.
 		 *
-		 * @return whether the annotated field is transient or not
+		 * @return whether the annotated field is an entry-field or not
 		 */
-		boolean value();
+		boolean value() default true;
 
 		/**
 		 * Whether the annotated field is allowed to be set to null or not.
@@ -274,7 +274,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		 *
 		 * @return whether the annotated field is nullable or not
 		 */
-		boolean nullable() default true;
+		boolean removable() default true;
 	}
 
 	/**
@@ -405,9 +405,9 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 			if (this.field == null) {
 				if (this.entries != null)
 					this.entries.remove(this.key, this);
-			} else if (this.field.isAnnotationPresent(Transient.class) ?
-					   this.field.getAnnotation(Transient.class).nullable() :
-					   this.object.configurations(Configurations.class, JSObject.class).nullable())
+			} else if (this.field.isAnnotationPresent(EntryField.class) ?
+					   this.field.getAnnotation(EntryField.class).removable() :
+					   this.object.configurations(Configurations.class, JSObject.class).removable())
 				try {
 					this.field.setAccessible(true);
 					this.field.set(this.object, null);
