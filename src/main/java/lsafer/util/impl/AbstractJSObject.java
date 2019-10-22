@@ -35,7 +35,7 @@ public abstract class AbstractJSObject<K, V> implements JSObject<K, V>, Serializ
 	/**
 	 * The secondary container.
 	 */
-	private transient Map<K, JSObject.Entry<K, V>> entries = new HashMap<>();
+	protected transient Map<K, JSObject.Entry<K, V>> entries = new HashMap<>();
 
 	@Override
 	public Map<K, JSObject.Entry<K, V>> entries() {
