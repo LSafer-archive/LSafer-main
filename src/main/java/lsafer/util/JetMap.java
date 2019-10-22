@@ -110,7 +110,7 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 	/**
 	 * Cast all keys and values in this depending on the classes given.
 	 *
-	 * @param keyClass the class that keys should have
+	 * @param keyClass   the class that keys should have
 	 * @param valueClass the class that values should have
 	 */
 	default void castAll(Class<?> keyClass, Class<?> valueClass) {
@@ -128,7 +128,7 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 			}
 		});
 
-		keyCast.forEach((k, v)-> {
+		keyCast.forEach((k, v) -> {
 			this.remove(k);
 			this.put((K) caster.cast(keyClass, k), (V) caster.cast(valueClass, v));
 		});
@@ -137,14 +137,14 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 	/**
 	 * Do foreach but only for keys and values matches the given conditions.
 	 *
-	 * @param keyClass the class that the filtered key should have
+	 * @param keyClass   the class that the filtered key should have
 	 * @param valueClass the class that the filtered value should have
-	 * @param action to be applied foreach filtered key and value
-	 * @param <KK> the type of keys
-	 * @param <VV> the type of values
+	 * @param action     to be applied foreach filtered key and value
+	 * @param <KK>       the type of keys
+	 * @param <VV>       the type of values
 	 */
 	default <KK, VV> void filteredForEach(Class<KK> keyClass, Class<VV> valueClass, BiConsumer<KK, VV> action) {
-		this.forEach((k, v)-> {
+		this.forEach((k, v) -> {
 			if (keyClass.isInstance(k) && valueClass.isInstance(v))
 				action.accept((KK) k, (VV) v);
 		});
@@ -153,14 +153,14 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 	/**
 	 * Do foreach but every key casted to the given key-class and every value casted to the given value-class.
 	 *
-	 * @param keyClass the class that every key will be casted to
+	 * @param keyClass   the class that every key will be casted to
 	 * @param valueClass the class that every value will be casted to
-	 * @param action to be applied foreach casted key and value
-	 * @param <KK> the type of keys
-	 * @param <VV> the type of values
+	 * @param action     to be applied foreach casted key and value
+	 * @param <KK>       the type of keys
+	 * @param <VV>       the type of values
 	 */
 	default <KK, VV> void castedForEach(Class<KK> keyClass, Class<VV> valueClass, BiConsumer<KK, VV> action) {
 		Caster caster = this.caster();
-		this.forEach((k, v)-> action.accept(caster.cast(keyClass, k), caster.cast(valueClass, v)));
+		this.forEach((k, v) -> action.accept(caster.cast(keyClass, k), caster.cast(valueClass, v)));
 	}
 }

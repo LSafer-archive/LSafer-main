@@ -39,7 +39,6 @@ public class File extends java.io.File {
 	 * Such as renaming or moving the file.
 	 */
 	public File self = this;
-
 	/**
 	 * This file's title without copy number.
 	 * <br><br><b>example:</b>
@@ -49,7 +48,6 @@ public class File extends java.io.File {
 	 * </pre>
 	 */
 	private String clean_title;
-
 	/**
 	 * if this file's name starts with dot.
 	 * <br>
@@ -57,7 +55,6 @@ public class File extends java.io.File {
 	 * dotHidden :  ".file"
 	 */
 	private Boolean dot_hidden;
-
 	/**
 	 * This file's type extension.
 	 * <br><br><b>example:</b>
@@ -67,7 +64,6 @@ public class File extends java.io.File {
 	 * </pre>
 	 */
 	private String extension;
-
 	/**
 	 * General mime Of this file.
 	 * <br><br><b>example:</b>
@@ -76,12 +72,10 @@ public class File extends java.io.File {
 	 * </pre>
 	 */
 	private String mime;
-
 	/**
 	 * This file's copy number. In case there is other files with the same name.
 	 */
 	private int suffix = 1;
-
 	/**
 	 * This file's name without type extension.
 	 * <br><br><b>example:</b>

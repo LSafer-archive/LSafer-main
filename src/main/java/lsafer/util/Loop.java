@@ -26,12 +26,10 @@ public abstract class Loop<I> {
 	 * A position for loops. Tells that the loop shall be paused
 	 */
 	final public static String PAUSE = "pause";
-
 	/**
 	 * A position for loops. Tells that the loop shall be resumed
 	 */
 	final public static String RESUME = "resume";
-
 	/**
 	 * A position for loops. Tells that the loop shall be stopped.
 	 */
@@ -40,17 +38,15 @@ public abstract class Loop<I> {
 	/**
 	 * The code to loop.
 	 */
-	private Function<I, Boolean> block;
-
+	protected Function<I, Boolean> block;
 	/**
 	 * Linking var.
 	 */
-	private volatile boolean check = true;
-
+	protected volatile boolean check = true;
 	/**
 	 * The position of this loop.
 	 */
-	private volatile String position = RESUME;
+	protected volatile String position = RESUME;
 
 	/**
 	 * Initialize this.
@@ -123,7 +119,7 @@ public abstract class Loop<I> {
 		/**
 		 * List of items to loop.
 		 */
-		private Iterable<I> iterable;
+		protected Iterable<I> iterable;
 
 		/**
 		 * Initialize this.
@@ -172,12 +168,11 @@ public abstract class Loop<I> {
 		/**
 		 * The int to stop before.
 		 */
-		private int before;
-
+		protected int before;
 		/**
 		 * The int to start from.
 		 */
-		private int from;
+		protected int from;
 
 		/**
 		 * Initialize this.

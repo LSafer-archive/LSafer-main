@@ -26,7 +26,7 @@ public class IDFactory<I, F> {
 	/**
 	 * The function to use to create new IDs.
 	 */
-	private BiFunction<I, F, I> creator;
+	protected BiFunction<I, F, I> creator;
 
 	/**
 	 * The last unused ID.
@@ -35,7 +35,7 @@ public class IDFactory<I, F> {
 	 * <li>note: this field should be always refer to unused value</li>
 	 * </ul>
 	 */
-	private volatile I free;
+	protected volatile I free;
 
 	/**
 	 * Initialize this.

@@ -17,6 +17,7 @@ import lsafer.util.HybridMap;
 import lsafer.util.JetMap;
 
 import java.lang.annotation.Annotation;
+import java.util.Map;
 
 /**
  * An implement of 3 interfaces. To be a map that have a 3rd folder container.
@@ -33,7 +34,6 @@ public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements Folder
 	 * The default file-map to initialize. for files found but no matching entries for them.
 	 */
 	private Class<? extends FileMap> file;
-
 	/**
 	 * The default folder-map to initialize. for files found but no matching entries for them.
 	 */
@@ -43,6 +43,39 @@ public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements Folder
 	 * Default constructor.
 	 */
 	public FolderHashMap() {
+	}
+
+	/**
+	 * Constructs an empty HashMap with the specified initial capacity and the default load factor (0.75).
+	 *
+	 * @param initialCapacity the initial capacity
+	 * @throws IllegalArgumentException if the initial capacity is negative.
+	 */
+	public FolderHashMap(int initialCapacity) {
+		super(initialCapacity);
+	}
+
+	/**
+	 * Constructs an empty HashMap with the specified initial capacity and load factor.
+	 *
+	 * @param initialCapacity the initial capacity
+	 * @param loadFactor      the load factor
+	 * @throws IllegalArgumentException if the initial capacity is negative or the load factor is nonpositive
+	 */
+	public FolderHashMap(int initialCapacity, float loadFactor) {
+		super(initialCapacity, loadFactor);
+	}
+
+	/**
+	 * Constructs a new HashMap with the same mappings as the specified Map.
+	 * The HashMap is created with default load factor (0.75) and an initial
+	 * capacity sufficient to hold the mappings in the specified Map.
+	 *
+	 * @param map the map whose mappings are to be placed in this map
+	 * @throws NullPointerException if the specified map is null
+	 */
+	public FolderHashMap(Map<? extends K, ? extends V> map) {
+		super(map);
 	}
 
 	/**

@@ -44,7 +44,6 @@ public abstract class StringParser {
 	 * A map that stores previously solved parser-methods to improve performance.
 	 */
 	final protected Map<String, Method> parsers = new HashMap<>();
-
 	/**
 	 * A map that stores previously solved stringifier-methods to improve performance.
 	 */
