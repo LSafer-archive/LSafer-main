@@ -31,38 +31,7 @@ public class JSON extends StringParser {
 	/**
 	 * The global instance to avoid unnecessary instancing.
 	 */
-	final public static JSON instance = new JSON();
-
-	/**
-	 * Parse the passed json-string into a java object.
-	 *
-	 * @param string to be parsed
-	 * @return an object parsed from the given string
-	 */
-	public static Object Parse(String string) {
-		return instance.parse(string);
-	}
-
-	/**
-	 * Stringify the given object to be a json-text.
-	 *
-	 * @param object to be stringed
-	 * @param shift  the shift that the string should have
-	 * @return a string from stringing the given object
-	 */
-	public static String Stringify(Object object, String shift) {
-		return instance.stringify(object, shift);
-	}
-
-	/**
-	 * Stringify the given object to be a json-text.
-	 *
-	 * @param object to be stringed
-	 * @return a string from stringing the given object
-	 */
-	public static String Stringify(Object object) {
-		return instance.stringify(object);
-	}
+	final public static JSON global = new JSON();
 
 	/**
 	 * Check if the given JSON text is an {@link ArrayList array} or not.
@@ -70,7 +39,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is an array or not
 	 */
-	@QueryMethod(ArrayList.class)
+	@SwitchingMethod(ArrayList.class)
 	public boolean is_array(String string) {
 		return string.length() > 1 && (string.charAt(0) == '[' || string.charAt(1) == '[') &&
 			   (string.charAt(string.length() - 1) == ']' || string.charAt(string.length() - 2) == ']');
@@ -82,7 +51,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is an boolean or not
 	 */
-	@QueryMethod(Boolean.class)
+	@SwitchingMethod(Boolean.class)
 	public boolean is_boolean(String string) {
 		return string.equals("true") || string.equals("false");
 	}
@@ -93,7 +62,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is a character or not
 	 */
-	@QueryMethod(Character.class)
+	@SwitchingMethod(Character.class)
 	public boolean is_char(String string) {
 		return string.length() == 3 && string.charAt(0) == '\'' && string.charAt(2) == '\'';
 	}
@@ -104,7 +73,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is a double or not
 	 */
-	@QueryMethod(Double.class)
+	@SwitchingMethod(Double.class)
 	public boolean is_double(String string) {
 		try {
 			Double.valueOf(string);
@@ -121,7 +90,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is a float or not
 	 */
-	@QueryMethod(Float.class)
+	@SwitchingMethod(Float.class)
 	public boolean is_float(String string) {
 		try {
 			Float.valueOf(string);
@@ -137,7 +106,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is an integer or not
 	 */
-	@QueryMethod(Integer.class)
+	@SwitchingMethod(Integer.class)
 	public boolean is_integer(String string) {
 		try {
 			Integer.valueOf(string);
@@ -155,7 +124,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is an long or not
 	 */
-	@QueryMethod(Long.class)
+	@SwitchingMethod(Long.class)
 	public boolean is_long(String string) {
 		try {
 			Long.valueOf(string);
@@ -172,7 +141,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is a map or not
 	 */
-	@QueryMethod(HashMap.class)
+	@SwitchingMethod(HashMap.class)
 	public boolean is_map(String string) {
 		return string.length() > 1 && (string.charAt(0) == '{' || string.charAt(1) == '{') &&
 			   (string.charAt(string.length() - 1) == '}' || string.charAt(string.length() - 2) == '}');
@@ -184,7 +153,7 @@ public class JSON extends StringParser {
 	 * @param string JSON text to be checked
 	 * @return whether the passed JSON text is a string or not
 	 */
-	@QueryMethod(String.class)
+	@SwitchingMethod(String.class)
 	public boolean is_string(String string) {
 		return string.length() > 1 &&
 			   string.charAt(0) == '"' &&

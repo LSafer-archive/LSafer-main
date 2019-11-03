@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * A {@link Map} that is linked to {@link File} as it's IO-Container.
@@ -23,132 +24,153 @@ import java.util.function.BiConsumer;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 13 release (16-Oct-2019)
+ * @version 14 release (02-Nov-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"UnusedReturnValue", "unused"})
-@IOMap.Configurations(remote = File.class)
-public interface FileMap<K, V> extends IOMap<File, K, V>, Caster.User {
-	@Override
-	default File xremote(Object remote) {
-		File old = this.remote();
-		this.remote(this.caster().cast(File.class, remote));
-		return old;
-	}
-
+public interface FileMap<K, V> extends Map<K, V>, Caster.User {
 	/**
-	 * Delete the linked {@link File}.
+	 * Load this from the linked {@link File}. Using the given {@link lsafer.io.File.Synchronizer}.
 	 *
-	 * @return success of deleting
-	 * @see File#delete()
-	 */
-	default boolean delete() {
-		return this.remote().delete();
-	}
-
-	/**
-	 * Check if the linked {@link File} is available or not.
-	 *
-	 * @return whether the linked file is available or not
-	 */
-	default boolean exist() {
-		File remote = this.remote();
-		return remote.exists() && !remote.isDirectory();
-	}
-
-	/**
-	 * Move the linked {@link File} to the given file.
-	 *
-	 * @param parent to move to
-	 * @return success of moving
-	 */
-	default boolean move(java.io.File parent) {
-		File remote = this.remote();
-		boolean w = remote.move(parent);
-		this.remote(remote.self);
-		return w;
-	}
-
-	/**
-	 * Move the linked {@link File} to the given file.
-	 *
-	 * @param parent to move to
-	 * @return success of moving
-	 */
-	default boolean move(String parent) {
-		return this.move(new File(parent));
-	}
-
-	/**
-	 * Rename the linked {@link File} to the given name.
-	 *
-	 * @param name to rename to
-	 * @return success of the renaming
-	 */
-	default boolean rename(String name) {
-		File remote = this.remote();
-		boolean w = remote.rename(name);
-		this.remote(remote.self);
-		return w;
-	}
-
-	/**
-	 * Read the contents of this file as a map and return it.
-	 *
-	 * @return a map of contents of this file
-	 */
-	Map<K, V> read();
-
-	/**
-	 * Load this from the linked {@link File}.
-	 *
-	 * @param <F> this
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param <F>          this
 	 * @return this
 	 */
-	default <F extends FileMap> F load() {
-		return this.load((k, v) -> {
-		}, (k, v) -> {
-		});
+	default <F extends FileMap<K, V>> F load(File.Synchronizer<?, ?> synchronizer) {
+		return this.load(synchronizer, null, null);
 	}
 
 	/**
-	 * Load this from the linked {@link File}.
+	 * Load this from the linked {@link File}. Using the given {@link lsafer.io.File.Synchronizer}. Then accept the given 'removeAction' foreach key
+	 * have been removed. Then accept the given 'addAction' foreach key have been added.
 	 *
-	 * @param removed to do with the removed entries
-	 * @param added   to do with added entries
-	 * @param <F>     this
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param removeAction the action to do with the removed keys
+	 * @param addAction    the action to do with the added keys
+	 * @param <F>          this
 	 * @return this
 	 */
-	default <F extends FileMap> F load(BiConsumer<K, V> removed, BiConsumer<K, V> added) {
-		Map<K, V> map = this.read();
-		Set<K> keys = map.keySet();
-		Set<K> remove = new HashSet<>();
+	default <F extends FileMap<K, V>> F load(File.Synchronizer<?, ?> synchronizer, BiConsumer<K, V> removeAction, BiConsumer<K, V> addAction) {
+		Map<K, V> map = this.read(synchronizer);
+		if (map == null)
+			return (F) this;
+
+		Set<K> added = map.keySet(), removed = new HashSet<>();
 
 		this.keySet().forEach(k -> {
-			if (keys.contains(k)) {
+			if (added.contains(k)) {
 				this.put(k, map.get(k));
-				keys.remove(k);
+				added.remove(k);
 			} else {
-				remove.add(k);
+				removed.add(k);
 			}
 		});
 
-		remove.forEach(key -> {
-			V value = this.remove(key);
-			removed.accept(key, value);
-		});
-		keys.forEach(key -> {
+		added.forEach(key -> {
 			V value = map.get(key);
 			this.put(key, value);
-			added.accept(key, value);
+			if (addAction != null)
+				addAction.accept(key, value);
+		});
+		removed.forEach(key -> {
+			V value = this.remove(key);
+			if (removeAction != null)
+				removeAction.accept(key, value);
 		});
 		return (F) this;
 	}
 
 	/**
-	 * Save this to the linked {@link File}.
+	 * Move the targeted file to the given output file.
 	 *
-	 * @return success of saving
+	 * @param output       the destination to move the targeted file to
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	boolean save();
+	default void move(File.Synchronizer<?, ?> synchronizer, java.io.File output) {
+		this.getFile().move(synchronizer, output);
+		this.setFile(output);
+	}
+
+	/**
+	 * Rename the linked {@link File} to the given name.
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param name         to rename to
+	 */
+	default void rename(File.Synchronizer<?, ?> synchronizer, String name) {
+		File output = this.getFile().sibling(name);
+		this.getFile().move(synchronizer, output);
+		this.setFile(output);
+	}
+
+	/**
+	 * Save the content of this to the targeted file.
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 */
+	default void save(File.Synchronizer<?, ?> synchronizer) {
+		this.write(synchronizer, this);
+	}
+
+	/**
+	 * Set the targeted file to the give file. (the instance will not be used unless it extends 'lsafer.io.File').
+	 *
+	 * @param file the file to be set
+	 * @return the previous file set
+	 */
+	default File setFile(java.io.File file) {
+		return this.setFile(file instanceof File ? (File) file : new File(file));
+	}
+
+	/**
+	 * Set the targeted file from the output of the given function. The function will be applied with the current targeted file.
+	 *
+	 * @param function to get the new file from
+	 * @param <F>      this
+	 * @return this
+	 */
+	default <F extends FileMap<K, V>> F setFile(Function<File, File> function) {
+		this.setFile(function.apply(this.getFile()));
+		return (F) this;
+	}
+
+	/**
+	 * Set the targeted file to the given pathname.
+	 *
+	 * @param file the pathname of the file
+	 * @return the previous file set
+	 */
+	default File setFile(String file) {
+		return this.setFile(new File(file));
+	}
+
+	/**
+	 * Get the current targeted file.
+	 *
+	 * @return the current targeted file
+	 */
+	File getFile();
+
+	/**
+	 * Read the contents of the targeted file as a map then return it.
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @return a map of contents of this file
+	 */
+	Map<K, V> read(File.Synchronizer<?, ?> synchronizer);
+
+	/**
+	 * Set the targeted file to the given file.
+	 *
+	 * @param file the file to be set
+	 * @return the previous file set
+	 */
+	File setFile(File file);
+
+	/**
+	 * Save the given map to the targeted file.
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param map          to be written
+	 */
+	void write(File.Synchronizer<?, ?> synchronizer, Map<K, V> map);
 }

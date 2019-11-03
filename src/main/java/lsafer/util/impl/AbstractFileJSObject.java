@@ -10,37 +10,37 @@
  */
 package lsafer.util.impl;
 
-import lsafer.io.IOMap;
+import lsafer.io.File;
+import lsafer.io.FileMap;
 import lsafer.util.JSObject;
 
 import java.io.Serializable;
 
 /**
- * An abstract for structures with the needed methods for the interfaces {@link JSObject}, {@link Serializable} and {@link IOMap}.
+ * An abstract to implement needed methods in the interfaces {@link JSObject} and {@link Serializable} and {@link FileMap}.
  *
- * @param <R> type of the remote of the third IO-port container.
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 1 release (28-Sep-19)
+ * @version 2 release (02-Nov-19)
  * @since 28-Sep-19
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public abstract class AbstractIOJSObject<R, K, V> extends AbstractJSObject<K, V> implements IOMap<R, K, V> {
+public abstract class AbstractFileJSObject<K, V> extends AbstractJSObject<K, V> implements FileMap<K, V> {
 	/**
-	 * The 3rd IO-container's remote.
+	 * The file targeted by this.
 	 */
-	protected R remote;
+	protected File file;
 
 	@Override
-	public R remote() {
-		return this.remote;
+	public File getFile() {
+		return this.file;
 	}
 
 	@Override
-	public R remote(R remote) {
-		R old = this.remote();
-		this.remote = remote;
+	public File setFile(File file) {
+		File old = this.file;
+		this.file = file;
 		return old;
 	}
 }

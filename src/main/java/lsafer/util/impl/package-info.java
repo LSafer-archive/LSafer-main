@@ -12,7 +12,7 @@
  * Classes that implements interfaces/abstracts or even classes. That it don't do anything other than that.
  *
  * @author LSaferSE
- * @version 1 alpha (28-Sep-19)
- * @since 28-Sep-19
+ * @version 2 release (02-Nov-2019)
+ * @since 28-Sep-2019
  */
 package lsafer.util.impl;

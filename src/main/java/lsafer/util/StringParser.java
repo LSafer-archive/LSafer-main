@@ -20,16 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An abstract for string parsers. The purpose of string-parsers is
- * to parse strings into objects. Or stringify objects into strings.
- * To whether store it. Or show it as a text.
+ * An abstract for string parsers. The purpose of string-parsers is to parse strings into objects. Or stringify objects into strings. To whether store
+ * it. Or show it as a text.
  * <br>
- * As a string-parser that extends this class. You just have to navigate
- * this class to where your parsing/stringing methods is. By using the following
+ * As a string-parser that extends this class. You just have to navigate this class to where your parsing/stringing methods is. By using the following
  * annotations.
  *
  * <ul>
- * <li>{@link QueryMethod} for methods that tells this class what type a string should be parsed to</li>
+ * <li>{@link SwitchingMethod} for methods that tells this class what type a string should be parsed to</li>
  * <li>{@link ParsingMethod} for methods that parse strings into objects</li>
  * <li>{@link StringingMethod} for methods that stringify objects</li>
  * </ul>
@@ -38,7 +36,6 @@ import java.util.Map;
  * @version 2 release (28-Sep-19)
  * @since 28-Sep-19
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class StringParser {
 	/**
 	 * A map that stores previously solved parser-methods to improve performance.
@@ -47,53 +44,7 @@ public abstract class StringParser {
 	/**
 	 * A map that stores previously solved stringifier-methods to improve performance.
 	 */
-	final protected Map<String, Method> stringifiers = new HashMap<>();
-
-	/**
-	 * Parse the given string to an object that matches it.
-	 *
-	 * @param parser the class to be used (MUST HAVE PUBLIC INSTANCE)
-	 * @param string to be parsed
-	 * @return an object result from parsing the given string
-	 */
-	public static Object Parse(Class<? extends StringParser> parser, String string) {
-		try {
-			return ((StringParser) parser.getField("instance").get(null)).parse(string);
-		} catch (IllegalAccessException | NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Stringify the given object. Depending on the stringing methods in this parser.
-	 *
-	 * @param parser the class to be used (MUST HAVE PUBLIC INSTANCE)
-	 * @param object to be stringed
-	 * @return a string representation of the object.
-	 */
-	public static String Stringify(Class<? extends StringParser> parser, Object object) {
-		try {
-			return ((StringParser) parser.getField("instance").get(null)).stringify(object);
-		} catch (IllegalAccessException | NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Stringify the given object. Depending on the stringing methods in this parser.
-	 *
-	 * @param parser the class to be used (MUST HAVE PUBLIC INSTANCE)
-	 * @param object to be stringed
-	 * @param shift  the shift that the string should have
-	 * @return a string representation of the object.
-	 */
-	public static String Stringify(Class<? extends StringParser> parser, Object object, String shift) {
-		try {
-			return ((StringParser) parser.getField("instance").get(null)).stringify(object, shift);
-		} catch (IllegalAccessException | NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		}
-	}
+	final protected Map<String, Method> stringers = new HashMap<>();
 
 	/**
 	 * Parse the given string to an object that matches it.
@@ -102,10 +53,10 @@ public abstract class StringParser {
 	 * @return an object result from parsing the given string
 	 */
 	public Object parse(String string) {
-		Class<?> klass = this.queryc(string);
+		Class<?> klass = this.queryClass(string);
 
 		if (klass != null) {
-			Method parser = this.queryp(klass);
+			Method parser = this.queryParsingMethod(klass);
 
 			if (parser != null)
 				try {
@@ -124,12 +75,12 @@ public abstract class StringParser {
 	 * @param string to query a suitable class for
 	 * @return the suitable class for the given string
 	 */
-	public Class<?> queryc(String string) {
+	public Class<?> queryClass(String string) {
 		for (Method method : this.getClass().getMethods())
-			if (method.isAnnotationPresent(QueryMethod.class))
+			if (method.isAnnotationPresent(SwitchingMethod.class))
 				try {
 					if ((boolean) method.invoke(this, string))
-						return method.getAnnotation(QueryMethod.class).value();
+						return method.getAnnotation(SwitchingMethod.class).value();
 				} catch (IllegalAccessException | InvocationTargetException e) {
 					throw new RuntimeException(e);
 				}
@@ -143,14 +94,15 @@ public abstract class StringParser {
 	 * @param type to query a method for
 	 * @return the method to parse the given type. Or null if this class don't have one
 	 */
-	protected Method queryp(Class<?> type) {
+	public Method queryParsingMethod(Class<?> type) {
 		String key = type.getName();
 
 		if (this.parsers.containsKey(key))
 			return this.parsers.get(key);
 
 		for (Method method : this.getClass().getMethods())
-			if (method.isAnnotationPresent(ParsingMethod.class) && method.getReturnType() == type) {
+			if (method.isAnnotationPresent(ParsingMethod.class) &&
+				method.getReturnType() == type) {
 				this.parsers.put(key, method);
 				return method;
 			}
@@ -164,18 +116,19 @@ public abstract class StringParser {
 	 * @param type to query a method for
 	 * @return the method to stringify the given type. Or null if this class don't have one
 	 */
-	protected Method querys(Class<?> type) {
+	public Method queryStringingMethod(Class<?> type) {
 		if (type.isPrimitive())
 			type = Classes.objective(type);
 
 		String key = type.getName();
 
-		if (this.stringifiers.containsKey(key))
-			return this.stringifiers.get(key);
+		if (this.stringers.containsKey(key))
+			return this.stringers.get(key);
 
 		for (Method method : this.getClass().getMethods())
-			if (method.isAnnotationPresent(StringingMethod.class) && method.getParameterTypes()[0].isAssignableFrom(type)) {
-				this.stringifiers.put(key, method);
+			if (method.isAnnotationPresent(StringingMethod.class) &&
+				method.getParameterTypes()[0].isAssignableFrom(type)) {
+				this.stringers.put(key, method);
 				return method;
 			}
 
@@ -205,7 +158,7 @@ public abstract class StringParser {
 		if (object.getClass().isArray() && object.getClass().getComponentType().isPrimitive())
 			object = Arrays.objective(object);
 
-		Method method = this.querys(object.getClass());
+		Method method = this.queryStringingMethod(object.getClass());
 
 		if (method != null)
 			try {
@@ -231,24 +184,24 @@ public abstract class StringParser {
 	}
 
 	/**
+	 * Navigate the {@link StringParser} class that the annotated method is a stringing method.
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.METHOD)
+	protected @interface StringingMethod {
+	}
+
+	/**
 	 * Navigate the {@link StringParser} class that the annotated method is a string-type-detecting method.
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
-	protected @interface QueryMethod {
+	protected @interface SwitchingMethod {
 		/**
 		 * Tells what class the annotated method is looking for.
 		 *
 		 * @return the class the annotated method is looking for
 		 */
 		Class<?> value();
-	}
-
-	/**
-	 * Navigate the {@link StringParser} class that the annotated method is a stringing method.
-	 */
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.METHOD)
-	protected @interface StringingMethod {
 	}
 }

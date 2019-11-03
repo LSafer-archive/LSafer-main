@@ -12,6 +12,7 @@ package lsafer.util;
 
 import java.lang.reflect.Array;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Useful methods for Arrays.
@@ -20,7 +21,6 @@ import java.util.Objects;
  * @version 5 release (28-Sep-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
 final public class Arrays {
 	/**
 	 * This is a util class. And shall not be instanced as an object.
@@ -84,12 +84,10 @@ final public class Arrays {
 	}
 
 	/**
-	 * Copies an array from the specified source array, beginning at the specified position,
-	 * to the specified position of the destination array. A subsequence of array components
-	 * are copied from the source array referenced by src to the destination array referenced
-	 * by dest. The number of components copied is equal to the length argument. The components
-	 * at positions srcPos through srcPos+length-1 in the source array are copied into positions
-	 * destPos through destPos+length-1, respectively, of the destination array.
+	 * Copies an array from the specified source array, beginning at the specified position, to the specified position of the destination array. A
+	 * subsequence of array components are copied from the source array referenced by src to the destination array referenced by dest. The number of
+	 * components copied is equal to the length argument. The components at positions srcPos through srcPos+length-1 in the source array are copied
+	 * into positions destPos through destPos+length-1, respectively, of the destination array.
 	 *
 	 * @param src     the source array.
 	 * @param srcPos  starting position in the source array.
@@ -202,5 +200,21 @@ final public class Arrays {
 			}
 
 		return res;
+	}
+
+	/**
+	 * Get the total sum of the given array. By applying the given function foreach element on the given array. Then sum all the returned values
+	 * together.
+	 *
+	 * @param array    the array to sum it's elements
+	 * @param function the function to get the value of each element
+	 * @param <T>      the component type of the given array
+	 * @return the total sum of the given array
+	 */
+	public static <T> long sum(T[] array, Function<T, Number> function) {
+		long sum = 0;
+		for (T element : array)
+			sum += (long) function.apply(element);
+		return sum;
 	}
 }

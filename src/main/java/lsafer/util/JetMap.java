@@ -24,89 +24,7 @@ import java.util.function.Consumer;
  * @version 2 release (28-Sep-19)
  * @since 18-Sep-19
  */
-@SuppressWarnings({"UnusedReturnValue", "unused"})
 public interface JetMap<K, V> extends Map<K, V>, Caster.User {
-	/**
-	 * Apply the passed function. ONLY if the stored value Not equals to null,
-	 * and is instance of the given klass. Then return the value.
-	 *
-	 * @param klass    to make sure the mapped value is instance of the needed class
-	 * @param key      to get it's mapped value
-	 * @param function to be applied
-	 * @param <T>      type of value
-	 * @return the mapped value to the given key
-	 */
-	default <T> T doIfCastedPresent(Class<T> klass, Object key, Consumer<T> function) {
-		T value = this.getCasted(klass, key);
-
-		if (value != null)
-			function.accept(value);
-
-		return value;
-	}
-
-	/**
-	 * Get the value mapped to the given key. Or returns
-	 * the given default value case the key didn't
-	 * exist or it's mapped to null.
-	 *
-	 * <ul>
-	 * <li>
-	 * note: this will cast the mapped value. And return it. But it'll not map the casted instance.
-	 * </li>
-	 * </ul>
-	 *
-	 * @param klass to make sure the mapped value is instance of the needed class
-	 * @param key   to get it's mapped value
-	 * @param <T>   type of value
-	 * @return the mapped value to the given key
-	 */
-	default <T> T getCasted(Class<? extends T> klass, Object key) {
-		return this.caster().cast(klass, this.get(key));
-	}
-
-	/**
-	 * Removes all of the entries of this that satisfy the given predicate.
-	 * Errors or runtime exceptions thrown during iteration or by the predicate are relayed to the caller.
-	 *
-	 * @param filter a predicate which returns true for entries to be removed
-	 * @return true if any entries were removed
-	 */
-	default boolean removeIf(BiPredicate<K, V> filter) {
-		Set<K> keySet = new HashSet<>();
-
-		this.forEach(((k, v) -> {
-			if (filter.test(k, v))
-				keySet.add(k);
-		}));
-
-		if (keySet.isEmpty()) {
-			return false;
-		} else {
-			keySet.forEach(this::remove);
-			return true;
-		}
-	}
-
-	/**
-	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value.
-	 * This method removes the first value equals to the given value. Then return the
-	 * key it associated to. Or null if ether the key is null. Or there is no such
-	 * value equals to the given value in this map.
-	 *
-	 * @param value to be removed
-	 * @return the key the value is associated to
-	 */
-	default K removeValue(Object value) {
-		for (Map.Entry<K, V> entry : this.entrySet())
-			if (Objects.equals(entry.getValue(), value)) {
-				K key = entry.getKey();
-				this.remove(key);
-				return key;
-			}
-		return null;
-	}
-
 	/**
 	 * Cast all keys and values in this depending on the classes given.
 	 *
@@ -135,6 +53,38 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
+	 * Do foreach but every key casted to the given key-class and every value casted to the given value-class.
+	 *
+	 * @param keyClass   the class that every key will be casted to
+	 * @param valueClass the class that every value will be casted to
+	 * @param action     to be applied foreach casted key and value
+	 * @param <KK>       the type of keys
+	 * @param <VV>       the type of values
+	 */
+	default <KK, VV> void castedForEach(Class<KK> keyClass, Class<VV> valueClass, BiConsumer<KK, VV> action) {
+		Caster caster = this.caster();
+		this.forEach((k, v) -> action.accept(caster.cast(keyClass, k), caster.cast(valueClass, v)));
+	}
+
+	/**
+	 * Apply the passed function. ONLY if the stored value Not equals to null, and is instance of the given klass. Then return the value.
+	 *
+	 * @param klass    to make sure the mapped value is instance of the needed class
+	 * @param key      to get it's mapped value
+	 * @param function to be applied
+	 * @param <T>      type of value
+	 * @return the mapped value to the given key
+	 */
+	default <T> T doIfCastedPresent(Class<T> klass, Object key, Consumer<T> function) {
+		T value = this.getCasted(klass, key);
+
+		if (value != null)
+			function.accept(value);
+
+		return value;
+	}
+
+	/**
 	 * Do foreach but only for keys and values matches the given conditions.
 	 *
 	 * @param keyClass   the class that the filtered key should have
@@ -151,16 +101,109 @@ public interface JetMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Do foreach but every key casted to the given key-class and every value casted to the given value-class.
+	 * Get the value mapped to the given key. Or returns the given default value case the key didn't exist or it's mapped to null.
 	 *
-	 * @param keyClass   the class that every key will be casted to
-	 * @param valueClass the class that every value will be casted to
-	 * @param action     to be applied foreach casted key and value
-	 * @param <KK>       the type of keys
-	 * @param <VV>       the type of values
+	 * <ul>
+	 * <li>
+	 * note: this will cast the mapped value. And return it. But it'll not map the casted instance.
+	 * </li>
+	 * </ul>
+	 *
+	 * @param klass to make sure the mapped value is instance of the needed class
+	 * @param key   to get it's mapped value
+	 * @param <T>   type of value
+	 * @return the mapped value to the given key
 	 */
-	default <KK, VV> void castedForEach(Class<KK> keyClass, Class<VV> valueClass, BiConsumer<KK, VV> action) {
-		Caster caster = this.caster();
-		this.forEach((k, v) -> action.accept(caster.cast(keyClass, k), caster.cast(valueClass, v)));
+	default <T> T getCasted(Class<? extends T> klass, Object key) {
+		return this.caster().cast(klass, this.get(key));
+	}
+
+	/**
+	 * Accept the 'thisContains' consumer foreach key this map contains but the given map dont. Then accept the 'mapContains' consumer foreach key the
+	 * given map contains but this map dont.
+	 *
+	 * @param map          to match with this
+	 * @param mapContains  action to do with the keys the given map contains but this map don't
+	 * @param thisContains action to do with the keys this map contains but the given map don't
+	 */
+	default void match(Map<K, V> map, Consumer<K> thisContains, Consumer<K> mapContains) {
+		Set<K> ours = new HashSet<>(map.keySet());
+		Set<K> theirs = new HashSet<>();
+
+		map.keySet().forEach(key -> {
+			if (this.containsKey(key))
+				ours.remove(key);
+			else theirs.add(key);
+		});
+
+		if (thisContains != null)
+			ours.forEach(thisContains);
+		if (mapContains != null)
+			theirs.forEach(mapContains);
+	}
+
+	/**
+	 * Put all of the mappings on the given map to this map. Then accept the 'thisContains' consumer foreach key this map contains but the given map
+	 * dont. Then accept the 'mapContains' consumer foreach key the given map contains but this map dont.
+	 *
+	 * @param map          to be put
+	 * @param mapContains  action to do with the keys the given map contains but this map don't
+	 * @param thisContains action to do with the keys this map contains but the given map don't
+	 */
+	default void putAll(Map<K, V> map, BiConsumer<K, V> mapContains, BiConsumer<K, V> thisContains) {
+		Set<K> ours = new HashSet<>(this.keySet());
+		Set<K> theirs = new HashSet<>();
+
+		map.forEach((key, value) -> {
+			if (this.containsKey(key))
+				ours.remove(key);
+			else theirs.add(key);
+			this.put(key, value);
+		});
+
+		if (thisContains != null)
+			ours.forEach(key -> thisContains.accept(key, this.get(key)));
+		if (mapContains != null)
+			theirs.forEach(key -> mapContains.accept(key, map.get(key)));
+	}
+
+	/**
+	 * Removes all of the entries of this that satisfy the given predicate. Errors or runtime exceptions thrown during iteration or by the predicate
+	 * are relayed to the caller.
+	 *
+	 * @param filter a predicate which returns true for entries to be removed
+	 * @return true if any entries were removed
+	 */
+	default boolean removeIf(BiPredicate<K, V> filter) {
+		Set<K> keySet = new HashSet<>();
+
+		this.forEach(((k, v) -> {
+			if (filter.test(k, v))
+				keySet.add(k);
+		}));
+
+		if (keySet.isEmpty()) {
+			return false;
+		} else {
+			keySet.forEach(this::remove);
+			return true;
+		}
+	}
+
+	/**
+	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value. This method removes the first value equals to the given value.
+	 * Then return the key it associated to. Or null if ether the key is null. Or there is no such value equals to the given value in this map.
+	 *
+	 * @param value to be removed
+	 * @return the key the value is associated to
+	 */
+	default K removeValue(Object value) {
+		for (Map.Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(entry.getValue(), value)) {
+				K key = entry.getKey();
+				this.remove(key);
+				return key;
+			}
+		return null;
 	}
 }

@@ -16,17 +16,15 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
- * An interface defines that the targeted class can be used as a JSObject.
- * Basically JSObject means that the class can be working like a {@link Map}.
- * And every field of it (that don't matches the conditions of {@link #isTransient(Field)})
- * will be used as an {@link Map.Entry entry}.
+ * An interface defines that the targeted class can be used as a JSObject. Basically JSObject means that the class can be working like a {@link Map}.
+ * And every field of it (that don't matches the conditions of {@link #istransient(Field)}) will be used as an {@link Map.Entry entry}.
  * <br><br>
- * If you want your JSObject to store {@link Entry entries} Even if there is no {@link Field} to contain it.
- * Then please add a transient field and link it with this by overriding the method {@link #entries()} of your JSObject.
+ * If you want your JSObject to store {@link Entry entries} Even if there is no {@link Field} to contain it. Then please add a transient field and
+ * link it with this by overriding the method {@link #entries()} of your JSObject.
  *
  * <ul>
  * <li>
- * tip: every field that matches the conditions of {@link #isTransient(Field)} will not be used as an {@link Map.Entry}.
+ * tip: every field that matches the conditions of {@link #istransient(Field)} will not be used as an {@link Map.Entry}.
  * </li>
  * <li>
  * tip: You can {@link #put(Object, Object) put} some objects with a type different than the targeted field's type.
@@ -44,12 +42,16 @@ import java.util.*;
  * @version 14 release (28-Sep-2019)
  * @since 06-Jul-19
  */
-@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 @JSObject.Configurations
 public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	@Override
-	default void clear() {
-		this.entrySet().forEach(entry -> ((Entry<K, V>) entry).remove());
+	default int size() {
+		return this.keySet().size();
+	}
+
+	@Override
+	default boolean isEmpty() {
+		return this.keySet().isEmpty();
 	}
 
 	@Override
@@ -66,38 +68,8 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	@Override
-	default Set<Map.Entry<K, V>> entrySet() {
-		Map<K, Entry<K, V>> entries = this.entries();
-		Set<Map.Entry<K, V>> set = entries == null ? new HashSet<>() : new HashSet<>(entries.values());
-
-		for (Field field : this.getClass().getFields())
-			if (!this.isTransient(field))
-				set.add(entries == null ? new Entry<>(this, null, field, this.getKey(field)) :
-						entries.computeIfAbsent(this.getKey(field), k -> new Entry<>(this, entries, field, k)));
-
-		return set;
-	}
-
-	@Override
 	default V get(Object key) {
 		return this.getEntry(key).getValue();
-	}
-
-	@Override
-	default boolean isEmpty() {
-		return this.keySet().isEmpty();
-	}
-
-	@Override
-	default Set<K> keySet() {
-		Map<K, Entry<K, V>> entries = this.entries();
-		Set<K> set = entries == null ? new HashSet<>() : new HashSet<>(entries.keySet());
-
-		for (Field field : this.getClass().getFields())
-			if (!this.isTransient(field))
-				set.add(this.getKey(field));
-
-		return set;
 	}
 
 	@Override
@@ -106,18 +78,30 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	@Override
-	default void putAll(Map<? extends K, ? extends V> map) {
-		map.forEach(this::put);
-	}
-
-	@Override
 	default V remove(Object key) {
 		return this.getEntry(key).remove();
 	}
 
 	@Override
-	default int size() {
-		return this.keySet().size();
+	default void putAll(Map<? extends K, ? extends V> map) {
+		map.forEach(this::put);
+	}
+
+	@Override
+	default void clear() {
+		this.entrySet().forEach(entry -> ((Entry<K, V>) entry).remove());
+	}
+
+	@Override
+	default Set<K> keySet() {
+		Map<K, Entry<K, V>> entries = this.entries();
+		Set<K> set = entries == null ? new HashSet<>() : new HashSet<>(entries.keySet());
+
+		for (Field field : this.getClass().getFields())
+			if (!this.istransient(field))
+				set.add(this.getKey(field));
+
+		return set;
 	}
 
 	@Override
@@ -130,9 +114,27 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		return collection;
 	}
 
+	@Override
+	default Set<Map.Entry<K, V>> entrySet() {
+		Map<K, Entry<K, V>> entries = this.entries();
+		Set<Map.Entry<K, V>> set = entries == null ? new HashSet<>() : new HashSet<>(entries.values());
+
+		if (entries == null) {
+			for (Field field : this.getClass().getFields())
+				if (!this.istransient(field))
+					set.add(new Entry<>(this, null, field, this.getKey(field)));
+		} else {
+			for (Field field : this.getClass().getFields())
+				if (!this.istransient(field))
+					set.add(entries.computeIfAbsent(this.getKey(field), k -> new Entry<>(this, entries, field, k)));
+		}
+
+		return set;
+	}
+
 	/**
-	 * Get the extra-entries container. Needed because the JSObject can't handle
-	 * those entries. That it have no fields to carry them. Or null if not needed
+	 * Get the extra-entries container. Needed because the JSObject can't handle those entries. That it have no fields to carry them. Or null if not
+	 * needed
 	 *
 	 * @return the extra-entries container. Or null if not needed
 	 */
@@ -141,9 +143,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	/**
-	 * Get the entry associated with the passed key.
-	 * Or create a brand new one if there is no instance
-	 * for it.
+	 * Get the entry associated with the passed key. Or create a brand new one if there is no instance for it.
 	 *
 	 * @param key associated with the targeted entry
 	 * @return an entry associated with the passed key.
@@ -162,17 +162,19 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 * @return a field that responsible on storing value for the presented key
 	 */
 	default Field getField(Object key) {
-		if (key instanceof String)
+		Configurations configurations = this.configurations(Configurations.class, JSObject.class);
+
+		if (key instanceof String || key instanceof Integer)
 			try {
-				Field field = this.getClass().getField((String) key);
-				return this.isTransient(field) ? null : field;
+				Field field = this.getClass().getField(key instanceof Integer ? configurations.indexer() + key : (String) key);
+				return this.istransient(field) ? null : field;
 			} catch (NoSuchFieldException ignored) {
-			}
-		else if (key instanceof Integer)
-			try {
-				Field field = this.getClass().getField(this.configurations(Configurations.class, JSObject.class).indexer() + key);
-				return this.isTransient(field) ? null : field;
-			} catch (NoSuchFieldException ignored) {
+				if (configurations.overridableKeys())
+					for (Field field : this.getClass().getFields())
+						if (this.istransient(field) &&
+							field.isAnnotationPresent(EntryField.class) &&
+							field.getAnnotation(EntryField.class).key().equals(key))
+							return field;
 			}
 
 		return null;
@@ -185,33 +187,38 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 * @return the key of the passed field
 	 */
 	default K getKey(Field field) {
-		String name = field.getName();
-		String[] split = name.split(this.configurations(Configurations.class, JSObject.class).indexer());
+		EntryField annotation = field.getAnnotation(EntryField.class);
 
-		if (split.length == 2)
-			try {
-				return (K) Integer.valueOf(split[1]);
-			} catch (NumberFormatException ignored) {
-			}
+		if (annotation != null && !annotation.key().equals("")) {
+			return (K) annotation.key();
+		} else {
+			String name = field.getName();
+			String[] split = name.split(this.configurations(Configurations.class, JSObject.class).indexer());
 
-		return (K) name;
+			if (split.length == 2)
+				try {
+					return (K) Integer.valueOf(split[1]);
+				} catch (NumberFormatException ignored) {
+				}
+
+			return (K) name;
+		}
 	}
 
 	/**
-	 * Get whether the passed field is transient or not. So if it's so.
-	 * Then it shouldn't be used as an entry container.
+	 * Get whether the passed field is transient or not. So if it's so. Then it shouldn't be used as an entry container.
 	 *
 	 * @param field to be checked
 	 * @return whether the passed field is transient or not
 	 */
-	default boolean isTransient(Field field) {
+	default boolean istransient(Field field) {
 		int modifier = field.getModifiers();
-		return Modifier.isPrivate(modifier) ||
+		return field.isAnnotationPresent(EntryField.class) ?
+			   field.getAnnotation(EntryField.class).istransient() :
+			   this.configurations(Configurations.class, JSObject.class).restricted() ||
+			   Modifier.isPrivate(modifier) ||
 			   Modifier.isProtected(modifier) ||
-			   Modifier.isTransient(modifier) ||
-			   (field.isAnnotationPresent(EntryField.class) ? !field.getAnnotation(EntryField.class).value() :
-				this.configurations(Configurations.class, JSObject.class).restricted()); /*||
-			   Strings.any(field.getName(), "serialVersionUID", "$assertionsDisabled");*/
+			   Modifier.isTransient(modifier);
 	}
 
 	/**
@@ -236,23 +243,29 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		String indexer() default "i";
 
 		/**
-		 * Defines whether the JSObject should ignore any field that is not annotated with {@link EntryField} annotation.
+		 * Get whether the annotated {@link JSObject}'s entry-fields names can be overridden using {@link EntryField#key()}.
 		 *
-		 * @return whether the JSObject should ignored unannotated field
+		 * @return whether the fields names can be overridden or not
 		 */
-		boolean restricted() default true;
+		boolean overridableKeys() default false;
 
 		/**
-		 * Since we are using fields to store some of the entries. We can't remove an entry associated with a field.
-		 * So even when {@link #remove(Object)} get called. We can't remove that entry. So this configuration
-		 * determine if the {@link Entry entry} should be set to null (instead of trying to remove it). Or just ignore
-		 * the call.
-		 *
+		 * Since we are using fields to store some of the entries. We can't remove an entry associated with a field. So even when {@link
+		 * #remove(Object)} get called. We can't remove that entry. So this configuration determine if the {@link Entry entry} should be set to null
+		 * (instead of trying to remove it). Or just ignore the call.
+		 * <p>
 		 * This will be overridden by fields annotated with {@link EntryField}
 		 *
 		 * @return whether the entry (associated to a field) should be set to null (when remove get called) or ignored.
 		 */
 		boolean removable() default true;
+
+		/**
+		 * Defines whether the JSObject should ignore any field that is not annotated with {@link EntryField} annotation.
+		 *
+		 * @return whether the JSObject should ignored unannotated field
+		 */
+		boolean restricted() default true;
 	}
 
 	/**
@@ -263,14 +276,25 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	@interface EntryField {
 		/**
 		 * True if the field is an entry container. Or false if it's transient.
+		 * <p>
+		 * Note: this will override the any other modifiers (like it never exist) Also Note: This will be set automatically as soon as you annotate a
+		 * field
 		 *
 		 * @return whether the annotated field is an entry-field or not
 		 */
-		boolean value() default true;
+		boolean istransient() default false;
 
 		/**
-		 * Whether the annotated field is allowed to be set to null or not.
-		 * This will only affect when trying to call the {@link #remove} on it.
+		 * The key of the annotated entry-field. This will override the default key.
+		 * <p>
+		 * Note: to use this you have to set {@link Configurations#overridableKeys()} true to your {@link JSObject}'s configurations.
+		 *
+		 * @return the key of the annotated entry-field
+		 */
+		String key() default "";
+
+		/**
+		 * Whether the annotated field is allowed to be set to null or not. This will only affect when trying to call the {@link #remove} on it.
 		 *
 		 * @return whether the annotated field is nullable or not
 		 */
@@ -278,9 +302,8 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	}
 
 	/**
-	 * An object to manage entries in the JSObject. The entry is the responsible
-	 * for (remove, set, get) methods. And it's the one manages the appliance of
-	 * operations for the it's targeted key for both field and map containers.
+	 * An object to manage entries in the JSObject. The entry is the responsible for (remove, set, get) methods. And it's the one manages the
+	 * appliance of operations for the it's targeted key for both field and map containers.
 	 *
 	 * @param <K> the type of key maintained by this entry
 	 * @param <V> the type of mapped value
@@ -312,15 +335,14 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		public V value;
 
 		/**
-		 * Initialize this.
-		 * TODO more description
+		 * Initialize this. TODO more description
 		 *
 		 * @param object  the JSObject that this entry belongs to
 		 * @param entries a reference to the entries map instance of the JSObject that this entry belongs to (null if there is no such instance)
 		 * @param field   the field where this entry is linked to (null if there is no such field)
 		 * @param key     the key represented by this entry
 		 */
-		private Entry(JSObject<K, V> object, Map<K, Entry<K, V>> entries, Field field, K key) {
+		public Entry(JSObject<K, V> object, Map<K, Entry<K, V>> entries, Field field, K key) {
 			this.object = object;
 			this.key = key;
 			this.entries = entries;
@@ -352,29 +374,21 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 				this.entries.put(this.key, this);
 
 			if (this.field != null) {
-				Class<?> type = this.field.getType();
-				boolean primitive = type.isPrimitive();
+				Class<V> type = (Class<V>) this.field.getType();
 
-				if (type.isInstance(value) || (value == null && !primitive)) {
+				if (type.isPrimitive() && value == null) {
+					new Throwable(this.field + " with primitive type can't be set to null").printStackTrace();
+					return old;
+				} else if (!type.isInstance(value)) {
+					this.object.put(this.key, this.object.caster().cast(type, value));
+					return old;
+				} else {
 					try {
 						this.field.setAccessible(true);
 						this.field.set(this.object, value);
 					} catch (IllegalAccessException e) {
-						e.printStackTrace();
+						throw new RuntimeException(e);
 					}
-				} else {
-					V casted = null;
-
-					try {
-						casted = (V) this.object.caster().cast(type, value);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					if (type.isInstance(casted) || (casted == null && !primitive))
-						this.object.put(this.key, casted);
-
-					return old;
 				}
 			}
 
@@ -392,10 +406,8 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		}
 
 		/**
-		 * Remove this entry from the JSObject where it's belongs to.
-		 * By removing it from the {@link #entries entries object} in the linked
-		 * JSObject (If the object is not null). Or setting the {@link #value value of this}
-		 * to null. If this entry is linked to any {@link #field}.
+		 * Remove this entry from the JSObject where it's belongs to. By removing it from the {@link #entries entries object} in the linked JSObject
+		 * (If the object is not null). Or setting the {@link #value value of this} to null. If this entry is linked to any {@link #field}.
 		 *
 		 * @return the previous value associated with this.
 		 */
@@ -405,16 +417,22 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 			if (this.field == null) {
 				if (this.entries != null)
 					this.entries.remove(this.key, this);
-			} else if (this.field.isAnnotationPresent(EntryField.class) ?
-					   this.field.getAnnotation(EntryField.class).removable() :
-					   this.object.configurations(Configurations.class, JSObject.class).removable())
-				try {
-					this.field.setAccessible(true);
-					this.field.set(this.object, null);
-					this.value = null;
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
+			} else if (this.field.getType().isPrimitive()) {
+				new Throwable(this.field + " with primitive type can't be removed (can't be set to null)").printStackTrace();
+				return old;
+			} else {
+				EntryField annotation = this.field.getAnnotation(EntryField.class);
+				Configurations configurations = this.object.configurations(Configurations.class, JSObject.class);
+
+				if ((annotation != null && annotation.removable()) || (configurations.restricted() && configurations.removable()))
+					try {
+						this.field.setAccessible(true);
+						this.field.set(this.object, null);
+						this.value = null;
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+			}
 
 			return old;
 		}

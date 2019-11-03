@@ -1,8 +1,25 @@
 apply plugin: 'java-library'
+apply plugin: 'groovy'
 
-dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
 }
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
+sourceSets {
+    main {
+        java.srcDirs = []
+        groovy.srcDirs = [ 'src/main/groovy', 'src/main/java']
+    }
+}
+
+dependencies {
+	implementation 'org.codehaus.groovy:groovy-all:3.0.0-rc-1'
+	implementation 'com.sun.jersey:jersey-client:1.19.4'
+}
+
+sourceCompatibility = "11"
+targetCompatibility = "11"

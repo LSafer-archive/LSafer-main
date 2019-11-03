@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, LSafer, All rights reserved.
+ * Copyright (c) ${YEAR}, LSafer, All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * -You can edit this file (except the header).
@@ -10,6 +10,7 @@
  */
 package lsafer.io;
 
+import lsafer.java.SER;
 import lsafer.json.JSON;
 import lsafer.util.Arrays;
 import lsafer.util.Loop;
@@ -19,42 +20,79 @@ import lsafer.util.Strings;
 import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
-import java.text.DateFormat;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+
+import static lsafer.io.FileException.*;
 
 /**
  * A {@link java.io.File} with useful tools.
  *
  * @author LSaferSE
- * @version 9 release (28-sep-2019)
+ * @version 10 release (03-Nov-2019)
  * @since 18 May 2019
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
 public class File extends java.io.File {
 	/**
-	 * The real this.
-	 * Because some operations needs to replace the hole object to effect results.
-	 * Such as renaming or moving the file.
+	 * Flags that the process have been canceled.
 	 */
-	public File self = this;
+	final public static int PROCESS_CANCELED = -1;
 	/**
-	 * This file's title without copy number.
-	 * <br><br><b>example:</b>
-	 * <pre>
-	 * title :      "title (1)"
-	 * cleanTitle : "title"
-	 * </pre>
+	 * Flags that the process continued (or still continuing) to the end without exceptions.
 	 */
-	private String clean_title;
+	final public static int PROCESS_CONTINUED = 1;
+	/**
+	 * Flags that the process failed on some part. But still continued (or still continuing) to the end.
+	 */
+	final public static int PROCESS_FAILED = 0;
+	/**
+	 * The default exception handler. Designed to handle exceptions thrown by {@link Synchronizer#handle}
+	 */
+	final public static Function<FileException, Integer> HANDLER_DEFAULT = exception -> {
+		switch (exception.name) {
+			case NOT_EXIST:
+			case ALREADY_EXIST:
+			case CANT_WRITE:
+			case CANT_MOVE:
+			case CANT_DELETE:
+			case IS_DIRECTORY:
+			default:
+				return File.PROCESS_FAILED;
+			case NOT_DIRECTORY:
+				return exception.causes[0].mkdirs() ? File.PROCESS_CONTINUED : File.PROCESS_FAILED;
+			case DIRECTORY_NOT_EMPTY:
+				return File.PROCESS_CONTINUED;
+		}
+	};
+	/**
+	 * An exception handler uses force to continue processes. Designed ot handle exceptions thrown by {@link Synchronizer#handle}
+	 */
+	final public static Function<FileException, Integer> HANDLER_FORCE = exception -> {
+		switch (exception.name) {
+			case NOT_EXIST:
+			case CANT_WRITE:
+			case CANT_MOVE:
+			case CANT_DELETE:
+			default:
+				return File.PROCESS_FAILED;
+			case ALREADY_EXIST:
+			case IS_DIRECTORY:
+				return exception.causes[0].delete() ? File.PROCESS_CONTINUED : File.PROCESS_FAILED;
+			case NOT_DIRECTORY:
+				return exception.causes[0].delete() && exception.causes[0].mkdirs() ? File.PROCESS_CONTINUED : File.PROCESS_FAILED;
+			case DIRECTORY_NOT_EMPTY:
+				return File.PROCESS_CONTINUED;
+		}
+	};
+
 	/**
 	 * if this file's name starts with dot.
 	 * <br>
-	 * normal :     "file"
-	 * dotHidden :  ".file"
+	 * normal :     "file" dotHidden :  ".file"
 	 */
-	private Boolean dot_hidden;
+	protected Boolean dot_hidden;
 	/**
 	 * This file's type extension.
 	 * <br><br><b>example:</b>
@@ -63,7 +101,7 @@ public class File extends java.io.File {
 	 * extension :  "extension"
 	 * </pre>
 	 */
-	private String extension;
+	protected String extension;
 	/**
 	 * General mime Of this file.
 	 * <br><br><b>example:</b>
@@ -71,11 +109,28 @@ public class File extends java.io.File {
 	 *     "image/png"
 	 * </pre>
 	 */
-	private String mime;
+	protected String mime;
+	/**
+	 * The progress of current processing method on this instance.
+	 */
+	protected Long progress = 0L;
+	/**
+	 * The max progress for the current processing method on this instance.
+	 */
+	protected Long progress_max = 1L;
 	/**
 	 * This file's copy number. In case there is other files with the same name.
 	 */
-	private int suffix = 1;
+	protected int suffix = 0;
+	/**
+	 * This file's title without copy number.
+	 * <br><br><b>example:</b>
+	 * <pre>
+	 * title :      "title (1)"
+	 * cleanTitle : "title"
+	 * </pre>
+	 */
+	protected String suffixless_title;
 	/**
 	 * This file's name without type extension.
 	 * <br><br><b>example:</b>
@@ -84,16 +139,16 @@ public class File extends java.io.File {
 	 * title :  "title"
 	 * </pre>
 	 */
-	private String title;
+	protected String title;
 
 	/**
 	 * Initialize this with an absolute path.
 	 *
-	 * @param absolute absolute path
+	 * @param pathname absolute path
 	 * @see java.io.File#File(String) original method
 	 */
-	public File(String absolute) {
-		super(absolute);
+	public File(String pathname) {
+		super(pathname);
 	}
 
 	/**
@@ -109,22 +164,22 @@ public class File extends java.io.File {
 	 * Initialize this using parent's file object.
 	 *
 	 * @param parent file of the targeted file
-	 * @param name   of the targeted file
+	 * @param child  of the targeted file
 	 * @see java.io.File#File(java.io.File, String) the original method
 	 */
-	public File(java.io.File parent, String name) {
-		super(parent, name);
+	public File(java.io.File parent, String child) {
+		super(parent, child);
 	}
 
 	/**
 	 * Initialize this using parent's path.
 	 *
-	 * @param absolute path of the targeted file's parent
-	 * @param name     of the targeted file
+	 * @param parent path of the targeted file's parent
+	 * @param child  of the targeted file
 	 * @see java.io.File#File(String, String) the original method
 	 */
-	public File(String absolute, String name) {
-		super(absolute, name);
+	public File(String parent, String child) {
+		super(parent, child);
 	}
 
 	/**
@@ -137,59 +192,134 @@ public class File extends java.io.File {
 		super(uri);
 	}
 
-	/**
-	 * Delete this file. This method deletes folders with it's children too.
-	 *
-	 * @return success of deleting
-	 */
-	@Override
-	public boolean delete() {
-		if (!this.exists()) //this is what we need :)
-			return true;
-
-		//case this is a folder then we have to clear all children before deleting
-		//noinspection ResultOfMethodCallIgnored
-		this.children().forEach(File::delete);
-		return super.delete();
-	}
-
-	@Override
-	public String getParent() {
-		String parent = super.getParent();
-		return parent == null ? "" : parent;
-	}
-
 	@Override
 	public File getParentFile() {
-		return new File(this.getParent());
+		//As super method
+		String p = this.getParent();
+		return p == null ? null : new File(p);
+	}
+
+	@Override
+	public File getAbsoluteFile() {
+		//As super method
+		return new File(this.getAbsolutePath());
+	}
+
+	@Override
+	public File getCanonicalFile() throws IOException {
+		//As super method
+		return new File(this.getCanonicalPath());
+	}
+
+	@Override
+	public File[] listFiles() {
+		//As super method
+		String[] list = this.list();
+		if (list == null) {
+			return null;
+		} else {
+			File[] files = new File[list.length];
+
+			for (int i = 0; i < files.length; ++i)
+				files[i] = new File(this, list[i]);
+
+			return files;
+		}
+	}
+
+	@Override
+	public File[] listFiles(FilenameFilter filter) {
+		//As super method
+		String[] list = this.list();
+
+		if (list == null) {
+			return null;
+		} else {
+			ArrayList<File> files = new ArrayList<>();
+
+			for (String element : list)
+				if (filter == null || filter.accept(this, element))
+					files.add(new File(this, element));
+
+			return files.toArray(new File[0]);
+		}
+	}
+
+	@Override
+	public File[] listFiles(FileFilter filter) {
+		//As super method
+		String[] list = this.list();
+
+		if (list == null) {
+			return null;
+		} else {
+			ArrayList<File> files = new ArrayList<>();
+
+			for (String element : list) {
+				File file = new File(this, element);
+
+				if (filter == null || filter.accept(file))
+					files.add(file);
+			}
+
+			return files.toArray(new File[0]);
+		}
 	}
 
 	/**
-	 * Make this file as a directory.
+	 * Append the given string to the text written on this file.
 	 *
 	 * <ul>
-	 * <li>
-	 * note: if this file's parent is not a directory.
-	 * This method will do nothing about that.
-	 * Use {@link #mkdirs()} if you want a solution for that.
-	 * </li>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_DIRECTORY} the parent of this is not a directory.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link FileException#CANT_WRITE} can't write on this file.</li>
 	 * </ul>
 	 *
-	 * @return whether this is a directory now or not
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param value        to be appended to the text of this file
 	 */
-	@Override
-	public boolean mkdir() {
-		return this.isDirectory() || super.mkdir();
+	public void append(Synchronizer<?, ?> synchronizer, String value) {
+		java.io.File parent = this.parent();
+
+		if (synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
+			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
+			return;
+
+		try (FileWriter fw = new FileWriter(this)) {
+			//<editor-fold desc="synchronizer.bind()">
+			this.setMaxProgress(1L);
+			this.setProgress(0L);
+			synchronizer.out(this);
+			synchronizer.bind();
+			//</editor-fold>
+			fw.append(value);
+			//<editor-fold desc="synchronizer.bind()">
+			this.progressed();
+			synchronizer.bind();
+			//</editor-fold>
+		} catch (IOException e) {
+			if (synchronizer.handle(CANT_WRITE, this) >= PROCESS_CONTINUED)
+				this.append(synchronizer, value);
+		}
 	}
 
 	/**
-	 * Make this file and it's parent file as a directory.
+	 * Stringify the given object using the given parser. Then Append the output string to the txt of this file.
 	 *
-	 * @return whether this is a directory now or not
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_DIRECTORY} the parent of this is not a directory.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link FileException#CANT_WRITE} can't write on this file.</li>
+	 * </ul>
+	 *
+	 * @param parser       to be used to stringify the given object
+	 * @param value        to append the output from stringing it
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	@Override
-	public boolean mkdirs() {
-		return this.isDirectory() || super.mkdirs();
+	public void append(Synchronizer<?, ?> synchronizer, StringParser parser, Object value) {
+		this.append(synchronizer, parser.stringify(value));
 	}
 
 	/**
@@ -203,12 +333,12 @@ public class File extends java.io.File {
 	}
 
 	/**
-	 * Get this file's children in a {@link Set}.
+	 * Get this file's children in a {@link List}.
 	 *
 	 * @return this file's children
 	 */
-	public Set<File> children() {
-		Set<File> children = new HashSet<>();
+	public List<File> children() {
+		List<File> children = new ArrayList<>();
 
 		String[] list = this.list();
 
@@ -220,197 +350,193 @@ public class File extends java.io.File {
 	}
 
 	/**
-	 * Get this file's children in a {@link List}.
-	 *
-	 * @return this file's children
-	 */
-	public Set<String> children0() {
-		Set<String> children = new HashSet<>();
-
-		String[] list = this.list();
-
-		if (list != null)
-			children.addAll(java.util.Arrays.asList(list));
-
-		return children;
-	}
-
-	/**
-	 * Get this file's title without the suffix.
-	 * <br><br><b>example</b>
-	 * <pre>
-	 * title :      "title (1).extension"
-	 * cleanTitle : "title.extension"
-	 * </pre>
-	 *
-	 * @return this file's title without the suffix
-	 * @see #clean_title cache
-	 */
-	public String cleanTitle() {
-		if (this.clean_title != null) //if it's already defined or not
-			return this.clean_title;
-
-		String title = this.title();
-		String[] split = title.split(" ");
-		String number = split[split.length - 1];
-
-		if (number.charAt(0) == '(' && number.charAt(number.length() - 1) == ')') {
-			number = Strings.crop(split[split.length - 1], 1, 1);
-
-			if (JSON.instance.is_integer(number)) {
-				this.suffix = Integer.parseInt(number) + 1;
-				split = Arrays.crop(split, 0, 1);
-				return this.clean_title = Strings.join(" ", "", split);
-			}
-		}
-
-		return this.clean_title = title;
-	}
-
-	/**
-	 * Copy all this file's content to other folder.
-	 *
-	 * @param parent folder to copy in
-	 * @return success of operation
-	 */
-	public boolean copy(java.io.File parent) {
-		if (!parent.mkdirs())
-			return false;
-
-		File output = new File(parent, this.getName());
-
-		if (this.isDirectory()) {
-			if (!output.mkdir()) //making the output folder
-				return false; //can't make folder
-
-			boolean w = true; //result handler
-
-			for (File child : this.children()) //coping each child
-				w &= child.copy(output);
-
-			return w;
-		} else {
-			try (FileInputStream fis = new FileInputStream(this);
-				 FileOutputStream fos = new FileOutputStream(output)) {
-				byte[] buffer = new byte[1024]; // transaction buffer
-				int point; //holder point
-
-				while ((point = fis.read(buffer)) > 0)
-					fos.write(buffer, 0, point);
-
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-	}
-
-	/**
 	 * Copy all this file's content to other folder.
 	 *
 	 * <ul>
-	 * <li>note: better to invoke in a secondary {@link Thread}.</li>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_EXIST} this file not exist.</li>
+	 *     <li>{@link FileException#NOT_DIRECTORY} the output's parent file is not a directory.</li>
+	 *     <li>{@link FileException#ALREADY_EXIST} the output file already exist.</li>
+	 *     <li>{@link FileException#CANT_WRITE} the output file can't be make as a directory.</li>
+	 *     <li>
+	 *         {@link FileNotFoundException} if the file does not exist,
+	 *         is a directory rather than a regular file,
+	 *         or for some other reason cannot be opened
+	 *     </li>
+	 *     <li>
+	 *         {@link SecurityException} if a security manager exists and its
+	 *         checkWrite method denies write access to the file. Or if a
+	 *         security manager exists and its checkRead method denies
+	 *         read access to the file.
+	 *     </li>
+	 *     <li>{@link IOException} if an I/O error occurs.</li>
 	 * </ul>
+	 * <p>
+	 * Note: you can change the bufferSize on {@link Synchronizer#byteBufferSize}.
 	 *
-	 * @param parent       folder to copy in
-	 * @param synchronizer to control the operation and get results fro
+	 * @param output       the file to paste this to
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	@SuppressWarnings("unchecked")
-	public void copy(java.io.File parent, lsafer.util.Synchronizer synchronizer) {
-		synchronizer.put("input_folder", this.getParentFile());
-		synchronizer.put("output_folder", parent);
-		synchronizer.computeIfAbsent("max_progress", k -> this.filesCount());
-		synchronizer.bind();
+	public void copy(Synchronizer<?, ?> synchronizer, java.io.File output) {
+		File dest = new File(output), parent = dest.parent();
 
-		if (!parent.mkdirs()) {
-			synchronizer.put("results", false);
-			synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l ->
-					l.add(new RuntimeException("can't make directory in ( " + parent + " )")));
-			synchronizer.bind();
-			return; //can't copy because no path
-		}
-
-		File output = new File(parent, this.getName());
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
+			synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
+			synchronizer.handle(dest.exists(), ALREADY_EXIST, dest) <= PROCESS_FAILED)
+			return;
 
 		if (this.isDirectory()) {
-			if (!output.mkdir()) { //making the output folder
-				synchronizer.put("results", false);
-				synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l ->
-						l.add(new RuntimeException("can't make directory in ( " + output + " )")));
-				synchronizer.bind();
-				return; //can't make folder
-			}
+			if (synchronizer.handle(!dest.mkdirs(), CANT_WRITE, dest) <= PROCESS_FAILED)
+				return;
 
-			//coping for each child
-			synchronizer.loop(new Loop.Foreach<>(this.children(), (child) -> {
-				child.copy(output, synchronizer); //copping each child
-				return true; //to receive next child
+			//<editor-fold desc="synchronizer.bind()">
+			long max = this.getCount(false, true);
+			this.setMaxProgress(max);
+			this.setProgress(0L);
+			dest.setMaxProgress(max);
+			dest.setProgress(0L);
+			synchronizer.in(this);
+			synchronizer.out(dest);
+			synchronizer.bind();
+			//</editor-fold>
+			synchronizer.loop(new Loop.Foreach<>(this.children(), child -> {
+				child.copy(synchronizer, dest);
+				//<editor-fold desc="synchronizer.bind()">
+				this.progressed();
+				dest.progressed();
+				synchronizer.bind();
+				//</editor-fold>
+				return synchronizer.status != PROCESS_CANCELED;
 			}));
 		} else {
-			synchronizer.put("input_file", this);
-			synchronizer.put("output_file", output);
-			synchronizer.bind();
-
 			try (FileInputStream fis = new FileInputStream(this);
-				 FileOutputStream fos = new FileOutputStream(output)) {
-				byte[] buffer = new byte[1024]; // transaction buffer
+				 FileOutputStream fos = new FileOutputStream(dest)) {
+				byte[] buffer = new byte[synchronizer.byteBufferSize];
+				int[] length = {0};
 
-				//coping file
-				synchronizer.loop(new Loop.Forever((i) -> {
+				//<editor-fold desc="synchronizer.bind()">
+				long max = this.length() / synchronizer.byteBufferSize;
+				this.setMaxProgress(max);
+				this.setProgress(0L);
+				dest.setMaxProgress(max);
+				dest.setProgress(0L);
+				synchronizer.in(this);
+				synchronizer.out(dest);
+				synchronizer.bind();
+				//</editor-fold>
+				synchronizer.loop(new Loop.Forever(i -> {
 					try {
-						int point = fis.read(buffer); //reading next package find original mFile
-						if (point < 1) return false; //break the loop case empty
-						fos.write(buffer, 0, point); //write at the destiny
-						return true; //continue looping there is more to copy
-					} catch (IOException e) {
-						e.printStackTrace();
-						synchronizer.put("results", false); //break the loop there is a problem
-						synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
-						synchronizer.bind();
+						if ((length[0] = fis.read(buffer)) > 0) {
+							fos.write(buffer, 0, length[0]);
+							//<editor-fold desc="synchronizer.bind()">
+							this.progressed();
+							dest.progressed();
+							synchronizer.bind();
+							//</editor-fold>
+							return true;
+						}
+						return false;
+					} catch (SecurityException | IOException e) {
+						if (synchronizer.handle(e.getClass().getName(), e, this, dest) >= PROCESS_CONTINUED)
+							this.copy(synchronizer, dest);
+
+						//this copping session is not valid anymore ):
 						return false;
 					}
 				}));
-			} catch (Exception e) {
-				e.printStackTrace();
-				synchronizer.doIfCastedPresent(List.class, "error", (Consumer<List>) l -> l.add(e));
-				synchronizer.put("results", false);
-				synchronizer.bind();
-			} finally {
-				synchronizer.compute("progress", (k, v) -> v instanceof Integer ? ((int) v) + 1 : 1);
-				synchronizer.bind();
+			} catch (SecurityException | IOException e) {
+				if (synchronizer.handle(e.getClass().getName(), e, this, dest) >= PROCESS_CONTINUED)
+					this.copy(synchronizer, dest);
 			}
 		}
 	}
 
 	/**
-	 * Delete all this file's content this method deletes folders with it's children too.
+	 * Delete this file. This method deletes folders with it's children too.
 	 *
 	 * <ul>
-	 * <li>note: better to invoke in a secondary {@link Thread}.</li>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_EXIST} this file not exist</li>
+	 *     <li>
+	 *         {@link FileException#DIRECTORY_NOT_EMPTY} this file have some files on it.
+	 *         return {@link #PROCESS_CONTINUED} on the catcher to delete it's files.
+	 *     </li>
+	 *     <li>
+	 *         {@link FileException#CANT_DELETE} this file can't be deleted.
+	 *         return {@link #PROCESS_CONTINUED} on the catcher to try again.
+	 *     </li>
+	 *     <li>
+	 *         {@link SecurityException}  If a security manager exists and its
+	 *         SecurityManager.checkDelete(java.lang.String) method denies
+	 *         delete access to the file.
+	 *     </li>
 	 * </ul>
 	 *
-	 * @param synchronizer to control the operation and get results from
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	@SuppressWarnings("unchecked")
-	public void delete(lsafer.util.Synchronizer synchronizer) {
-		synchronizer.put("output_folder", this.getParentFile());
-		synchronizer.computeIfAbsent("max_progress", k -> this.filesCount());
-		synchronizer.bind();
+	public void delete(Synchronizer<?, ?> synchronizer) {
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED)
+			return;
 
-		if (this.isDirectory()) {
-			//deleting children
-			synchronizer.loop(new Loop.Foreach<>(this.children(), (child) -> {
-				child.delete(synchronizer);
-				return true;
-			}));
-		} else {
-			boolean w = !this.exists() || super.delete();
+		long filesCount = this.getCount(false, true);
 
-			synchronizer.put("output_file", this);
-			synchronizer.compute("results", (k, v) -> v instanceof Boolean ? ((boolean) v) && w : w);
-			synchronizer.compute("progress", (k, v) -> v instanceof Integer ? ((int) v) + 1 : 1);
+		if (filesCount > 1) {
+			if (synchronizer.handle(DIRECTORY_NOT_EMPTY, this) <= PROCESS_FAILED)
+				return;
+
+			//<editor-fold desc="synchronizer.bind()">
+			this.setMaxProgress(filesCount);
+			this.setProgress(0L);
+			synchronizer.out(this);
 			synchronizer.bind();
+			//</editor-fold>
+			synchronizer.loop(new Loop.Foreach<>(this.children(), child -> {
+				child.delete(synchronizer);
+				//<editor-fold desc="synchronizer.bind()">
+				this.progressed();
+				synchronizer.bind();
+				//</editor-fold>
+				return synchronizer.status != PROCESS_CANCELED;
+			}));
+		}
+
+		//<editor-fold desc="synchronizer.bind()">
+		this.setMaxProgress(1L);
+		this.setProgress(0L);
+		synchronizer.out(this);
+		synchronizer.bind();
+		//</editor-fold>
+
+		try {
+			if (this.delete()) {
+				//<editor-fold desc="synchronizer.bind()">
+				this.progressed();
+				synchronizer.bind();
+				//</editor-fold>
+			} else if (synchronizer.handle(CANT_DELETE, this) >= PROCESS_CONTINUED) {
+				this.delete(synchronizer);
+			}
+		} catch (SecurityException e) {
+			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
+				this.delete(synchronizer);
+		}
+	}
+
+	/**
+	 * Get the total count of files inside this (including this).
+	 *
+	 * @param dirs whether to include directories or not
+	 * @param non  whether to include non-directory files or not
+	 * @return count of files
+	 */
+	public long getCount(boolean dirs, boolean non) {
+		if (this.isDirectory()) {
+			long count = dirs ? 1L : 0L;
+			for (File child : this.children())
+				count += child.getCount(dirs, non);
+			return count;
+		} else {
+			return non && this.exists() ? 1L : 0L;
 		}
 	}
 
@@ -425,77 +551,92 @@ public class File extends java.io.File {
 	 * @return extension of this file
 	 * @see #extension cache
 	 */
-	public String extension() {
-		if (this.extension != null) //if it's already defined or not
-			return this.extension;
-
-		String[] name = this.getName().split("[.]");
-		return this.extension = name.length == 1 || name.length == 2 && name[0].equals("") ? "" : name[name.length - 1];
+	public String getExtension() {
+		return Objects.requireNonNullElseGet(this.extension, () -> {
+			String[] split = this.getName().split("[.]");
+			return this.extension = split.length <= 1 || (split.length == 2 && split[0].equals("")) ? "" : split[split.length - 1];
+		});
 	}
 
 	/**
-	 * Get this file's parent and grand and grand grand and so on. Sorted from main-root to this.
+	 * Get the max progress for the current processing method on this instance.
 	 *
-	 * @return this file and it's parents
+	 * @return the max progress for the current process
 	 */
-	public List<File> fileStack() {
-		//getting ready
-		List<File> stack = new ArrayList<>(); //stack
-
-		for (File file = this; !file.getName().equals(""); file = file.getParentFile())
-			stack.add(file); //sortInfo parent
-
-		return stack;
+	public Long getMaxProgress() {
+		return this.progress_max;
 	}
 
 	/**
-	 * Get the total count of files inside this (without folders).
+	 * Get the mime of this file by it's name.
 	 *
-	 * @return count of files
+	 * @return this file's mime
+	 * @see #mime cache
 	 */
-	public int filesCount() {
-		if (this.isDirectory()) {
-			int count = 0;
-			for (File child : this.children())
-				count += child.filesCount();
-			return count;
-		} else {
-			return this.exists() ? 1 : 0;
-		}
+	public String getMime() {
+		return Objects.requireNonNullElseGet(this.mime, () -> {
+			String mime = URLConnection.guessContentTypeFromName(this.getName());
+			return this.mime = mime == null ? "*/" + this.getExtension() : mime;
+		});
 	}
 
 	/**
-	 * Search for files that contains one of the given queries on it's name.
+	 * Get the progress of current processing method on this instance.
 	 *
-	 * @param queries the queries of the wanted files
-	 * @return files that have specific queries
+	 * @return the process of the current process
 	 */
-	public List<File> find(String... queries) {
-		List<File> result = new ArrayList<>();
-
-		if (Strings.any(this.getName(), queries))
-			result.add(this);
-
-		for (File child : this.children())
-			result.addAll(child.find(queries));
-
-		return result;
+	public Long getProgress() {
+		return this.progress;
 	}
 
 	/**
-	 * Get the total count of folders inside this.
+	 * Get this file's title without the suffix.
+	 * <br><br><b>example</b>
+	 * <pre>
+	 * title :      "title (1).extension"
+	 * cleanTitle : "title.extension"
+	 * </pre>
 	 *
-	 * @return count of folders
+	 * @return this file's title without the suffix
+	 * @see #suffixless_title cache
 	 */
-	public int foldersCount() {
-		if (this.isDirectory()) {
-			int count = 1;
-			for (File child : this.children())
-				count += child.foldersCount();
-			return count;
-		} else {
-			return 0;
-		}
+	public String getSuffixlessTitle() {
+		return Objects.requireNonNullElseGet(this.suffixless_title, () -> {
+			String title = this.getTitle();
+			String[] split = title.split(" ");
+			String number = split[split.length - 1];
+
+			if (number.charAt(0) == '(' && number.charAt(number.length() - 1) == ')') {
+				number = Strings.crop(split[split.length - 1], 1, 1);
+
+				if (JSON.global.is_integer(number)) {
+					this.suffix = Integer.parseInt(number) + 1;
+					split = Arrays.crop(split, 0, 1);
+					return this.suffixless_title = Strings.join(" ", "", split);
+				}
+			}
+
+			return this.suffixless_title = title;
+		});
+	}
+
+	/**
+	 * Get this file's name without the type extension.
+	 * <br><br><b>example</b>
+	 * <pre>
+	 * name :   "title.extension"
+	 * title :  "title"
+	 * </pre>
+	 *
+	 * @return this file's title
+	 * @see #title cache
+	 */
+	public String getTitle() {
+		return Objects.requireNonNullElseGet(this.title, () -> {
+			String[] split = this.getName().split("[.]");
+			return this.title = split.length <= 2 && split[0].equals("") ? split[split.length - 1] :
+								Strings.join(".", "", Arrays.crop(split, 0, 1));
+		});
 	}
 
 	/**
@@ -504,20 +645,11 @@ public class File extends java.io.File {
 	 * @return whether this file is hidden by a dot or not
 	 * @see #dot_hidden cache
 	 */
-	public boolean getDot_hidden() {
-		if (this.dot_hidden != null) //if it's already defined
-			return this.dot_hidden;
-
-		return this.dot_hidden = this.getName().split("[.]")[0].equals("");
-	}
-
-	/**
-	 * whether this file is a directory and it has a file named ".nomedia"
-	 *
-	 * @return whether this file contains media or not
-	 */
-	public boolean isNoMedia() {
-		return this.isDirectory() && this.child(".nomedia").exists();
+	public boolean isDotHidden() {
+		return Objects.requireNonNullElseGet(this.dot_hidden, () -> {
+			String[] split = this.getName().split("[.]");
+			return this.dot_hidden = split.length >= 1 && split[0].equals("");
+		});
 	}
 
 	/**
@@ -531,188 +663,306 @@ public class File extends java.io.File {
 	 * @return a file of this with a name that hadn't used by any of this file's siblings
 	 */
 	public File junior() {
-		if (!this.exists()) //if not exists then no need to rename with a copy extension
+		if (!this.exists())
 			return this;
 
-		//trying loop
-		for (; ; this.suffix++) {
-			File junior = new File(
-					this.getParent() + "/" + this.cleanTitle() + " (" + this.suffix + ")" + this.extension());
-			//check if need to get a copy with different copy number
-			if (!junior.exists())
-				return junior;
+		String extension = this.getExtension();
+		String title = this.getSuffixlessTitle();
+		String a = (this.getParent() == null ? "" : this.getParent() + "/") + this.getSuffixlessTitle() + " (";
+		String b = ")" + (extension.equals("") ? "" : "." + extension);
+
+		File junior;
+		int suffix = this.suffix() + 1;
+		while ((junior = new File(a + suffix++ + b)).exists()) ; //
+
+		return junior;
+	}
+
+	/**
+	 * Move this file to the given destination.
+	 *
+	 * <u>
+	 * Exception may applied to the catcher (unexpected exception may applied):
+	 * <li>{@link FileException#NOT_EXIST} if this file not exist.</li>
+	 * <li>{@link FileException#NOT_DIRECTORY} if the parent of the output file is not a directory.</li>
+	 * <li>{@link FileException#ALREADY_EXIST} if the output file is already exist.</li>
+	 * <li>{@link FileException#CANT_MOVE} if somehow failed to move this file.</li>
+	 * <li>
+	 * {@link SecurityException} If a security manager exists and its SecurityManager.checkWrite(java.lang.String) method denies write access to
+	 * either the old or new pathname
+	 * </li>
+	 * </u>
+	 *
+	 * @param output       the file to paste this to
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 */
+	public void move(Synchronizer<?, ?> synchronizer, java.io.File output) {
+		File dest = new File(output), parent = dest.parent();
+
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
+			synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
+			synchronizer.handle(dest.exists(), ALREADY_EXIST, dest) <= PROCESS_FAILED)
+			return;
+
+		//<editor-fold desc="synchronizer.bind()">
+		this.setMaxProgress(1L);
+		this.setProgress(0L);
+		dest.setMaxProgress(1L);
+		dest.setProgress(0L);
+		synchronizer.in(this);
+		synchronizer.out(dest);
+		synchronizer.bind();
+		//</editor-fold>
+
+		try {
+			if (this.renameTo(dest)) {
+				//<editor-fold desc="synchronizer.bind()">
+				this.progressed();
+				dest.progressed();
+				synchronizer.bind();
+				//</editor-fold>
+			} else if (synchronizer.handle(CANT_MOVE, this, dest) >= PROCESS_CONTINUED) {
+				this.move(synchronizer, dest);
+			}
+		} catch (SecurityException e) {
+			if (synchronizer.handle(e.getClass().getName(), e, this, dest) >= PROCESS_CONTINUED)
+				this.move(synchronizer, dest);
 		}
 	}
 
 	/**
-	 * Get stiled last modifying date of the file.
+	 * Get the parent file of this.
 	 *
-	 * @return last modifying date of this file
+	 * @return the parent file of this
 	 */
-	public String lastModifiedString() {
-		return DateFormat.getInstance().format(new Date(this.lastModified()));
+	public File parent() {
+		return Objects.requireNonNullElseGet(this.getParentFile(), () -> new File(""));
 	}
 
 	/**
-	 * Get the mime of this file by it's name.
+	 * Increase the progress value of this file.
 	 *
-	 * @return this file's mime
-	 * @see #mime cache
+	 * @param by the values to increase (will increase by 1 if an empty array passed)
 	 */
-	public String mime() {
-		if (this.mime != null) //if it's already defined
-			return this.mime;
-
-		//getting ready
-		String mime = URLConnection.guessContentTypeFromName(this.getName()); //result
-
-		return this.mime = mime == null ? "*/" + this.extension() : mime;
+	public void progressed(Long... by) {
+		this.progress += by.length == 0 ? 1L : Arrays.sum(by, value -> value);
 	}
 
 	/**
-	 * Make this as an empty file.
+	 * Search for files that contains one of the given queries on it's name.
 	 *
-	 * @return success of making
+	 * @param queries the queries of the wanted files
+	 * @return files that have specific queries
 	 */
-	public boolean mk() {
-		if (!this.isDirectory() && this.getParentFile().mkdirs())
-			if (this.exists())
-				return true;
-			else try (FileWriter fr = new FileWriter(this)) {
-				fr.write("");
+	public List<File> query(String... queries) {
+		List<File> found = new ArrayList<>();
 
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		if (Strings.any(this.getName(), queries))
+			found.add(this);
 
-		return false;
-	}
+		for (File child : this.children())
+			found.addAll(child.query(queries));
 
-	/**
-	 * Make this as a directory forcefully.
-	 *
-	 * @return success of the operation
-	 */
-	public boolean mkdirf() {
-		return this.isDirectory() || (this.delete() && this.mkdir());
-	}
-
-	/**
-	 * Make this and it's parents as a directory forcefully.
-	 *
-	 * @return success of the operation
-	 */
-	public boolean mkdirsf() {
-		return this.isDirectory() || (this.getParentFile().mkdirsf() && this.mkdirf());
-	}
-
-	/**
-	 * Force make this as a file. And if it's a directory. Then delete it then make it as a file.
-	 * And if one of it's parents is a file. Then delete it then make it as a folder.
-	 *
-	 * @return success of making
-	 */
-	public boolean mkf() {
-		return this.getParentFile().mkdirsf() && (!this.isDirectory() || this.delete()) && this.mk();
-	}
-
-	/**
-	 * Copy this file to other folder.
-	 *
-	 * @param parent new parent
-	 * @return result of moving
-	 */
-	public boolean move(java.io.File parent) {
-		File parent_file = parent instanceof File ? (File) parent : new File(parent);
-		File file = parent_file.child(this.getName());
-		boolean w = parent_file.mkdirs() && this.renameTo(file);
-		if (w) this.self = file;
-		return w;
+		return found;
 	}
 
 	/**
 	 * Read this file's Content as a {@link String}.
 	 *
-	 * @param defaultValue returned value case error reading file
-	 * @return value of this file
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_EXIST} this file not exist.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link IOException} If an I/O error occurs< /li>
+	 * </ul>
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @return value of this file. Or null in case of exceptions
 	 */
-	public String read(String defaultValue) {
-		StringBuilder value = new StringBuilder();
-		try (FileReader fr = new FileReader(this)) {
-			while (true) { //until the end of the mFile
-				int i = fr.read(); //getTitles next char
-				if (i == -1) break; //if reached the end
-				else value.append((char) i); //append next char to result holder
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return defaultValue; //case errors
-		}
 
-		return value.toString();//value
+	public String read(Synchronizer<?, ?> synchronizer) {
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
+			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
+			return null;
+
+		try (FileReader fr = new FileReader(this)) {
+			StringBuilder text = new StringBuilder();
+			synchronizer.text = new StringBuilder();
+
+			//<editor-fold desc="synchronizer.bind()">
+			this.setMaxProgress(this.length() / synchronizer.byteBufferSize);
+			this.setProgress(0L);
+			synchronizer.in(this);
+			synchronizer.bind();
+			//</editor-fold>
+			synchronizer.loop(new Loop.Forever(i -> {
+				try {
+					int integer = fr.read();
+					if (integer != -1) {
+						char character = (char) integer;
+
+						text.append(character);
+						if (synchronizer.text != null)
+							synchronizer.text.append(character);
+						if ((i % synchronizer.byteBufferSize) == 0) {
+							//<editor-fold desc="synchronizer.bind()">
+							this.progressed();
+							synchronizer.bind();
+							//</editor-fold>
+						}
+						return true;
+					}
+					return false;
+				} catch (IOException e) {
+					if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
+						//noinspection ResultOfMethodCallIgnored
+						this.read(synchronizer);
+					return false;
+				}
+			}));
+
+			return text.toString();
+		} catch (IOException e) {
+			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
+				return this.read(synchronizer);
+			return null;
+		}
 	}
 
 	/**
 	 * Read this file's Content as a {@link String}. Then parse it using the specified parser.
 	 *
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_EXIST} this file not exist.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link IOException} If an I/O error occurs< /li>
+	 * </ul>
+	 *
 	 * @param parser       to use to parse the read text
 	 * @param klass        to make sure the value is instance of
-	 * @param defaultValue returned value case error reading file
 	 * @param <T>          the assumed type of the written text after parsing
-	 * @return parsed value of this file
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @return value of this file parsed. Or null in case of exceptions
 	 */
-	public <T> T read(Class<? extends StringParser> parser, Class<T> klass, Supplier<T> defaultValue) {
-		Object object = StringParser.Parse(parser, this.read(""));
-		return klass.isInstance(object) ? (T) object : defaultValue.get();
+
+	public <T> T read(Synchronizer<?, ?> synchronizer, StringParser parser, Class<? super T> klass) {
+		Object object = parser.parse(this.read(synchronizer));
+		return klass.isInstance(object) ? (T) object : null;
 	}
 
 	/**
 	 * Read this file's java serial text. And transform it to the targeted class.
 	 *
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_EXIST} this file not exist.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>
+	 *         {@link SecurityException}  if a security manager exists
+	 *         and its checkRead method denies read access to the file.
+	 *         Or if untrusted subclass illegally overrides security-sensitive methods.
+	 *     </li>
+	 *     <li>{@link StreamCorruptedException} if the stream header is incorrect. Or control information in the stream is inconsistent.</li>
+	 *     <li>{@link ClassNotFoundException} Class of a serialized object cannot be found.</li>
+	 *     <li>{@link InvalidClassException} Something is wrong with a class used by serialization.</li>
+	 *     <li>{@link OptionalDataException} Primitive data was found in the stream instead of objects.</li>
+	 *     <li>{@link IOException} if an I/O error occurs while reading stream header.</li>
+	 * </ul>
+	 * <p>
+	 * Note: you can use {@link #read(Synchronizer, StringParser, Class)} and pass {@link SER#global} as the string-parser.
+	 *
 	 * @param klass        klass of needed object (just to make sure the object we read is instance of the targeted class)
-	 * @param defaultValue returned value case errors
-	 * @param <S>          content type
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param <S>          targeted class type
 	 * @return transformed Java Serial write in this file
 	 * @see Serializable
 	 */
-	public <S extends Serializable> S readSerializable(Class<S> klass, Supplier<S> defaultValue) {
+
+	public <S extends Serializable> S read(Synchronizer<?, ?> synchronizer, Class<S> klass) {
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
+			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
+			return null;
+
 		try (FileInputStream fis = new FileInputStream(this);
 			 ObjectInputStream ois = new ObjectInputStream(fis)) {
+			S value = (S) ois.readObject();
 
-			S value = (S) ois.readObject();//reading //wrong cast well cached
-
-			//result
 			if (klass.isInstance(value))
 				return value;
 		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
+			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
+				return this.read(synchronizer, klass);
 		}
 
-		return defaultValue.get();
+		return null;
 	}
 
 	/**
 	 * Rename this file to a new name.
 	 *
-	 * @param name new name
-	 * @return success of operation
+	 * <u>
+	 * Exception may applied to the catcher (unexpected exception may applied):
+	 * <li>{@link FileException#NOT_EXIST} if this file not exist.</li>
+	 * <li>{@link FileException#NOT_DIRECTORY} if the parent of the output file is not a directory.</li>
+	 * <li>{@link FileException#ALREADY_EXIST} if the output file is already exist.</li>
+	 * <li>{@link FileException#CANT_MOVE} if somehow failed to move this file.</li>
+	 * <li>
+	 * {@link SecurityException} If a security manager exists and its SecurityManager.checkWrite(java.lang.String) method denies write access to
+	 * either the old or new pathname
+	 * </li>
+	 * </u>
+	 *
+	 * @param name         new name
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	public boolean rename(String name) {
-		File file = new File(this.getParent(), name);
-		boolean w = this.renameTo(file);
-		if (w) this.self = file;
-		return w;
+	public void rename(Synchronizer<?, ?> synchronizer, String name) {
+		File dest = this.sibling(name);
+
+		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
+			synchronizer.handle(dest.exists(), ALREADY_EXIST, dest) <= PROCESS_FAILED)
+			return;
+
+		//<editor-fold desc="synchronizer.bind()">
+		this.setMaxProgress(1L);
+		this.setProgress(0L);
+		dest.setMaxProgress(1L);
+		dest.setProgress(0L);
+		synchronizer.in(this);
+		synchronizer.out(dest);
+		synchronizer.bind();
+		//</editor-fold>
+
+		try {
+			if (this.renameTo(dest)) {
+				this.progressed();
+				dest.progressed();
+				synchronizer.bind();
+			} else if (synchronizer.handle(CANT_MOVE, this, dest) >= PROCESS_CONTINUED) {
+				this.rename(synchronizer, name);
+			}
+		} catch (SecurityException e) {
+			if (synchronizer.handle(e.getClass().getName(), e, this, dest) >= PROCESS_CONTINUED)
+				this.rename(synchronizer, name);
+		}
 	}
 
 	/**
-	 * Get the class of the serializable object. That have written in this file.
+	 * Set the max progress for the current processing method on this instance.
 	 *
-	 * @return the type of the object written on this
+	 * @param max value to be set
 	 */
-	public Class<? extends Serializable> serializableType() {
-		Serializable object = this.readSerializable(Serializable.class, null);
-		return object == null ? Serializable.class : object.getClass();
+	public void setMaxProgress(Long max) {
+		this.progress_max = max;
+	}
+
+	/**
+	 * Set the progress of current processing method on this instance.
+	 *
+	 * @param progress value to be set
+	 */
+	public void setProgress(Long progress) {
+		this.progress = progress;
 	}
 
 	/**
@@ -744,111 +994,140 @@ public class File extends java.io.File {
 	}
 
 	/**
-	 * Get file status.
-	 * <br><br><b>example:</b>
+	 * Get this file's parent and grand and grand grand and so on. Sorted from main-root to this.
+	 *
+	 * @return this file and it's parents
+	 */
+	public List<File> stack() {
+		List<File> stack = new ArrayList<>();
+
+		for (File file = this; file != null; file = file.getParentFile())
+			stack.add(file);
+
+		return stack;
+	}
+
+	/**
+	 * The suffix (or copy number) of this file.
+	 * <p>
+	 * ex.
 	 * <pre>
-	 * is directory ?   -> 'd--'
-	 * can be redden ?  -> '-r-'
-	 * can be edited ?  -> '--w'
+	 *     path: "/root/parent/title (1).extension"
+	 *     suffix: 1
 	 * </pre>
 	 *
-	 * @return status of this file
+	 * @return the suffix number of this file
 	 */
-	public String status() {
-		//getting ready
-		StringBuilder r = new StringBuilder(); //result
-
-		//is directory ?
-		try {
-			r.append(this.canExecute() ? "d" : "-");
-		} catch (Exception ignored) {
-			r.append("?");
-		}
-
-		//can read ?
-		try {
-			r.append(this.canRead() ? "r" : "-");
-		} catch (Exception ignored) {
-			r.append("?");
-		}
-
-		//can write ?
-		try {
-			r.append(this.canWrite() ? "w" : "-");
-		} catch (Exception ignored) {
-			r.append("?");
-		}
-
-		return r.toString();
+	public int suffix() {
+		return Objects.requireNonNullElseGet(this.suffix, () -> {
+			//noinspection ResultOfMethodCallIgnored
+			this.getSuffixlessTitle();
+			return this.suffix;
+		});
 	}
 
 	/**
-	 * Get this file's name without the type extension.
-	 * <br><br><b>example</b>
-	 * <pre>
-	 * name :   "title.extension"
-	 * title :  "title"
-	 * </pre>
+	 * write the given string to the text written on this file.
 	 *
-	 * @return this file's title
-	 * @see #title cache
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_DIRECTORY} the parent of this is not a directory.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link FileException#CANT_WRITE} can't write on this file.</li>
+	 * </ul>
+	 *
+	 * @param value        to be written to the text of this file
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	public String title() {
-		if (this.title != null)//isCommand if it already defined or not
-			return this.title;
+	public void write(Synchronizer<?, ?> synchronizer, String value) {
+		java.io.File parent = this.parent();
 
-		String[] split = this.getName().split("[.]");
-		return this.title = split.length == 1 || split.length == 2 && split[0].equals("") ?
-							split[split.length - 1] : Strings.join(".", "", Arrays.crop(split, 0, 1));
+		if (synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
+			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
+			return;
+
+		try (FileWriter fw = new FileWriter(this)) {
+			//<editor-fold desc="synchronizer.bind()">
+			this.setMaxProgress(1L);
+			this.setProgress(0L);
+			synchronizer.out(this);
+			synchronizer.bind();
+			//</editor-fold>
+			fw.write(value);
+			//<editor-fold desc="synchronizer.bind()">
+			this.progressed();
+			synchronizer.bind();
+			//</editor-fold>
+		} catch (IOException e) {
+			if (synchronizer.handle(CANT_WRITE, this) >= PROCESS_CONTINUED)
+				this.write(synchronizer, value);
+		}
 	}
 
 	/**
-	 * Write a text inside this file.
+	 * Stringify the given object using the given parser. Then write the output string to the txt of this file.
 	 *
-	 * @param value to write
-	 * @return success of writing
-	 */
-	public boolean write(String value) {
-		if (!this.isDirectory() && this.getParentFile().mkdir())
-			try (FileWriter fw = new FileWriter(this)) {
-				fw.write(value);
-
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-		return false;
-	}
-
-	/**
-	 * Write a text inside this file. A text from stringing the passed object using the specified {@link StringParser}.
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_DIRECTORY} the parent of this is not a directory.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link FileException#CANT_WRITE} can't write on this file.</li>
+	 * </ul>
 	 *
-	 * @param parser to stringify the value
-	 * @param value  to be write
-	 * @return success of writing
+	 * @param parser       to be used to stringify the given object
+	 * @param value        to write the output from stringing it
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	public boolean write(Class<? extends StringParser> parser, Object value) {
-		return this.write(StringParser.Stringify(parser, value));
+	public void write(Synchronizer<?, ?> synchronizer, StringParser parser, Object value) {
+		this.write(synchronizer, parser.stringify(value));
 	}
 
 	/**
 	 * Write a java serial text of the given {@link Serializable} in this file.
 	 *
-	 * @param value to write
-	 * @return success of writing
+	 * <ul>
+	 *     Exception may applied to the catcher:
+	 *     <li>{@link FileException#NOT_DIRECTORY} the parent of this is not a directory.</li>
+	 *     <li>{@link FileException#IS_DIRECTORY} this file is a directory.</li>
+	 *     <li>{@link FileException#CANT_WRITE} can't write on this file.</li>
+	 *     <li>
+	 *         {@link SecurityException} if a security manager exists and its checkWrite method denies
+	 *         write access to the file. Or if untrusted subclass illegally overrides security-sensitive methods.
+	 *     </li>
+	 *     <li>{@link InvalidClassException}  Something is wrong with a class used by serialization.</li>
+	 *     <li>{@link IOException} if an I/O error occurs while writing stream header</li>
+	 *     <li>{@link NotSerializableException} Some object to be serialized does not implement the java.io.Serializable interface.</li>
+	 * </ul>
+	 * <p>
+	 * Note: you can use {@link #write(Synchronizer, StringParser, Object)} and pass {@link SER#global} as the string-parser.
+	 *
+	 * @param value        to write
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	public boolean writeSerializable(Serializable value) {
-		if (!this.isDirectory() && this.getParentFile().mkdir())
-			try (FileOutputStream fos = new FileOutputStream(this);
-				 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-				oos.writeObject(value);
+	public void write(Synchronizer<?, ?> synchronizer, Serializable value) {
+		java.io.File parent = this.parent();
 
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		return false;
+		if (synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
+			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
+			return;
+
+		try (FileOutputStream fos = new FileOutputStream(this);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			//<editor-fold desc="synchronizer.bind()">
+			this.setMaxProgress(1L);
+			this.setProgress(0L);
+			synchronizer.out(this);
+			synchronizer.bind();
+			//</editor-fold>
+			oos.writeObject(value);
+			//<editor-fold desc="synchronizer.bind()">
+			this.progressed();
+			synchronizer.bind();
+			//</editor-fold>
+		} catch (IOException | SecurityException e) {
+			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
+				this.write(synchronizer, value);
+		}
 	}
 
 	/**
@@ -856,43 +1135,200 @@ public class File extends java.io.File {
 	 */
 	public static class Synchronizer<K, V> extends lsafer.util.Synchronizer<K, V> {
 		/**
-		 * Errors that have occurred during the process.
+		 * The size of bytes to be processed before this synchronizer get bound again.
 		 */
-		public ArrayList<Exception> error = new ArrayList<>();
-
+		public int byteBufferSize = 1024;
 		/**
-		 * The source file that the process is now pointing at.
+		 * Errors that have been occurred during the process.
 		 */
-		public File input_file = new File("");
-
+		public volatile ArrayList<Throwable> errors = new ArrayList<>();
 		/**
-		 * The source folder that the process is now pointing at.
+		 * The function to be used by the method {@link #handle} to handle exceptions.
 		 */
-		public File input_folder = new File("");
-
+		public volatile Function<FileException, Integer> handler = HANDLER_DEFAULT;
 		/**
-		 * Maximum progress.
+		 * Processed/Processing input files.
 		 */
-		public Integer max_progress = null;
-
+		public volatile List<File> in = new ArrayList<>();
 		/**
-		 * The output file that the process is processing now.
+		 * Processed/Processing output files.
 		 */
-		public File output_file = new File("");
-
-		/**
-		 * The output folder that the process is processing now.
-		 */
-		public File output_folder = new File("");
-
-		/**
-		 * Now progressed files count.
-		 */
-		public Integer progress = 0;
-
+		public volatile List<File> out = new ArrayList<>();
 		/**
 		 * Results.
 		 */
-		public Boolean results = true;
+		public volatile Integer status = PROCESS_CONTINUED;
+		/**
+		 * A text field for text transaction between threads.
+		 */
+		public volatile StringBuilder text = new StringBuilder();
+
+		/**
+		 * Default constructor.
+		 */
+		public Synchronizer() {
+		}
+
+		/**
+		 * Initialize this.
+		 *
+		 * @param handler        the exception handler to handle exceptions thrown to this
+		 * @param byteBufferSize the size of bytes to be processed before this synchronizer get bound again
+		 */
+		public Synchronizer(Function<FileException, Integer> handler, int byteBufferSize) {
+			this.handler = handler;
+			this.byteBufferSize = byteBufferSize;
+		}
+
+		/**
+		 * Initialize this.
+		 *
+		 * @param handler the exception handler to handle exceptions thrown to this
+		 */
+		public Synchronizer(Function<FileException, Integer> handler) {
+			this.handler = handler;
+		}
+
+		/**
+		 * Initialize this.
+		 *
+		 * @param byteBufferSize the size of bytes to be processed before this synchronizer get bound again
+		 */
+		public Synchronizer(int byteBufferSize) {
+			this.byteBufferSize = byteBufferSize;
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param condition weather to handle the exception or just return {@link #PROCESS_CONTINUED continue}.
+		 * @param error     the error/exception name
+		 * @param cause     the throwable object to be handled
+		 * @param causes    the files cases the exception (input always first)
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(boolean condition, String error, Throwable cause, java.io.File... causes) {
+			if (!condition)
+				return PROCESS_CONTINUED;
+
+			FileException exception = new FileException(error, cause, causes);
+			int i = this.handler.apply(exception);
+
+			if (i <= 0) {
+				this.errors.add(exception);
+				synchronized (this) {
+					this.status = Math.min(i, this.status);
+				}
+				this.bind();
+			}
+
+			return i;
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param condition weather to handle the exception or just return {@link #PROCESS_CONTINUED continue}.
+		 * @param error     the error/exception name
+		 * @param causes    the files cases the exception (input always first)
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(boolean condition, String error, java.io.File... causes) {
+			return this.handle(condition, error, null, causes);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param condition weather to handle the exception or just return {@link #PROCESS_CONTINUED continue}.
+		 * @param error     the error/exception name
+		 * @param cause     the throwable object to be handled
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(boolean condition, String error, Throwable cause) {
+			return this.handle(condition, error, cause, (java.io.File[]) null);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param condition weather to handle the exception or just return {@link #PROCESS_CONTINUED continue}.
+		 * @param error     the error/exception name
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(boolean condition, String error) {
+			return this.handle(condition, error, null, (java.io.File[]) null);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param error  the error/exception name
+		 * @param cause  the throwable object to be handled
+		 * @param causes the files cases the exception (input always first)
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(String error, Throwable cause, java.io.File... causes) {
+			return handle(true, error, cause, causes);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param error  the error/exception name
+		 * @param causes the files cases the exception (input always first)
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(String error, java.io.File... causes) {
+			return this.handle(true, error, null, causes);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param error the error/exception name
+		 * @param cause the throwable object to be handled
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(String error, Throwable cause) {
+			return this.handle(true, error, cause, (java.io.File[]) null);
+		}
+
+		/**
+		 * Handle the given error/exception and return whether the caller should {@link #PROCESS_CONTINUED continue}, {@link #PROCESS_FAILED fail} or
+		 * {@link #PROCESS_CANCELED cancel}.
+		 *
+		 * @param error the error/exception name
+		 * @return whether the caller shall continue, fail or cancel
+		 */
+		public int handle(String error) {
+			return this.handle(true, error, null, (java.io.File[]) null);
+		}
+
+		/**
+		 * Register the given file as an input processing file.
+		 *
+		 * @param file to be registered
+		 */
+		public void in(File file) {
+			this.in.add(file);
+		}
+
+		/**
+		 * Register the given file as an output processing file.
+		 *
+		 * @param file to be registered
+		 */
+		public void out(File file) {
+			this.out.add(file);
+		}
 	}
 }
+

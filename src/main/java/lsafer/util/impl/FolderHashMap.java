@@ -16,28 +16,29 @@ import lsafer.io.FolderMap;
 import lsafer.util.HybridMap;
 import lsafer.util.JetMap;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
- * An implement of 3 interfaces. To be a map that have a 3rd folder container.
+ * An implement of {@link FolderMap} and {@link JetMap} and {@link HybridMap} to {@link java.util.HashMap}.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 1 release (28-Sep-19)
- * @since 28-Sep-19
+ * @version 2 release (02-Nov-2019)
+ * @since 28-Sep-2019
  */
 @SuppressWarnings("unused")
-public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements FolderMap<K, V>, JetMap<K, V>, HybridMap<K, V> {
+public class FolderHashMap<K, V> extends AbstractFileHashMap<K, V> implements FolderMap<K, V>, JetMap<K, V>, HybridMap<K, V> {
 	/**
 	 * The default file-map to initialize. for files found but no matching entries for them.
 	 */
-	private Class<? extends FileMap> file;
+	public Class<? extends FileMap> file;
 	/**
 	 * The default folder-map to initialize. for files found but no matching entries for them.
 	 */
-	private Class<? extends FolderMap> folder;
+	public Class<? extends FolderMap> folder;
 
 	/**
 	 * Default constructor.
@@ -67,8 +68,7 @@ public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements Folder
 	}
 
 	/**
-	 * Constructs a new HashMap with the same mappings as the specified Map.
-	 * The HashMap is created with default load factor (0.75) and an initial
+	 * Constructs a new HashMap with the same mappings as the specified Map. The HashMap is created with default load factor (0.75) and an initial
 	 * capacity sufficient to hold the mappings in the specified Map.
 	 *
 	 * @param map the map whose mappings are to be placed in this map
@@ -90,27 +90,23 @@ public class FolderHashMap<K, V> extends IOHashMap<File, K, V> implements Folder
 	}
 
 	@Override
-	public <A extends Annotation> A configurations(Class<A> type, Class<?> defaults) {
-		A configurations = FolderMap.super.configurations(type, defaults);
+	public FileMap newInstanceFor(File file) {
+		try {
+			Function<File, File> FILE = f -> file;
 
-		if (type == FolderMap.Configurations.class)
-			return (A) new FolderMap.Configurations() {
-				@Override
-				public Class<? extends Annotation> annotationType() {
-					return FolderMap.Configurations.class;
+			if (file.isDirectory() && this.folder != null)
+				try {
+					return this.folder.getConstructor(Class.class, Class.class)
+							.newInstance(this.folder, this.file).setFile(FILE);
+				} catch (NoSuchMethodException ignored) {
+					return this.folder.getConstructor().newInstance().setFile(FILE);
 				}
+			if (this.file != null)
+				return this.file.getConstructor().newInstance().setFile(FILE);
 
-				@Override
-				public Class<? extends FileMap> file() {
-					return FolderHashMap.this.file == null ? ((FolderMap.Configurations) configurations).file() : FolderHashMap.this.file;
-				}
-
-				@Override
-				public Class<? extends FolderMap> folder() {
-					return FolderHashMap.this.folder == null ? ((FolderMap.Configurations) configurations).folder() : FolderHashMap.this.folder;
-				}
-			};
-
-		return configurations;
+			return FolderMap.super.newInstanceFor(file);
+		} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

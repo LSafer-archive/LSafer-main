@@ -19,7 +19,6 @@ import java.lang.reflect.Array;
  * @version 3 release (28-Sep-19)
  * @since 25-Sep-19
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
 final public class Classes {
 	/**
 	 * This is a util class. and shall not be instanced as an object.
@@ -45,28 +44,29 @@ final public class Classes {
 	 * @return the class that extends Object class and represent the given class
 	 */
 	public static Class<?> objective(Class<?> klass) {
-		if (klass.isArray())
-			return Classes.array(Classes.objective(klass.getComponentType()));
-		if (Object.class.isAssignableFrom(klass))
-			return klass;
-		if (klass == char.class)
-			return Character.class;
-		if (klass == int.class)
-			return Integer.class;
-		if (klass == boolean.class)
-			return Boolean.class;
-		if (klass == byte.class)
-			return Byte.class;
-		if (klass == double.class)
-			return Double.class;
-		if (klass == float.class)
-			return Float.class;
-		if (klass == long.class)
-			return Long.class;
-		if (klass == short.class)
-			return Short.class;
+		if (klass.isArray()) {
+			Class<?> component = klass.getComponentType();
+			return component.isPrimitive() ? Classes.array(Classes.objective(component)) : klass;
+		} else if (klass.isPrimitive()) {
+			if (klass == char.class)
+				return Character.class;
+			if (klass == int.class)
+				return Integer.class;
+			if (klass == boolean.class)
+				return Boolean.class;
+			if (klass == byte.class)
+				return Byte.class;
+			if (klass == double.class)
+				return Double.class;
+			if (klass == float.class)
+				return Float.class;
+			if (klass == long.class)
+				return Long.class;
+			if (klass == short.class)
+				return Short.class;
+		}
 
-		throw new AssertionError(klass + " nether pure or extends " + Object.class);
+		return klass;
 	}
 
 	/**

@@ -14,38 +14,10 @@ package lsafer.util;
  * Useful utils for strings.
  *
  * @author LSafer
- * @version 4 release (06-Seo-2019)
+ * @version 5 release (02-Nov-2019)
  * @since 11 Jun 2019
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
 final public class Strings {
-	/**
-	 * The prefixes used with si units. The center index is 6.
-	 *
-	 * <ul>
-	 * <li>note: ["c", "d", "da", "h"] have been removed. Because it's not multiple of 1000.</li>
-	 * </ul>
-	 */
-	final public static String[] SI_PREFIXES = {
-			"a",        //x10^-18
-			"f",        //x10^-15
-			"p",        //x10^-12
-			"n",        //x10^-9
-			"mi",       //x10^-6
-			"m",        //x10^-3
-			/*"c",*/    //x10^-2
-			/*"d",*/    //x10^-1
-			"",         //x10^0
-			/*"da",*/   //x10^1
-			/*"h",*/    //x10^2
-			"k",        //x10^3
-			"M",        //x10^6
-			"G",        //x10^9
-			"T",        //x10^12
-			"F",        //x10^15
-			"E",        //x10^18
-	};
-
 	/**
 	 * This is a util class. And shall not be instanced as an object.
 	 */
@@ -96,19 +68,6 @@ final public class Strings {
 	 */
 	public static String crop(String string, int start, int end) {
 		return String.copyValueOf(string.toCharArray(), start, string.length() - start - end);
-	}
-
-	/**
-	 * Transform the given number to string and add best measurement unit for it.
-	 *
-	 * @param number to format
-	 * @return the value with unit
-	 */
-	public static String format(long number) {
-		int unit = 6;
-		for (; number > 1024 && unit < SI_PREFIXES.length - 1; unit++)
-			number /= 1024;
-		return number + " " + SI_PREFIXES[unit];
 	}
 
 	/**
@@ -170,3 +129,44 @@ final public class Strings {
 		return string;
 	}
 }
+
+//
+//	/**
+//	 * The prefixes used with si units. The center index is 6.
+//	 *
+//	 * <ul>
+//	 * <li>note: ["c", "d", "da", "h"] have been removed. Because it's not multiple of 1000.</li>
+//	 * </ul>
+//	 */
+//	final public static String[] SI_PREFIXES = {
+//			/*x10^-18*/ "a", /*x10^-15*/ "f", /*x10^-12*/ "p", /*x10^-09*/ "n",
+//			/*x10^-06*/ "mi", /*x10^-03*/ "m", /*x10^+00*/ "", /*x10^+03*/ "k",
+//			/*x10^+06*/ "M", /*x10^+09*/ "G", /*x10^+12*/ "T", /*x10^+15*/ "F",
+//			/*x10^+18*/ "E"
+//	};
+//	/**
+//	 * Transform the given number to string and add best measurement unit for it.
+//	 *
+//	 * @param number to format
+//	 * @return the value with unit
+//	 */
+//	public static String format(long number) {
+//		int unit = 6;
+//		for (; number > 1024 && unit < SI_PREFIXES.length - 1; unit++)
+//			number /= 1024;
+//
+//		return number + " " + SI_PREFIXES[unit];
+//	}
+//
+//	/**
+//	 * @param string
+//	 * @param afterIndex
+//	 * @param start
+//	 * @param stop
+//	 * @return
+//	 */
+//	@Underdevelopment(value = "not sure that is what we want.")
+//	static String collect(String string, int afterIndex, String start, String stop) {
+//		int i0 = string.indexOf(start, afterIndex) + 1, i1 = string.indexOf(stop, i0);
+//		return i0 > 0 && i1 >= 0 ? new String(string.toCharArray(), i0, i1 - i0) : null;
+//	}

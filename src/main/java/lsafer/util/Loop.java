@@ -20,7 +20,6 @@ import java.util.function.Function;
  * @version 5 release (28-Sep-2019)
  * @since 18 May 2019
  */
-@SuppressWarnings({"WeakerAccess"})
 public abstract class Loop<I> {
 	/**
 	 * A position for loops. Tells that the loop shall be paused
@@ -58,37 +57,37 @@ public abstract class Loop<I> {
 	}
 
 	/**
-	 * Made for loop original class. To tell the loop what it should do.
-	 * If the position of the loop is "pause". Then it'll enter a loop until any new commands.
-	 *
-	 * @return if true the the loop shall continue else shall break
-	 */
-	private synchronized boolean check() {
-		if (!this.check) return true; //no updates
-		this.check = false; //done reading it :)
-
-		switch (this.position) {
-			case RESUME:
-				return true;
-			case PAUSE:
-				//noinspection ALL do nothing until next command
-				while (!this.check) ;
-				return this.check();  //to read the next command
-			case STOP:
-				return false; //break
-			default:
-				return false;
-		}
-	}
-
-	/**
 	 * Update the status of loop.
 	 *
 	 * @param position new status
 	 */
-	public synchronized void cp(String position) {
+	public synchronized void setPosition(String position) {
 		this.check = true;
 		this.position = position;
+	}
+
+	/**
+	 * Made for loop original class. To tell the loop what it should do. If the position of the loop is "pause". Then it'll enter a loop until any new
+	 * commands.
+	 *
+	 * @return if true the the loop shall continue else shall break
+	 */
+	protected synchronized boolean check() {
+		if (!this.check) return true; //no updates
+		this.check = false; //done reading it :)
+
+		switch (this.position) {
+			case Loop.RESUME:
+				return true;
+			case Loop.PAUSE:
+				//noinspection ALL do nothing until next command
+				while (!this.check) ;
+				return this.check();  //to read the next command
+			case Loop.STOP:
+				return false; //break
+			default:
+				return false;
+		}
 	}
 
 	/**
@@ -97,7 +96,7 @@ public abstract class Loop<I> {
 	 * @param item to pass it to the next step
 	 * @return whether allowed to continue the loop or not
 	 */
-	final protected boolean next(I item) {
+	protected boolean next(I item) {
 		return this.check() && this.block.apply(item);
 	}
 
@@ -108,7 +107,7 @@ public abstract class Loop<I> {
 	 * @see Limited#start() limited
 	 * @see Forever#start() forever
 	 */
-	protected abstract void start();
+	public abstract void start();
 
 	/**
 	 * Loop for each item of a list.
@@ -133,7 +132,7 @@ public abstract class Loop<I> {
 		}
 
 		@Override
-		protected void start() {
+		public void start() {
 			for (I t : this.iterable)
 				if (!this.next(t))
 					break;
@@ -177,9 +176,7 @@ public abstract class Loop<I> {
 		/**
 		 * Initialize this.
 		 * <br>
-		 * example for lists:
-		 * from last to first ( size-1 , -1 , ...)
-		 * from first to last ( 0 , size , ...)
+		 * example for lists: from last to first ( size-1 , -1 , ...) from first to last ( 0 , size , ...)
 		 *
 		 * @param from   number to start from
 		 * @param before number to stop before

@@ -10,32 +10,33 @@
  */
 package lsafer.util.impl;
 
-import lsafer.io.IOMap;
+import lsafer.io.ParsedFileMap;
+import lsafer.util.HybridMap;
+import lsafer.util.JetMap;
+import lsafer.util.StringParser;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An abstract for hash-maps with the needed methods for interface {@link IOMap}.
+ * An implement of {@link ParsedFileMap} and {@link JetMap} and {@link HybridMap} to {@link java.util.HashMap}.
  *
- * @param <R> type of the remote of the third IO-port container.
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 1 release (28-Sep-19)
- * @since 28-Sep-19
+ * @version 3 release (02-Nov-2019)
+ * @see lsafer.json.JSON
+ * @since 25-Sep-2019
  */
-@SuppressWarnings("WeakerAccess")
-public abstract class IOHashMap<R, K, V> extends HashMap<K, V> implements IOMap<R, K, V> {
+public class ParsedFileHashMap<K, V> extends AbstractFileHashMap<K, V> implements ParsedFileMap<K, V>, JetMap<K, V>, HybridMap<K, V> {
 	/**
-	 * The 3rd IO-container's remote.
+	 * The parser to be used to parse/stringify the content from/to the file targeted by this.
 	 */
-	protected R remote;
+	public StringParser parser;
 
 	/**
 	 * Default constructor.
 	 */
-	public IOHashMap() {
+	public ParsedFileHashMap() {
 	}
 
 	/**
@@ -44,7 +45,7 @@ public abstract class IOHashMap<R, K, V> extends HashMap<K, V> implements IOMap<
 	 * @param initialCapacity the initial capacity
 	 * @throws IllegalArgumentException if the initial capacity is negative.
 	 */
-	public IOHashMap(int initialCapacity) {
+	public ParsedFileHashMap(int initialCapacity) {
 		super(initialCapacity);
 	}
 
@@ -55,31 +56,32 @@ public abstract class IOHashMap<R, K, V> extends HashMap<K, V> implements IOMap<
 	 * @param loadFactor      the load factor
 	 * @throws IllegalArgumentException if the initial capacity is negative or the load factor is nonpositive
 	 */
-	public IOHashMap(int initialCapacity, float loadFactor) {
+	public ParsedFileHashMap(int initialCapacity, float loadFactor) {
 		super(initialCapacity, loadFactor);
 	}
 
 	/**
-	 * Constructs a new HashMap with the same mappings as the specified Map.
-	 * The HashMap is created with default load factor (0.75) and an initial
+	 * Constructs a new HashMap with the same mappings as the specified Map. The HashMap is created with default load factor (0.75) and an initial
 	 * capacity sufficient to hold the mappings in the specified Map.
 	 *
 	 * @param map the map whose mappings are to be placed in this map
 	 * @throws NullPointerException if the specified map is null
 	 */
-	public IOHashMap(Map<? extends K, ? extends V> map) {
+	public ParsedFileHashMap(Map<? extends K, ? extends V> map) {
 		super(map);
 	}
 
-	@Override
-	public R remote() {
-		return this.remote;
+	/**
+	 * Initialize this with a specific string-parser.
+	 *
+	 * @param parser to be used to parse the targeted file
+	 */
+	public ParsedFileHashMap(StringParser parser) {
+		this.parser = parser;
 	}
 
 	@Override
-	public R remote(R remote) {
-		R old = this.remote();
-		this.remote = remote;
-		return old;
+	public StringParser parser() {
+		return this.parser == null ? ParsedFileMap.super.parser() : this.parser;
 	}
 }

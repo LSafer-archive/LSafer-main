@@ -10,17 +10,23 @@
  */
 package lsafer.io;
 
+import lsafer.java.SER;
+import lsafer.json.JSON;
+import lsafer.microsoft.INI;
 import lsafer.util.Configurable;
 import lsafer.util.impl.FolderHashMap;
-import lsafer.util.impl.JSONFileHashMap;
+import lsafer.util.impl.ParsedFileHashMap;
 
 import java.lang.annotation.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import static lsafer.io.File.PROCESS_CANCELED;
+import static lsafer.io.File.PROCESS_FAILED;
+import static lsafer.io.FileException.NOT_DIRECTORY;
+import static lsafer.io.FileException.NOT_EXIST;
 
 /**
  * A {@link Map} that is linked to {@link File Folder} as it's IO-Container.
@@ -28,146 +34,160 @@ import java.util.function.BiConsumer;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 8 release (17-Oct-19)
+ * @version 9 release (02-Nov-19)
  * @since 19-Jul-19
  */
-@SuppressWarnings({"unused", "UnusedReturnValue"})
 @FolderMap.Configurations
 public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 	@Override
-	default boolean exist() {
-		File remote = this.remote();
-		return remote.exists() && remote.isDirectory();
+	default void move(File.Synchronizer<?, ?> synchronizer, java.io.File output) {
+		FileMap.super.move(synchronizer, output);
+		this.setFiles();
 	}
 
 	@Override
-	default Map<K, V> read() {
+	default void rename(File.Synchronizer<?, ?> synchronizer, String name) {
+		FileMap.super.rename(synchronizer, name);
+		this.setFiles();
+	}
+
+	@Override
+	default void save(File.Synchronizer<?, ?> synchronizer) {
+		//<editor-fold desc="synchronizer.bind()">
+		this.getFile().setMaxProgress((long) this.size());
+		this.getFile().setProgress(0L);
+		synchronizer.bind();
+		//</editor-fold>
+		this.forEach((key, value) -> {
+			if (value instanceof FileMap) {
+				((FileMap<?, ?>) value).setFile(file -> file == null ? this.getFile().child(String.valueOf(key)) : file);
+				((FileMap<?, ?>) value).save(synchronizer);
+			}
+			this.getFile().progressed();
+			synchronizer.bind();
+		});
+	}
+
+	@Override
+	default Map<K, V> read(File.Synchronizer<?, ?> synchronizer) {
+		if (synchronizer.handle(!this.getFile().exists(), NOT_EXIST, this.getFile()) <= PROCESS_FAILED ||
+			synchronizer.handle(!this.getFile().isDirectory(), NOT_DIRECTORY, this.getFile()) <= PROCESS_FAILED)
+			return null;
+
 		Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
+		String[] children = this.getFile().list();
 		Map<K, V> map = new HashMap<>();
 
-		this.remote().children().forEach(file -> {
-			try {
-				String key = file.getName();
-				FileMap<?, ?> value = file.isDirectory() ?
-									  configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
-									  configurations.file().getDeclaredConstructor(new Class[0]).newInstance();
+		//<editor-fold desc="synchronizer.bind()">
+		this.getFile().setMaxProgress((long) (children == null ? 0 : children.length));
+		this.getFile().setProgress(0L);
+		synchronizer.in(this.getFile());
+		synchronizer.bind();
+		//</editor-fold>
 
-				value.remote(file);
-				value.load();
-				map.put((K) key, (V) value);
-			} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-				throw new RuntimeException(e);
+		if (children != null)
+			for (String child : children) {
+				V value = this.get(child);
+				map.put((K) child, (value instanceof FileMap ? value : (V) this.newInstanceFor(new File(child))));
+				//<editor-fold desc="synchronizer.bind()">
+				this.getFile().progressed();
+				synchronizer.bind();
+				//</editor-fold>
 			}
-		});
 
 		return map;
 	}
 
 	@Override
-	default <F extends FileMap> F load(BiConsumer<K, V> removed, BiConsumer<K, V> added) {
-		Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
-		Set<String> children = this.remote().children0();
-		Set<K> remove = new HashSet<>();
-
-		//noinspection Java8MapForEach value may not be used
-		this.entrySet().forEach(entry -> {
-			String key = String.valueOf(entry.getKey());
-
-			if (children.contains(key)) {
-				V value = entry.getValue();
-				if (value instanceof FileMap) {
-					((FileMap<?, ?>) value).remote(this.remote().child(key));
-					((FileMap<?, ?>) value).load();
-				}
-				children.remove(key);
-			} else {
-				remove.add((K) key);
-			}
-		});
-
-		remove.forEach((key) -> {
-			V value = this.remove(key);
-			removed.accept(key, value);
-		});
-		children.forEach(key -> {
-			try {
-				File file = this.remote().child(key);
-				FileMap<?, ?> value = (file.isDirectory() ?
-									   configurations.folder().getDeclaredConstructor(new Class[0]).newInstance() :
-									   configurations.file().getDeclaredConstructor(new Class[0]).newInstance());
-				value.remote(file);
-				value.load();
-				this.put((K) key, (V) value);
-				added.accept((K) key, (V) value);
-			} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-		});
-		return (F) this;
-	}
-
-	@Override
-	default boolean move(java.io.File parent) {
-		boolean w = FileMap.super.move(parent);
-		File remote = this.remote();
-
-		if (w)
-			for (Map.Entry<K, V> entry : this.entrySet()) {
-				V value = entry.getValue();
-
-				if (value instanceof FileMap)
-					w &= ((FileMap) value).move(this.remote());
-			}
-
-		return w;
-	}
-
-	@Override
-	default boolean rename(String name) {
-		boolean w = FileMap.super.rename(name);
-		File remote = this.remote();
-
-		if (w)
-			for (Map.Entry<K, V> entry : this.entrySet()) {
-				V value = entry.getValue();
-
-				if (value instanceof FileMap)
-					w &= ((FileMap) value).move(remote);
-			}
-
-		return w;
-	}
-
-	@Override
-	default boolean save() {
-		boolean w = this.remote().mkdirs();
-
-		if (w)
-			for (Map.Entry<K, V> entry : this.entrySet()) {
-				V value = entry.getValue();
-				if (value instanceof FileMap)
-					w &= ((FileMap) value).save();
-			}
-
-		return w;
+	default void write(File.Synchronizer<?, ?> synchronizer, Map<K, V> map) {
 	}
 
 	/**
-	 * Apply the remote of this. To every {@link FileMap} contained in this.
+	 * Load this. Then load all {@link FileMap}s mapped on this as a value.
+	 *
+	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
+	 * @param <F>          this
+	 * @return this
+	 */
+	default <F extends FolderMap<K, V>> F loadAll(File.Synchronizer<?, ?> synchronizer) {
+		this.load(synchronizer);
+
+		if (synchronizer.status <= PROCESS_CANCELED)
+			return (F) this;
+
+		//<editor-fold desc="synchronizer.bind()">
+		//progress_max already have been defined
+		this.getFile().setProgress(0L);
+		synchronizer.in(this.getFile());
+		synchronizer.bind();
+		//</editor-fold>
+		this.forEach((key, value) -> {
+			if (value instanceof FileMap) {
+				((FileMap) value).setFile(file -> file == null ? this.getFile().child(String.valueOf(key)) : file);
+
+				if (value instanceof FolderMap)
+					((FolderMap<?, ?>) value).loadAll(synchronizer);
+				else ((FileMap<?, ?>) value).load(synchronizer);
+
+				//<editor-fold desc="synchronizer.bind()">
+				this.getFile().progressed();
+				synchronizer.bind();
+				//</editor-fold>
+			}
+		});
+
+		return (F) this;
+	}
+
+	/**
+	 * Get a new {@link FileMap} instance for the given file. This method like an instance creator switch. To get the perfect instance class. For that
+	 * specific file given. The new instance will not be touched by this. This object will just create it (the new instance) then return it as a
+	 * results.
+	 *
+	 * @param file to get a new instance for
+	 * @return a new instance for the given file
+	 */
+	default FileMap newInstanceFor(File file) {
+		try {
+			Configurations configurations = this.configurations(Configurations.class, FolderMap.class);
+			Function<File, File> FILE = f -> file;
+
+			if (file.isDirectory())
+				try {
+					return configurations.folder().getConstructor(Class.class, Class.class)
+							.newInstance(configurations.folder(), configurations.file()).setFile(FILE);
+				} catch (NoSuchMethodException ignored) {
+					return configurations.folder().getConstructor().newInstance().setFile(FILE);
+				}
+			if (configurations.file() == FileMap.class)
+				switch (file.getExtension()) {
+					default:
+					case "json":
+						return new ParsedFileHashMap<>(JSON.global).setFile(FILE);
+					case "ini":
+						return new ParsedFileHashMap(INI.global).setFile(FILE);
+					case "ser":
+						return new ParsedFileHashMap(SER.global).setFile(FILE);
+				}
+			return configurations.file().getConstructor().newInstance().setFile(FILE);
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Set the file of this. To every {@link FileMap} contained in this.
 	 *
 	 * @param <F> this
 	 * @return this
 	 */
-	default <F extends FolderMap> F applyRemote() {
-		File remote = this.remote();
-		this.forEach(((key, value) -> {
-			if (key instanceof String && value instanceof FileMap) {
-				((FileMap<?, ?>) value).remote(remote.child(((String) key)));
-
-				if (value instanceof FolderMap)
-					((FolderMap<?, ?>) value).applyRemote();
-			}
-		}));
+	default <F extends FolderMap<K, V>> F setFiles() {
+		this.forEach((key, value) -> {
+			if (value instanceof FileMap)
+				((FileMap<?, ?>) value).setFile(this.getFile().child(String.valueOf(key)));
+			if (value instanceof FolderMap)
+				((FolderMap<?, ?>) value).setFiles();
+		});
 		return (F) this;
 	}
 
@@ -183,7 +203,7 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 		 *
 		 * @return default file-map class
 		 */
-		Class<? extends FileMap> file() default JSONFileHashMap.class;
+		Class<? extends FileMap> file() default FileMap.class;
 
 		/**
 		 * The default folder-map to initialize. for folders found but no matching fields for them.

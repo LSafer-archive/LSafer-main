@@ -13,9 +13,8 @@ package lsafer.util;
 import java.util.*;
 
 /**
- * A {@link Map maps} plugin interface. An Interface that adds all {@link List lists} base methods
- * such as {@link List#add(Object)} or {@link List#add(int, Object)}, etc...
- * Using the Integer keyed entries as the bound for specific index.
+ * A {@link Map maps} plugin interface. An Interface that adds all {@link List lists} base methods such as {@link List#add(Object)} or {@link
+ * List#add(int, Object)}, etc... Using the Integer keyed entries as the bound for specific index.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -23,11 +22,9 @@ import java.util.*;
  * @version 4 release (28-Sep-19)
  * @since 15-Sep-19
  */
-@SuppressWarnings({"unused"})
 public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	/**
-	 * Depending on current indexing position on this map.
-	 * Add an element at the index after the last index in this.
+	 * Depending on current indexing position on this map. Add an element at the index after the last index in this.
 	 * <br><br><b>example:</b>
 	 * <pre>
 	 *     toString -> {-1:"-one", 0:"zero", 1:"one"}
@@ -43,9 +40,8 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts the specified element at the specified position in this map indexing system.
-	 * Shifts the element currently at that position (if any) and any subsequent
-	 * elements to the right (adds one to their indices).
+	 * Inserts the specified element at the specified position in this map indexing system. Shifts the element currently at that position (if any) and
+	 * any subsequent elements to the right (adds one to their indices).
 	 *
 	 * @param index   index at which the specified element is to be inserted
 	 * @param element element to be inserted
@@ -56,9 +52,9 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Appends all of the elements in the specified collection to the end of this map indexing system,
-	 * in the order that they are returned by the specified collection's Iterator.
-	 * The behavior of this operation is undefined if the specified collection is modified while the operation is in progress.
+	 * Appends all of the elements in the specified collection to the end of this map indexing system, in the order that they are returned by the
+	 * specified collection's Iterator. The behavior of this operation is undefined if the specified collection is modified while the operation is in
+	 * progress.
 	 *
 	 * @param collection containing elements to be added to this map
 	 * @return true if this map changed as a result of the call
@@ -73,9 +69,9 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts all of the elements in the specified collection into this list, starting at the specified position.
-	 * Shifts the element currently at that position (if any) and any subsequent elements to the right (increases their indices).
-	 * The new elements will appear in the list in the order that they are returned by the specified collection's iterator.
+	 * Inserts all of the elements in the specified collection into this list, starting at the specified position. Shifts the element currently at
+	 * that position (if any) and any subsequent elements to the right (increases their indices). The new elements will appear in the list in the
+	 * order that they are returned by the specified collection's iterator.
 	 *
 	 * @param index      at which to insert the first element from the specified collection
 	 * @param collection containing elements to be added to this list
@@ -126,8 +122,7 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Depending on current indexing position on this map.
-	 * Push an element at the index before the least index in this.
+	 * Depending on current indexing position on this map. Push an element at the index before the least index in this.
 	 * <br><br><b>example:</b>
 	 * <pre>
 	 *     toString -> {-1:"-one", 0:"zero", 1:"one"}
@@ -143,9 +138,8 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts the specified element at the specified position in this map indexing system.
-	 * Shifts the element currently at that position (if any) and any subsequent
-	 * elements to the left (subtract one to their indices).
+	 * Inserts the specified element at the specified position in this map indexing system. Shifts the element currently at that position (if any) and
+	 * any subsequent elements to the left (subtract one to their indices).
 	 *
 	 * @param index   index at which the specified element is to be inserted
 	 * @param element element to be inserted
@@ -156,9 +150,9 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Appends all of the elements in the specified collection to the start of this map indexing system,
-	 * in the order that they are returned by the specified collection's Iterator.
-	 * The behavior of this operation is undefined if the specified collection is modified while the operation is in progress.
+	 * Appends all of the elements in the specified collection to the start of this map indexing system, in the order that they are returned by the
+	 * specified collection's Iterator. The behavior of this operation is undefined if the specified collection is modified while the operation is in
+	 * progress.
 	 *
 	 * @param collection containing elements to be added to this map
 	 * @return true if this map changed as a result of the call
@@ -174,9 +168,9 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Inserts all of the elements in the specified collection into this list, starting at the specified position.
-	 * Shifts the element currently at that position (if any) and any subsequent elements to the left (subtract their indices).
-	 * The new elements will appear in the list in the order that they are returned by the specified collection's iterator.
+	 * Inserts all of the elements in the specified collection into this list, starting at the specified position. Shifts the element currently at
+	 * that position (if any) and any subsequent elements to the left (subtract their indices). The new elements will appear in the list in the order
+	 * that they are returned by the specified collection's iterator.
 	 *
 	 * @param index      at which to insert the first element from the specified collection
 	 * @param collection containing elements to be added to this list
@@ -193,10 +187,9 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Copies all of the elements from the specified collection to this map.
-	 * The effect of this call is equivalent to that of calling put(k, v) on this map
-	 * once for each element from index i to element e in the specified collection.
-	 * The behavior of this operation is undefined if the specified map is modified while the operation is in progress.
+	 * Copies all of the elements from the specified collection to this map. The effect of this call is equivalent to that of calling put(k, v) on
+	 * this map once for each element from index i to element e in the specified collection. The behavior of this operation is undefined if the
+	 * specified map is modified while the operation is in progress.
 	 *
 	 * @param collections elements to be stored in this map
 	 */
@@ -207,16 +200,48 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 	}
 
 	/**
-	 * Copies all of the elements from the specified array to this map.
-	 * The effect of this call is equivalent to that of calling put(k, v) on this map
-	 * once for each element from index i to element e in the specified array.
-	 * The behavior of this operation is undefined if the specified map is modified while the operation is in progress.
+	 * Copies all of the elements from the specified array to this map. The effect of this call is equivalent to that of calling put(k, v) on this map
+	 * once for each element from index i to element e in the specified array. The behavior of this operation is undefined if the specified map is
+	 * modified while the operation is in progress.
 	 *
 	 * @param array elements to be stored in this map
 	 */
 	default void putAll(V[] array) {
 		for (int i = 0; i < array.length; i++)
 			this.put((K) (Object) i, array[i]);
+	}
+
+	/**
+	 * Remove a value in a specific index in this map. Then shift indexes to fill it's empty index.
+	 *
+	 * @param index to remove it's value
+	 * @return the value that was in that index (before shifting indexes)
+	 */
+	default V removeIndex(int index) {
+		V value = this.remove(index);
+		this.shiftIndexes(index, null, -1);
+		return value;
+	}
+
+	/**
+	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value. This method removes the first value equals to the given value
+	 * (If it's index is instanceOf {@link Integer}). Then return the index it associated to. Or -1 if there is no such value equals to the given
+	 * value in this map. Then shift indexes to fill it's empty index.
+	 *
+	 * @param value to be removed
+	 * @return the index that was associated to the given value
+	 */
+	default int removeIndexOf(Object value) {
+		for (Map.Entry<K, V> entry : this.entrySet()) {
+			K key = entry.getKey();
+			if (key instanceof Integer && Objects.equals(entry.getValue(), value)) {
+				int index = (Integer) key;
+				this.remove(index);
+				this.shiftIndexes(index, null, -1);
+				return index;
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -258,39 +283,5 @@ public interface HybridMap<K, V> extends Map<K, V>, Caster.User {
 			if ((noStart || index >= start) && (noEnd || index <= end))
 				this.put((K) (Integer) index, value);
 		});
-	}
-
-	/**
-	 * Remove a value in a specific index in this map. Then shift indexes to fill it's empty index.
-	 *
-	 * @param index to remove it's value
-	 * @return the value that was in that index (before shifting indexes)
-	 */
-	default V removeIndex(int index) {
-		V value = this.remove(index);
-		this.shiftIndexes(index, null, -1);
-		return value;
-	}
-
-	/**
-	 * Remove a value {@link Objects#equals(Object, Object) equals} to the given value. This method removes
-	 * the first value equals to the given value (If it's index is instanceOf {@link Integer}). Then return the
-	 * index it associated to. Or -1 if there is no such value equals to the given value in this map.
-	 * Then shift indexes to fill it's empty index.
-	 *
-	 * @param value to be removed
-	 * @return the index that was associated to the given value
-	 */
-	default int removeIndexOf(Object value) {
-		for (Map.Entry<K, V> entry : this.entrySet()) {
-			K key = entry.getKey();
-			if (key instanceof Integer && Objects.equals(entry.getValue(), value)) {
-				int index = (Integer) key;
-				this.remove(index);
-				this.shiftIndexes(index, null, -1);
-				return index;
-			}
-		}
-		return -1;
 	}
 }

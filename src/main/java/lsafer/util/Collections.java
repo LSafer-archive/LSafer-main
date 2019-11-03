@@ -20,7 +20,6 @@ import java.util.function.Function;
  * @version 2 release (28-Sep-19)
  * @since 25-Sep-19
  */
-@SuppressWarnings("WeakerAccess")
 final public class Collections {
 	/**
 	 * Util classes shouldn't be instanced.

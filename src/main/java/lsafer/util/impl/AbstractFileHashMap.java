@@ -11,28 +11,31 @@
 package lsafer.util.impl;
 
 import lsafer.io.File;
-import lsafer.io.SerialFileMap;
-import lsafer.util.HybridMap;
-import lsafer.util.JetMap;
+import lsafer.io.FileMap;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An implement of 3 interfaces. To be a map that have a 3rd Serial-file container.
+ * An abstract to implement needed methods in the interfaces {@link FileMap} to {@link HashMap}.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 2 release (28-Sep-19)
- * @see java.io.Serializable
- * @since 25-Sep-19
+ * @version 2 release (02-Nov-19)
+ * @since 28-Sep-19
  */
-@SuppressWarnings("unused")
-public class SerialFileHashMap<K, V> extends IOHashMap<File, K, V> implements SerialFileMap<K, V>, JetMap<K, V>, HybridMap<K, V> {
+@SuppressWarnings("WeakerAccess")
+public abstract class AbstractFileHashMap<K, V> extends HashMap<K, V> implements FileMap<K, V> {
+	/**
+	 * The targeted file.
+	 */
+	protected File file;
+
 	/**
 	 * Default constructor.
 	 */
-	public SerialFileHashMap() {
+	public AbstractFileHashMap() {
 	}
 
 	/**
@@ -41,7 +44,7 @@ public class SerialFileHashMap<K, V> extends IOHashMap<File, K, V> implements Se
 	 * @param initialCapacity the initial capacity
 	 * @throws IllegalArgumentException if the initial capacity is negative.
 	 */
-	public SerialFileHashMap(int initialCapacity) {
+	public AbstractFileHashMap(int initialCapacity) {
 		super(initialCapacity);
 	}
 
@@ -52,19 +55,30 @@ public class SerialFileHashMap<K, V> extends IOHashMap<File, K, V> implements Se
 	 * @param loadFactor      the load factor
 	 * @throws IllegalArgumentException if the initial capacity is negative or the load factor is nonpositive
 	 */
-	public SerialFileHashMap(int initialCapacity, float loadFactor) {
+	public AbstractFileHashMap(int initialCapacity, float loadFactor) {
 		super(initialCapacity, loadFactor);
 	}
 
 	/**
-	 * Constructs a new HashMap with the same mappings as the specified Map.
-	 * The HashMap is created with default load factor (0.75) and an initial
+	 * Constructs a new HashMap with the same mappings as the specified Map. The HashMap is created with default load factor (0.75) and an initial
 	 * capacity sufficient to hold the mappings in the specified Map.
 	 *
 	 * @param map the map whose mappings are to be placed in this map
 	 * @throws NullPointerException if the specified map is null
 	 */
-	public SerialFileHashMap(Map<? extends K, ? extends V> map) {
+	public AbstractFileHashMap(Map<? extends K, ? extends V> map) {
 		super(map);
+	}
+
+	@Override
+	public File getFile() {
+		return this.file;
+	}
+
+	@Override
+	public File setFile(File file) {
+		File old = this.file;
+		this.file = file;
+		return old;
 	}
 }

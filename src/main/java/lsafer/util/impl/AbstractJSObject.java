@@ -27,7 +27,7 @@ import java.util.Set;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSafer
- * @version 13 release (28-Sep-2019)
+ * @version 14 release (02-Nov-2019)
  * @since 11 Jun 2019
  **/
 @SuppressWarnings({"unused"})

@@ -22,10 +22,9 @@ import java.util.Map;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 2 release (28-Sep-19)
- * @since 18-Sep-19
+ * @version 3 release (02-Nov-2019)
+ * @since 18-Sep-2019
  */
-@SuppressWarnings({"unused"})
 public class JetHashMap<K, V> extends HashMap<K, V> implements JetMap<K, V>, HybridMap<K, V> {
 	/**
 	 * Default constructor.
@@ -55,8 +54,7 @@ public class JetHashMap<K, V> extends HashMap<K, V> implements JetMap<K, V>, Hyb
 	}
 
 	/**
-	 * Constructs a new HashMap with the same mappings as the specified Map.
-	 * The HashMap is created with default load factor (0.75) and an initial
+	 * Constructs a new HashMap with the same mappings as the specified Map. The HashMap is created with default load factor (0.75) and an initial
 	 * capacity sufficient to hold the mappings in the specified Map.
 	 *
 	 * @param map the map whose mappings are to be placed in this map

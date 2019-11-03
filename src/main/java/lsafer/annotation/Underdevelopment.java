@@ -14,8 +14,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Annotate that the targeted element is still uncompleted.
- * And it's not safe to depend on it or use it.
+ * Annotate that the targeted element is still uncompleted. And it's not safe to depend on it or use it.
  *
  * @author LSaferSE
  * @version 2 beta (28-Sep-19)
