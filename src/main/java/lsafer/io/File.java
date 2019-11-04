@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static lsafer.io.FileException.*;
@@ -120,7 +119,7 @@ public class File extends java.io.File {
 	/**
 	 * This file's copy number. In case there is other files with the same name.
 	 */
-	protected int suffix = 0;
+	protected Integer suffix = null;
 	/**
 	 * This file's title without copy number.
 	 * <br><br><b>example:</b>
@@ -551,10 +550,12 @@ public class File extends java.io.File {
 	 * @see #extension cache
 	 */
 	public String getExtension() {
-		return Objects.requireNonNullElseGet(this.extension, () -> {
+		if(this.extension == null) {
 			String[] split = this.getName().split("[.]");
 			return this.extension = split.length <= 1 || (split.length == 2 && split[0].equals("")) ? "" : split[split.length - 1];
-		});
+		}
+
+		return this.extension;
 	}
 
 	/**
@@ -573,10 +574,12 @@ public class File extends java.io.File {
 	 * @see #mime cache
 	 */
 	public String getMime() {
-		return Objects.requireNonNullElseGet(this.mime, () -> {
+		if (this.mime == null) {
 			String mime = URLConnection.guessContentTypeFromName(this.getName());
 			return this.mime = mime == null ? "*/" + this.getExtension() : mime;
-		});
+		}
+
+		return this.mime;
 	}
 
 	/**
@@ -600,7 +603,7 @@ public class File extends java.io.File {
 	 * @see #suffixless_title cache
 	 */
 	public String getSuffixlessTitle() {
-		return Objects.requireNonNullElseGet(this.suffixless_title, () -> {
+		if (this.suffixless_title == null) {
 			String title = this.getTitle();
 			String[] split = title.split(" ");
 			String number = split[split.length - 1];
@@ -616,7 +619,9 @@ public class File extends java.io.File {
 			}
 
 			return this.suffixless_title = title;
-		});
+		}
+
+		return this.suffixless_title;
 	}
 
 	/**
@@ -631,11 +636,13 @@ public class File extends java.io.File {
 	 * @see #title cache
 	 */
 	public String getTitle() {
-		return Objects.requireNonNullElseGet(this.title, () -> {
+		if (this.title == null) {
 			String[] split = this.getName().split("[.]");
 			return this.title = split.length <= 2 && split[0].equals("") ? split[split.length - 1] :
 								Strings.join(".", "", Arrays.crop(split, 0, 1));
-		});
+		}
+
+		return this.title;
 	}
 
 	/**
@@ -645,10 +652,12 @@ public class File extends java.io.File {
 	 * @see #dot_hidden cache
 	 */
 	public boolean isDotHidden() {
-		return Objects.requireNonNullElseGet(this.dot_hidden, () -> {
+		if (this.dot_hidden == null) {
 			String[] split = this.getName().split("[.]");
 			return this.dot_hidden = split.length >= 1 && split[0].equals("");
-		});
+		}
+
+		return this.dot_hidden;
 	}
 
 	/**
@@ -735,7 +744,8 @@ public class File extends java.io.File {
 	 * @return the parent file of this
 	 */
 	public File parent() {
-		return Objects.requireNonNullElseGet(this.getParentFile(), () -> new File(""));
+		File parent = this.getParentFile();
+		return parent == null ? new File("") : parent;
 	}
 
 	/**
@@ -1016,11 +1026,13 @@ public class File extends java.io.File {
 	 * @return the suffix number of this file
 	 */
 	public int suffix() {
-		return Objects.requireNonNullElseGet(this.suffix, () -> {
+		if (this.suffix == null) {
 			//noinspection ResultOfMethodCallIgnored
 			this.getSuffixlessTitle();
 			return this.suffix;
-		});
+		}
+
+		return this.suffix;
 	}
 
 	/**
