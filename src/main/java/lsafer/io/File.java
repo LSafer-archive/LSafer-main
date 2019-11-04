@@ -10,7 +10,6 @@
  */
 package lsafer.io;
 
-import lsafer.java.SER;
 import lsafer.json.JSON;
 import lsafer.util.Arrays;
 import lsafer.util.Loop;
@@ -870,7 +869,6 @@ public class File extends java.io.File {
 	 *     <li>{@link IOException} if an I/O error occurs while reading stream header.</li>
 	 * </ul>
 	 * <p>
-	 * Note: you can use {@link #read(Synchronizer, StringParser, Class)} and pass {@link SER#global} as the string-parser.
 	 *
 	 * @param klass        klass of needed object (just to make sure the object we read is instance of the targeted class)
 	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
@@ -878,8 +876,7 @@ public class File extends java.io.File {
 	 * @return transformed Java Serial write in this file
 	 * @see Serializable
 	 */
-
-	public <S extends Serializable> S read(Synchronizer<?, ?> synchronizer, Class<S> klass) {
+	public <S extends Serializable> S readSerial(Synchronizer<?, ?> synchronizer, Class<S> klass) {
 		if (synchronizer.handle(!this.exists(), NOT_EXIST, this) <= PROCESS_FAILED ||
 			synchronizer.handle(this.isDirectory(), IS_DIRECTORY, this) <= PROCESS_FAILED)
 			return null;
@@ -892,7 +889,7 @@ public class File extends java.io.File {
 				return value;
 		} catch (IOException | ClassNotFoundException e) {
 			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
-				return this.read(synchronizer, klass);
+				return this.readSerial(synchronizer, klass);
 		}
 
 		return null;
@@ -1098,13 +1095,11 @@ public class File extends java.io.File {
 	 *     <li>{@link IOException} if an I/O error occurs while writing stream header</li>
 	 *     <li>{@link NotSerializableException} Some object to be serialized does not implement the java.io.Serializable interface.</li>
 	 * </ul>
-	 * <p>
-	 * Note: you can use {@link #write(Synchronizer, StringParser, Object)} and pass {@link SER#global} as the string-parser.
 	 *
 	 * @param value        to write
 	 * @param synchronizer used for: a-creating long loops b-pass information c-report exceptions
 	 */
-	public void write(Synchronizer<?, ?> synchronizer, Serializable value) {
+	public void writeSerial(Synchronizer<?, ?> synchronizer, Serializable value) {
 		java.io.File parent = this.parent();
 
 		if (synchronizer.handle(!parent.isDirectory(), NOT_DIRECTORY, parent) <= PROCESS_FAILED ||
@@ -1126,7 +1121,7 @@ public class File extends java.io.File {
 			//</editor-fold>
 		} catch (IOException | SecurityException e) {
 			if (synchronizer.handle(e.getClass().getName(), e, this) >= PROCESS_CONTINUED)
-				this.write(synchronizer, value);
+				this.writeSerial(synchronizer, value);
 		}
 	}
 

@@ -18,14 +18,14 @@ import java.util.function.BiFunction;
  * @param <I> id type
  * @param <F> flavor type
  * @author LSaferSE
- * @version 2 release (28-Sep-19)
+ * @version 3 release (04-Nov-19)
  * @since 07-Sep-19
  */
 public class IDFactory<I, F> {
 	/**
 	 * The function to use to create new IDs.
 	 */
-	protected BiFunction<I, F, I> creator;
+	protected BiFunction<I, F[], I> creator;
 
 	/**
 	 * The last unused ID.
@@ -34,32 +34,27 @@ public class IDFactory<I, F> {
 	 * <li>note: this field should be always refer to unused value</li>
 	 * </ul>
 	 */
-	protected volatile I free;
+	protected volatile I last;
 
 	/**
 	 * Initialize this.
 	 *
-	 * @param first   ID to start from
+	 * @param init   ID to start after
 	 * @param creator the function to create new IDs; (old -> new)
 	 */
-	public IDFactory(I first, BiFunction<I, F, I> creator) {
-		this.free = first;
+	public IDFactory(I init, BiFunction<I, F[], I> creator) {
+		this.last = init;
 		this.creator = creator;
 	}
 
 	/**
 	 * Get an unused ID by any user of this factory.
 	 *
-	 * @param flavor flavor type
+	 * @param flavors flavor type
 	 * @return a new unused ID
 	 */
-	public I newId(F flavor) {
-		I id = this.free;
-
-		synchronized (this) {
-			this.free = this.creator.apply(this.free, flavor);
-		}
-
-		return id;
+	@SuppressWarnings("unchecked")
+	public synchronized I next(F... flavors) {
+		return this.last = this.creator.apply(this.last, flavors);
 	}
 }

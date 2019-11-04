@@ -24,8 +24,8 @@ import java.util.Map;
  * @param <V> the type of mapped values
  * @author LSaferSE
  * @version 3 release (02-Nov-2019)
- * @see lsafer.json.JSON
  * @since 25-Sep-2019
+ * @see lsafer.json.JSON
  */
 public class ParsedFileHashMap<K, V> extends AbstractFileHashMap<K, V> implements ParsedFileMap<K, V>, JetMap<K, V>, HybridMap<K, V> {
 	/**

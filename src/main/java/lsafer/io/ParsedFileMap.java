@@ -18,7 +18,7 @@ import lsafer.util.StringParser;
 import java.util.Map;
 
 /**
- * A map linked to a file is it's original source. And use {@link lsafer.util.StringParser} is a way to translate that source.
+ * A map linked to a file is it's original source. And use {@link lsafer.util.StringParser} as a way to translate that source.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values

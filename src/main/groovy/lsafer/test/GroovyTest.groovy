@@ -33,7 +33,7 @@ class GroovyTest {
 	 * @return test results
 	 */
 	static String javaTest(String flavor) {
-		JavaTest.test0("javaFromGroovy " + flavor)
+		return JavaTest.test0("javaFromGroovy " + flavor)
 	}
 
 	static void main(String[] args) {

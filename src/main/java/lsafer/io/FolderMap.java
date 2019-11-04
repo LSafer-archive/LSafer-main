@@ -10,7 +10,7 @@
  */
 package lsafer.io;
 
-import lsafer.java.SER;
+import lsafer.java.SERB64;
 import lsafer.json.JSON;
 import lsafer.microsoft.INI;
 import lsafer.util.Configurable;
@@ -160,14 +160,14 @@ public interface FolderMap<K, V> extends FileMap<K, V>, Configurable {
 					return configurations.folder().getConstructor().newInstance().setFile(FILE);
 				}
 			if (configurations.file() == FileMap.class)
-				switch (file.getExtension()) {
+				switch (file.getExtension().toLowerCase()) {
 					default:
 					case "json":
 						return new ParsedFileHashMap<>(JSON.global).setFile(FILE);
 					case "ini":
 						return new ParsedFileHashMap(INI.global).setFile(FILE);
-					case "ser":
-						return new ParsedFileHashMap(SER.global).setFile(FILE);
+					case "serb64":
+						return new ParsedFileHashMap(SERB64.global).setFile(FILE);
 				}
 			return configurations.file().getConstructor().newInstance().setFile(FILE);
 		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

@@ -188,12 +188,13 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 */
 	default K getKey(Field field) {
 		EntryField annotation = field.getAnnotation(EntryField.class);
+		Configurations configurations = this.configurations(Configurations.class, JSObject.class);
 
-		if (annotation != null && !annotation.key().equals("")) {
+		if (configurations.overridableKeys() && annotation != null && !annotation.key().equals("")) {
 			return (K) annotation.key();
 		} else {
 			String name = field.getName();
-			String[] split = name.split(this.configurations(Configurations.class, JSObject.class).indexer());
+			String[] split = name.split(configurations.indexer());
 
 			if (split.length == 2)
 				try {
@@ -308,7 +309,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 	 * @param <K> the type of key maintained by this entry
 	 * @param <V> the type of mapped value
 	 */
-	final class Entry<K, V> implements java.util.Map.Entry<K, V> {
+	class Entry<K, V> implements java.util.Map.Entry<K, V> {
 		/**
 		 * A reference of the map where all entries of the JSObject this entry belongs to is contained on.
 		 */
@@ -335,7 +336,7 @@ public interface JSObject<K, V> extends Map<K, V>, Configurable, Caster.User {
 		public V value;
 
 		/**
-		 * Initialize this. TODO more description
+		 * Initialize this.
 		 *
 		 * @param object  the JSObject that this entry belongs to
 		 * @param entries a reference to the entries map instance of the JSObject that this entry belongs to (null if there is no such instance)

@@ -34,11 +34,11 @@ public class FolderHashMap<K, V> extends AbstractFileHashMap<K, V> implements Fo
 	/**
 	 * The default file-map to initialize. for files found but no matching entries for them.
 	 */
-	public Class<? extends FileMap> file;
+	public Class<? extends FileMap> fileClass;
 	/**
 	 * The default folder-map to initialize. for files found but no matching entries for them.
 	 */
-	public Class<? extends FolderMap> folder;
+	public Class<? extends FolderMap> folderClass;
 
 	/**
 	 * Default constructor.
@@ -81,12 +81,12 @@ public class FolderHashMap<K, V> extends AbstractFileHashMap<K, V> implements Fo
 	/**
 	 * Initialize and override {@link FolderMap.Configurations#file()} and {@link FolderMap.Configurations#folder()}.
 	 *
-	 * @param folder default folder-map class to override
-	 * @param file   default file-map class to override
+	 * @param folderClass default folder-map class to override
+	 * @param fileClass   default file-map class to override
 	 */
-	public FolderHashMap(Class<? extends FolderMap> folder, Class<? extends FileMap> file) {
-		this.folder = folder;
-		this.file = file;
+	public FolderHashMap(Class<? extends FolderMap> folderClass, Class<? extends FileMap> fileClass) {
+		this.folderClass = folderClass;
+		this.fileClass = fileClass;
 	}
 
 	@Override
@@ -94,15 +94,15 @@ public class FolderHashMap<K, V> extends AbstractFileHashMap<K, V> implements Fo
 		try {
 			Function<File, File> FILE = f -> file;
 
-			if (file.isDirectory() && this.folder != null)
+			if (file.isDirectory() && this.folderClass != null)
 				try {
-					return this.folder.getConstructor(Class.class, Class.class)
-							.newInstance(this.folder, this.file).setFile(FILE);
+					return this.folderClass.getConstructor(Class.class, Class.class)
+							.newInstance(this.folderClass, this.fileClass).setFile(FILE);
 				} catch (NoSuchMethodException ignored) {
-					return this.folder.getConstructor().newInstance().setFile(FILE);
+					return this.folderClass.getConstructor().newInstance().setFile(FILE);
 				}
-			if (this.file != null)
-				return this.file.getConstructor().newInstance().setFile(FILE);
+			if (this.fileClass != null)
+				return this.fileClass.getConstructor().newInstance().setFile(FILE);
 
 			return FolderMap.super.newInstanceFor(file);
 		} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
